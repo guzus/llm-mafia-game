@@ -235,7 +235,7 @@ Edit `config.py` to customize:
 ### 1. Run the Mafia Game Simulation
 
 ```
-python simulate.py
+uv run simulate.py
 ```
 
 This will:
@@ -247,7 +247,7 @@ This will:
 ### 2. Start the Dashboard
 
 ```
-python dashboard.py
+uv run dashboard.py
 ```
 
 - Open `http://127.0.0.1:5000/` in your browser to view the leaderboard.
