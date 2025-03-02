@@ -489,9 +489,9 @@
                 
                 // Show eliminations if any
                 if (round.eliminations && round.eliminations.length > 0) {
-                    const eliminatedNames = round.eliminations.map(name => name.split('/').pop());
+                    const eliminatedNames = round.eliminations.map(name => `💀 ${name.split('/').pop()}`);
                     dialogueHtml += `<div class="elimination" style="display: inline-block; margin: 5px;">
-                        ${eliminatedNames.join(', ')} ${eliminatedNames.length === 1 ? 'was' : 'were'} eliminated in this round.
+                        <strong>Eliminated:</strong> ${eliminatedNames.join(' • ')}
                     </div>`;
                 }
                 
