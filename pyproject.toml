@@ -1,0 +1,15 @@
+[project]
+name = "llm-mafia-game"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "firebase-admin==6.2.0",
+    "flask==2.3.3",
+    "futures==3.0.5",
+    "matplotlib==3.10.1",
+    "numpy==2.2.3",
+    "python-dotenv==1.0.0",
+    "requests==2.31.0",
+]

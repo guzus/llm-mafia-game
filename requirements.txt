@@ -1,0 +1,7 @@
+requests==2.31.0
+firebase-admin==6.2.0
+flask==2.3.3
+matplotlib==3.10.1
+numpy==2.2.3
+futures==3.0.5
+python-dotenv==1.0.0

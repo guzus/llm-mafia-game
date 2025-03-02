@@ -96,13 +96,13 @@ The project uses **Firebase Realtime Database** to store game results and logs o
   - `timestamp`: Timestamp when the game was completed.
   - `game_type`: Type of Mafia game played (e.g., "Classic Mafia", "Advanced Mafia").
   - `participant_count`: The number of LLMs that participated in the game.
-  - `winner`: The winning LLM models.
+  - `winner`: The winning team ("Mafia" or "Villagers").
   - `participants`: A dictionary containing each LLM that participated and its assigned role:
     ```json
     {
-      "gpt-4": "Mafia",
-      "claude-3": "Villager",
-      "gemini": "Doctor"
+      "openai/gpt-4-turbo": "Mafia",
+      "anthropic/claude-3-opus": "Villager",
+      "google/gemini-pro": "Doctor"
     }
     ```
 
@@ -119,21 +119,27 @@ The project uses **Firebase Realtime Database** to store game results and logs o
     - `messages`: A list of dialogue exchanges between LLMs, structured as:
       ```json
       [
-        { "speaker": "gpt-4", "content": "I suspect mistral is the Mafia." },
-        { "speaker": "mistral", "content": "I think gemini is lying!" }
+        {
+          "speaker": "openai/gpt-4-turbo",
+          "content": "I suspect mistral is the Mafia."
+        },
+        {
+          "speaker": "mistralai/mistral-large",
+          "content": "I think gemini is lying!"
+        }
       ]
       ```
     - `actions`: A record of decisions made by each LLM in that round (e.g., attack, protect, vote):
       ```json
       {
-        "gpt-4": "Vote mistral",
-        "mistral": "Kill claude-3",
-        "gemini": "Protect claude-3"
+        "openai/gpt-4-turbo": "Vote mistral",
+        "mistralai/mistral-large": "Kill claude-3",
+        "google/gemini-pro": "Protect claude-3"
       }
       ```
     - `eliminations`: List of LLMs eliminated that round:
       ```json
-      ["claude-3"]
+      ["anthropic/claude-3-opus"]
       ```
     - `outcome`: Summary of that round's results, including eliminations and any detected deception.
 
@@ -196,19 +202,19 @@ cd llm-mafia-game
 ### 2. Install Dependencies
 
 ```
-uv sync
+pip install -r requirements.txt
 ```
 
 ### 3. Set Up Firebase
 
 - Create a Firebase project and enable the Realtime Database.
 - Download your `firebase_credentials.json` and place it in the project directory.
-- Update `databaseURL` in the script to match your Firebase URL.
+- Update `FIREBASE_DATABASE_URL` in `config.py` to match your Firebase URL.
 
 ### 4. Set Up OpenRouter API
 
 - Sign up at [OpenRouter](https://openrouter.ai/).
-- Get an API key and add it to the script (`OPENROUTER_API_KEY`).
+- Get an API key and add it to `config.py` (`OPENROUTER_API_KEY`).
 
 ## Configuration
 
@@ -218,14 +224,18 @@ Edit `config.py` to customize:
 - `NUM_GAMES` - Number of games to simulate
 - `PLAYERS_PER_GAME` - Number of players in each game
 - `MAFIA_COUNT` - Number of Mafia players
+- `DOCTOR_COUNT` - Number of Doctor players
 - `GAME_TYPE` - Type of Mafia game to run
+- `MAX_ROUNDS` - Maximum number of rounds before declaring a draw
+- `API_TIMEOUT` - Timeout for API calls (in seconds)
+- `RANDOM_SEED` - Random seed for reproducibility (set to None for random behavior)
 
 ## Usage
 
 ### 1. Run the Mafia Game Simulation
 
 ```
-uv run simulate.py
+python simulate.py
 ```
 
 This will:
@@ -237,16 +247,26 @@ This will:
 ### 2. Start the Dashboard
 
 ```
-uv run dashboard.py
+python dashboard.py
 ```
 
 - Open `http://127.0.0.1:5000/` in your browser to view the leaderboard.
 
-## Dashboard Preview
+## Dashboard Features
 
-The dashboard displays a **bar chart** of LLM win rates using **Matplotlib**.
+The dashboard displays:
+
+1. **Win Rates Chart** - Bar chart showing win rates by model and role
+2. **Games Played Chart** - Stacked bar chart showing games played by model and role
+3. **Model Statistics Table** - Detailed statistics for each model
+4. **Recent Games Table** - List of recent games with results
 
 ## Future Improvements
 
 - Extend to other games beyond Mafia.
 - Add more complex roles like Detective, Jester, Sheriff, etc.
+- Implement a more sophisticated voting system.
+- Add support for custom prompts and game configurations.
+- Create a real-time viewer for ongoing games.
+- Add authentication to the dashboard.
+- Implement a REST API for programmatic access to game results.
