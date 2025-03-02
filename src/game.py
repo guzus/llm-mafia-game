@@ -329,7 +329,7 @@ class MafiaGame:
                 game_state,
                 alive_players,
                 self.mafia_players if player.role == Role.MAFIA else None,
-                self.discussion_history,
+                self.discussion_history,  # TODO: hide the other players' thinking history
             )
 
             # Get response
@@ -423,14 +423,6 @@ class MafiaGame:
         winner = None
 
         while not game_over:
-            # Check if game is over
-            game_over, winner = self.check_game_over()
-            if game_over:
-                break
-
-            # Execute night phase
-            self.execute_night_phase()
-
             # Check if game is over after night phase
             game_over, winner = self.check_game_over()
             if game_over:
@@ -438,6 +430,14 @@ class MafiaGame:
 
             # Execute day phase
             self.execute_day_phase()
+
+            # Check if game is over
+            game_over, winner = self.check_game_over()
+            if game_over:
+                break
+
+            # Execute night phase
+            self.execute_night_phase()
 
         # Add final round data if not already added
         if self.current_round_data["round_number"] > 0:
