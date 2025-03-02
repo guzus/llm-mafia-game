@@ -574,6 +574,102 @@
                             <div class="dialogue-content">${message.content}</div>
                         </div>`;
                     });
+                    
+                    // Add a section at the end of the round to show who died by vote
+                    if (round.eliminated_by_vote && round.eliminated_by_vote.length > 0) {
+                        // Create a visually distinct section for vote eliminations
+                        dialogueHtml += `<div class="dialogue-message" style="margin-left: 20px; margin-top: 20px; background-color: #ffeeee; border-left: 5px solid #d9534f;">
+                            <div class="dialogue-speaker phase-header"><strong>End of Round ${index + 1} - Vote Results</strong></div>
+                            <div class="dialogue-content">`;
+                        
+                        // Use vote_counts and vote_details if available
+                        if (round.vote_counts && round.vote_details) {
+                            // Display each player eliminated by vote with detailed vote information
+                            round.eliminated_by_vote.forEach(eliminated => {
+                                const modelName = eliminated.split('/').pop();
+                                const votes = round.vote_counts[eliminated] || 0;
+                                const voters = round.vote_details[eliminated] || [];
+                                const voterNames = voters.map(voter => voter.split('/').pop());
+                                
+                                dialogueHtml += `<div class="elimination" style="display: block; margin: 10px 0;">
+                                    <strong>💀 ${modelName} was eliminated by vote</strong>
+                                    ${votes > 0 ? ` (${votes} vote${votes > 1 ? 's' : ''})` : ''}
+                                    ${voters.length > 0 ? 
+                                        `<div style="font-size: 0.9em; margin-top: 5px;">Voted by: ${voterNames.join(', ')}</div>` : 
+                                        ''}
+                                </div>`;
+                            });
+                            
+                            // Show all votes, even for players who weren't eliminated
+                            dialogueHtml += `<div style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd;">
+                                <strong>All Votes:</strong>
+                            </div>`;
+                            
+                            Object.entries(round.vote_counts).forEach(([target, count]) => {
+                                const targetName = target.split('/').pop();
+                                const voters = round.vote_details[target] || [];
+                                const voterNames = voters.map(voter => voter.split('/').pop());
+                                
+                                dialogueHtml += `<div style="margin: 5px 0; padding: 5px; background-color: rgba(255,255,255,0.5); border-radius: 4px;">
+                                    <strong>${targetName}:</strong> ${count} vote${count > 1 ? 's' : ''}
+                                    <div style="font-size: 0.9em; margin-top: 3px;">From: ${voterNames.join(', ')}</div>
+                                </div>`;
+                            });
+                        } else {
+                            // Fallback for games without vote_counts and vote_details
+                            // Try to determine vote eliminations from eliminations and actions
+                            const voteInfo = {};
+                            if (round.actions) {
+                                Object.entries(round.actions).forEach(([model, action]) => {
+                                    if (action.startsWith('Vote ')) {
+                                        const target = action.replace('Vote ', '');
+                                        if (!voteInfo[target]) {
+                                            voteInfo[target] = { votes: 0, voters: [] };
+                                        }
+                                        voteInfo[target].votes++;
+                                        voteInfo[target].voters.push(model.split('/').pop());
+                                    }
+                                });
+                            }
+                            
+                            // Display each eliminated player with vote information if available
+                            round.eliminations.forEach(eliminated => {
+                                const modelName = eliminated.split('/').pop();
+                                const votes = voteInfo[eliminated] ? voteInfo[eliminated].votes : 0;
+                                const voters = voteInfo[eliminated] ? voteInfo[eliminated].voters.join(', ') : 'Unknown';
+                                
+                                dialogueHtml += `<div class="elimination" style="display: block; margin: 10px 0;">
+                                    <strong>💀 ${modelName} was eliminated by vote</strong>
+                                    ${votes > 0 ? ` (${votes} vote${votes > 1 ? 's' : ''})` : ''}
+                                    ${votes > 0 ? `<div style="font-size: 0.9em; margin-top: 5px;">Voted by: ${voters}</div>` : ''}
+                                </div>`;
+                            });
+                        }
+                        
+                        dialogueHtml += `</div></div>`;
+                    } else if (round.vote_counts && round.vote_details && Object.keys(round.vote_counts).length > 0) {
+                        // If there are votes but no one was eliminated by vote, still show the voting results
+                        dialogueHtml += `<div class="dialogue-message" style="margin-left: 20px; margin-top: 20px; background-color: #f8f8f8; border-left: 5px solid #666;">
+                            <div class="dialogue-speaker phase-header"><strong>End of Round ${index + 1} - Vote Results</strong></div>
+                            <div class="dialogue-content">
+                                <div style="margin-bottom: 10px;"><em>No one was eliminated by vote in this round.</em></div>
+                                <div style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd;">
+                                    <strong>All Votes:</strong>
+                                </div>`;
+                        
+                        Object.entries(round.vote_counts).forEach(([target, count]) => {
+                            const targetName = target.split('/').pop();
+                            const voters = round.vote_details[target] || [];
+                            const voterNames = voters.map(voter => voter.split('/').pop());
+                            
+                            dialogueHtml += `<div style="margin: 5px 0; padding: 5px; background-color: rgba(255,255,255,0.5); border-radius: 4px;">
+                                <strong>${targetName}:</strong> ${count} vote${count > 1 ? 's' : ''}
+                                <div style="font-size: 0.9em; margin-top: 3px;">From: ${voterNames.join(', ')}</div>
+                            </div>`;
+                        });
+                        
+                        dialogueHtml += `</div></div>`;
+                    }
                 }
             });
             

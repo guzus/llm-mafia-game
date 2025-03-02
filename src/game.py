@@ -33,6 +33,7 @@ class MafiaGame:
             "messages": [],
             "actions": {},
             "eliminations": [],
+            "eliminated_by_vote": [],  # New field to track players eliminated by vote
             "outcome": "",
         }
 
@@ -112,6 +113,7 @@ class MafiaGame:
             "messages": [],
             "actions": {},
             "eliminations": [],
+            "eliminated_by_vote": [],  # Reset for the new round
             "outcome": "",
         }
 
@@ -306,6 +308,7 @@ class MafiaGame:
             kill_target.alive = False
             eliminated_players.append(kill_target)
             self.current_round_data["eliminations"].append(kill_target.model_name)
+            # Not adding to eliminated_by_vote since this is a night kill
             outcome_text = f"{kill_target.model_name} was killed by the Mafia."
             self.current_round_data["outcome"] = outcome_text
             self.logger.event(outcome_text, Color.RED)
@@ -386,11 +389,17 @@ class MafiaGame:
 
         # Count votes
         vote_counts = {}
+        vote_details = {}  # New dictionary to store who voted for whom
         for voter, target_name in votes.items():
             if target_name in vote_counts:
                 vote_counts[target_name] += 1
             else:
                 vote_counts[target_name] = 1
+
+            # Store voter information for each target
+            if target_name not in vote_details:
+                vote_details[target_name] = []
+            vote_details[target_name].append(voter)
 
         # Find player with most votes
         max_votes = 0
@@ -410,13 +419,37 @@ class MafiaGame:
             eliminated_player.alive = False
             eliminated_players.append(eliminated_player)
             self.current_round_data["eliminations"].append(eliminated_player.model_name)
-            outcome_text = f"{eliminated_player.model_name} was eliminated by vote."
+            # Add to eliminated_by_vote to track players eliminated by voting
+            self.current_round_data["eliminated_by_vote"] = [
+                eliminated_player.model_name
+            ]
+
+            # Store vote details in the round data
+            self.current_round_data["vote_counts"] = vote_counts
+            self.current_round_data["vote_details"] = vote_details
+
+            # Include vote count in the outcome text
+            outcome_text = f"{eliminated_player.model_name} was eliminated by vote with {vote_counts[eliminated_player.model_name]} votes."
             self.current_round_data["outcome"] += f" {outcome_text}"
             self.logger.event(outcome_text, Color.YELLOW)
+
+            # Log who voted for the eliminated player
+            voters = vote_details.get(eliminated_player.model_name, [])
+            if voters:
+                voter_names = [
+                    name.split("/")[-1] for name in voters
+                ]  # Extract model names
+                voter_text = f"Voted by: {', '.join(voter_names)}"
+                self.current_round_data["voters"] = voters
+                self.logger.event(voter_text, Color.YELLOW)
         else:
             outcome_text = "No one was eliminated by vote."
             self.current_round_data["outcome"] += f" {outcome_text}"
             self.logger.event(outcome_text, Color.YELLOW)
+
+            # Still store vote information even if no one was eliminated
+            self.current_round_data["vote_counts"] = vote_counts
+            self.current_round_data["vote_details"] = vote_details
 
         # Set phase to night and increment round
         self.phase = "night"
@@ -427,6 +460,7 @@ class MafiaGame:
             "messages": [],
             "actions": {},
             "eliminations": [],
+            "eliminated_by_vote": [],  # Reset for the new round
             "outcome": "",
         }
 
