@@ -151,6 +151,87 @@
             font-weight: bold;
             margin: 20px 0;
         }
+        /* New styles for dialogue and game result */
+        .dialogue {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+        }
+        .dialogue-message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .dialogue-speaker {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .dialogue-content {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .game-result {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .result-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .winner {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .winner.mafia {
+            color: white;
+            background-color: #d9534f;
+        }
+        .winner.villager {
+            color: white;
+            background-color: #5cb85c;
+        }
+        .tab-container {
+            margin-top: 20px;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background-color: white;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -165,11 +246,37 @@
             </div>
         </div>
         
-        <h2>Game Log</h2>
-        <div id="gameLog" class="game-log">
+        <div class="tab-container">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('summary')">Game Summary</div>
+                <div class="tab" onclick="switchTab('dialogue')">Full Dialogue</div>
+            </div>
+            
+            <div id="summary" class="tab-content active">
+                <h2>Game Log</h2>
+                <div id="gameLog" class="game-log">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <div>Loading game log...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="dialogue" class="tab-content">
+                <h2>Full Dialogue</h2>
+                <div id="gameDialogue" class="dialogue">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <div>Loading dialogue...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="gameResult" class="game-result">
             <div class="loading">
                 <div class="spinner"></div>
-                <div>Loading game log...</div>
+                <div>Loading game result...</div>
             </div>
         </div>
     </div>
@@ -190,6 +297,8 @@
                 console.log('Game data received:', data);
                 displayGameInfo(data);
                 displayGameLog(data);
+                displayGameDialogue(data);
+                displayGameResult(data);
             })
             .catch(error => {
                 console.error('Error fetching game data:', error);
@@ -200,6 +309,14 @@
                 document.getElementById('gameLog').innerHTML = `
                     <div class="error">
                         Error loading game log: ${error.message}
+                    </div>`;
+                document.getElementById('gameDialogue').innerHTML = `
+                    <div class="error">
+                        Error loading dialogue: ${error.message}
+                    </div>`;
+                document.getElementById('gameResult').innerHTML = `
+                    <div class="error">
+                        Error loading game result: ${error.message}
                     </div>`;
             });
         
@@ -284,19 +401,13 @@
                     });
                 }
                 
-                // Process conversations/dialogues
+                // Process conversations/dialogues (summary view)
                 if (round.conversation && round.conversation.length > 0) {
-                    roundHtml += `<div class="round-section">Conversation:</div>`;
-                    round.conversation.forEach(message => {
-                        const model = message.speaker || 'System';
-                        const modelName = model.split('/').pop();
-                        const roleClass = modelRoles[model] || '';
-                        
-                        roundHtml += `<div class="action ${roleClass}">
-                            <div class="action-header ${roleClass}">${modelName}:</div>
-                            ${message.content}
-                        </div>`;
-                    });
+                    roundHtml += `<div class="round-section">Conversation Summary:</div>`;
+                    roundHtml += `<div class="action">
+                        <div class="action-header">Round ${index + 1} had ${round.conversation.length} messages</div>
+                        <a href="#" onclick="switchTab('dialogue'); return false;">View full dialogue</a>
+                    </div>`;
                 }
                 
                 roundHtml += '</div>';
@@ -304,6 +415,105 @@
             });
             
             gameLogElement.innerHTML = gameLogHtml;
+        }
+        
+        // Function to display full dialogue
+        function displayGameDialogue(data) {
+            const dialogueElement = document.getElementById('gameDialogue');
+            
+            if (!data.rounds || data.rounds.length === 0) {
+                dialogueElement.innerHTML = '<div class="error">No dialogue data available</div>';
+                return;
+            }
+            
+            // Create a mapping of model names to their roles for coloring
+            const modelRoles = {};
+            const participants = data.participants || {};
+            Object.entries(participants).forEach(([model, role]) => {
+                modelRoles[model] = role.toLowerCase();
+            });
+            
+            let dialogueHtml = '';
+            
+            // Process each round's conversation
+            data.rounds.forEach((round, index) => {
+                if (round.conversation && round.conversation.length > 0) {
+                    dialogueHtml += `<h3>Round ${index + 1} Dialogue</h3>`;
+                    
+                    round.conversation.forEach((message, msgIndex) => {
+                        const model = message.speaker || 'System';
+                        const modelName = model.split('/').pop();
+                        const roleClass = modelRoles[model] || '';
+                        
+                        dialogueHtml += `<div class="dialogue-message ${roleClass}">
+                            <div class="dialogue-speaker ${roleClass}">${modelName} (${participants[model] || 'System'}):</div>
+                            <div class="dialogue-content">${message.content}</div>
+                        </div>`;
+                    });
+                }
+            });
+            
+            if (dialogueHtml === '') {
+                dialogueElement.innerHTML = '<div class="error">No dialogue data available</div>';
+            } else {
+                dialogueElement.innerHTML = dialogueHtml;
+            }
+        }
+        
+        // Function to display game result
+        function displayGameResult(data) {
+            const resultElement = document.getElementById('gameResult');
+            
+            if (!data.winner) {
+                resultElement.innerHTML = '<div class="error">No result data available</div>';
+                return;
+            }
+            
+            // Determine winner class
+            let winnerClass = '';
+            if (data.winner.toLowerCase().includes('mafia')) {
+                winnerClass = 'mafia';
+            } else if (data.winner.toLowerCase().includes('villager')) {
+                winnerClass = 'villager';
+            }
+            
+            // Get eliminated players
+            const eliminated = [];
+            if (data.rounds) {
+                data.rounds.forEach(round => {
+                    if (round.eliminations && round.eliminations.length > 0) {
+                        round.eliminations.forEach(player => {
+                            eliminated.push(player.split('/').pop());
+                        });
+                    }
+                });
+            }
+            
+            resultElement.innerHTML = `
+                <div class="result-title">Game Result</div>
+                <div class="winner ${winnerClass}">${data.winner} Win!</div>
+                ${eliminated.length > 0 ? 
+                    `<p><strong>Eliminated Players:</strong> ${eliminated.join(', ')}</p>` : 
+                    ''}
+                <p><strong>Game ID:</strong> ${data.game_id}</p>
+            `;
+        }
+        
+        // Function to switch tabs
+        function switchTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Deactivate all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Activate selected tab and content
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`.tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
         }
     </script>
 </body>
