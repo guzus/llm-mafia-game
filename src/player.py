@@ -158,16 +158,9 @@ Your response:
     def parse_day_vote(self, response, all_players):
         """
         Parse the day vote from the player's response.
-
-        Args:
-            response (str): The response from the player.
-            all_players (list): List of all players in the game.
-
-        Returns:
-            Player or None: The player being voted for, or None if no valid vote.
         """
-        # Look for "VOTE: [player]" pattern
-        match = re.search(r"VOTE:\s*(\w+[-\w]*)", response, re.IGNORECASE)
+        # Updated regex that can handle more complex model names with special characters
+        match = re.search(r"VOTE:\s*([\w./-]+(?:[-:]\w+)*)", response, re.IGNORECASE)
         if match:
             target_name = match.group(1).strip()
             # Find the target player
