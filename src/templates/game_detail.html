@@ -400,12 +400,12 @@
                         </div>`;
                     });
                 }
-                
+
                 // Process conversations/dialogues (summary view)
-                if (round.conversation && round.conversation.length > 0) {
+                if (round.messages && round.messages.length > 0) {
                     roundHtml += `<div class="round-section">Conversation Summary:</div>`;
                     roundHtml += `<div class="action">
-                        <div class="action-header">Round ${index + 1} had ${round.conversation.length} messages</div>
+                        <div class="action-header">Round ${index + 1} had ${round.messages.length} messages</div>
                         <a href="#" onclick="switchTab('dialogue'); return false;">View full dialogue</a>
                     </div>`;
                 }
@@ -437,10 +437,10 @@
             
             // Process each round's conversation
             data.rounds.forEach((round, index) => {
-                if (round.conversation && round.conversation.length > 0) {
+                if (round.messages && round.messages.length > 0) {
                     dialogueHtml += `<h3>Round ${index + 1} Dialogue</h3>`;
                     
-                    round.conversation.forEach((message, msgIndex) => {
+                    round.messages.forEach((message, msgIndex) => {
                         const model = message.speaker || 'System';
                         const modelName = model.split('/').pop();
                         const roleClass = modelRoles[model] || '';
