@@ -16,9 +16,6 @@ OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 FIREBASE_CREDENTIALS_PATH = (
     "firebase_credentials.json"  # Path to your Firebase credentials file
 )
-FIREBASE_DATABASE_URL = os.getenv(
-    "FIREBASE_DATABASE_URL", "https://your-project-id.firebaseio.com/"
-)
 
 # Game settings
 MODELS = [

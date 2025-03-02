@@ -5,7 +5,7 @@ Firebase manager for the LLM Mafia Game Competition.
 import json
 import time
 import firebase_admin
-from firebase_admin import credentials, db
+from firebase_admin import credentials, firestore
 import config
 
 
@@ -15,12 +15,9 @@ class FirebaseManager:
     def __init__(self):
         """Initialize the Firebase manager."""
         try:
-            # Initialize Firebase app
             cred = credentials.Certificate(config.FIREBASE_CREDENTIALS_PATH)
-            firebase_admin.initialize_app(
-                cred, {"databaseURL": config.FIREBASE_DATABASE_URL}
-            )
-            self.db = db
+            firebase_admin.initialize_app(cred)
+            self.db = firestore.client()
             self.initialized = True
             print("Firebase initialized successfully.")
         except Exception as e:
@@ -58,8 +55,7 @@ class FirebaseManager:
             }
 
             # Store in Firebase
-            ref = self.db.reference("mafia_games")
-            ref.child(game_id).set(game_data)
+            self.db.collection("mafia_games").document(game_id).set(game_data)
             return True
         except Exception as e:
             print(f"Error storing game result: {e}")
@@ -93,8 +89,7 @@ class FirebaseManager:
             }
 
             # Store in Firebase
-            ref = self.db.reference("game_logs")
-            ref.child(game_id).set(log_data)
+            self.db.collection("game_logs").document(game_id).set(log_data)
             return True
         except Exception as e:
             print(f"Error storing game log: {e}")
@@ -115,13 +110,16 @@ class FirebaseManager:
             return []
 
         try:
-            ref = self.db.reference("mafia_games")
-            results = ref.order_by_child("timestamp").limit_to_last(limit).get()
+            # Query Firestore for game results, ordered by timestamp
+            results = (
+                self.db.collection("mafia_games")
+                .order_by("timestamp", direction=firestore.Query.DESCENDING)
+                .limit(limit)
+                .stream()
+            )
 
             # Convert to list
-            if results:
-                return list(results.values())
-            return []
+            return [doc.to_dict() for doc in results]
         except Exception as e:
             print(f"Error getting game results: {e}")
             return []
