@@ -19,18 +19,19 @@ FIREBASE_CREDENTIALS_PATH = (
 
 # Game settings
 MODELS = [
-    "openai/gpt-4-turbo",
-    "anthropic/claude-3-opus",
-    "anthropic/claude-3-sonnet",
-    "google/gemini-pro",
-    "mistralai/mistral-large",
-    "meta-llama/llama-3-70b-instruct",
+    "deepseek/deepseek-r1:free",
+    "google/gemini-2.0-pro-exp-02-05:free",
+    "google/gemini-2.0-flash-exp:free",
+    "google/gemini-2.0-flash-lite-preview-02-05:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "deepseek/deepseek-r1-distill-llama-70b:free",
+    "google/gemini-exp-1206:free",
 ]
 
 # Game configuration
 NUM_GAMES = int(os.getenv("NUM_GAMES", 100))  # Number of games to simulate
 PLAYERS_PER_GAME = int(
-    os.getenv("PLAYERS_PER_GAME", 7)
+    os.getenv("PLAYERS_PER_GAME", 6)
 )  # Number of players in each game
 MAFIA_COUNT = int(os.getenv("MAFIA_COUNT", 2))  # Number of Mafia players
 DOCTOR_COUNT = int(os.getenv("DOCTOR_COUNT", 1))  # Number of Doctor players
