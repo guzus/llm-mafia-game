@@ -1,0 +1,210 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+}
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+h1, h2 {
+    color: #333;
+}
+.chart-container {
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+.chart {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+th {
+    background-color: #f8f8f8;
+    font-weight: bold;
+}
+tr:hover {
+    background-color: #f1f1f1;
+}
+.loading {
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+    color: #666;
+}
+.spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top-color: #0066cc;
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 10px;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.error {
+    color: #d9534f;
+    padding: 15px;
+    background-color: #ffeeee;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: bold;
+}
+.game-id {
+    cursor: pointer;
+    color: #0066cc;
+    text-decoration: underline;
+    font-weight: bold;
+    padding: 3px 6px;
+    border-radius: 3px;
+    background-color: #f0f8ff;
+    transition: background-color 0.2s;
+}
+.game-id:hover {
+    color: #004080;
+    background-color: #d0e4f7;
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+.modal-content {
+    background-color: #fefefe;
+    margin: 3% auto;
+    padding: 25px;
+    border: 1px solid #888;
+    width: 90%;
+    max-width: 1200px;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: -10px;
+}
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+}
+.game-log {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+.round {
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: white;
+    border-radius: 5px;
+    border: 1px solid #eee;
+}
+.round-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #eee;
+}
+.round-section {
+    font-weight: bold;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    padding-bottom: 3px;
+    border-bottom: 1px dashed #ddd;
+}
+.elimination {
+    margin: 5px 0;
+    padding: 5px;
+    background-color: #ffeeee;
+    border-radius: 3px;
+    font-weight: bold;
+    color: #d9534f;
+}
+.action {
+    margin: 5px 0;
+    padding: 8px;
+    border-radius: 3px;
+    border-left: 3px solid #eee;
+    background-color: #fafafa;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.action.mafia {
+    color: #d9534f;
+    border-left-color: #d9534f;
+}
+.action.villager {
+    color: #5cb85c;
+    border-left-color: #5cb85c;
+}
+.action.doctor {
+    color: #5bc0de;
+    border-left-color: #5bc0de;
+}
+.mafia {
+    color: #d9534f;
+}
+.villager {
+    color: #5cb85c;
+}
+.doctor {
+    color: #5bc0de;
+}
+.game-info {
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+}
+.participant {
+    display: inline-block;
+    margin-right: 10px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    margin-bottom: 5px;
+}
+.game-row {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.game-row:hover {
+    background-color: #f0f8ff;
+} 

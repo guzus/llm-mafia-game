@@ -17,7 +17,7 @@ import numpy as np
 from flask import Flask, render_template, request, jsonify, Response, make_response
 from firebase_manager import FirebaseManager
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static", template_folder="templates")
 firebase = FirebaseManager()
 
 

@@ -1,0 +1,269 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+}
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+h1, h2, h3 {
+    color: #333;
+}
+.back-link {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: #0066cc;
+    text-decoration: none;
+    font-weight: bold;
+}
+.back-link:hover {
+    text-decoration: underline;
+}
+.game-info {
+    margin-bottom: 20px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.participant {
+    display: inline-block;
+    margin-right: 10px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+.mafia {
+    color: #d9534f;
+    background-color: #ffeeee;
+    border-left: 3px solid #d9534f;
+}
+.villager {
+    color: #5cb85c;
+    background-color: #eeffee;
+    border-left: 3px solid #5cb85c;
+}
+.doctor {
+    color: #5bc0de;
+    background-color: #eef9ff;
+    border-left: 3px solid #5bc0de;
+}
+.game-log {
+    margin-top: 20px;
+}
+.round {
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.round-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+.round-section {
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px dashed #ddd;
+}
+.elimination {
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #ffeeee;
+    border-radius: 5px;
+    font-weight: bold;
+    color: #d9534f;
+    border-left: 5px solid #d9534f;
+}
+.action {
+    margin: 10px 0;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 5px solid #eee;
+    background-color: #fafafa;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.action.mafia {
+    border-left-color: #d9534f;
+}
+.action.villager {
+    border-left-color: #5cb85c;
+}
+.action.doctor {
+    border-left-color: #5bc0de;
+}
+.action-header {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+.action-header.mafia {
+    color: #d9534f;
+}
+.action-header.villager {
+    color: #5cb85c;
+}
+.action-header.doctor {
+    color: #5bc0de;
+}
+.loading {
+    text-align: center;
+    padding: 40px;
+    font-style: italic;
+    color: #666;
+}
+.spinner {
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top-color: #0066cc;
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 20px;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.error {
+    color: #d9534f;
+    padding: 20px;
+    background-color: #ffeeee;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: bold;
+    margin: 20px 0;
+}
+/* Styles for dialogue and game result */
+.dialogue {
+    margin: 15px 0;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+}
+.dialogue-message {
+    margin-bottom: 15px;
+    padding: 12px;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.dialogue-speaker {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+.dialogue-content {
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+/* Styles for game phases */
+.night-phase {
+    background-color: #e6f2ff !important;
+    border-left: 5px solid #0066cc !important;
+}
+.day-phase {
+    background-color: #fff9e6 !important;
+    border-left: 5px solid #ffcc00 !important;
+}
+.phase-header {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+}
+.phase-outcome {
+    margin-top: 10px;
+    padding: 8px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 5px;
+}
+.action-list {
+    margin: 10px 0;
+}
+.action-item {
+    margin: 5px 0;
+}
+.game-result {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+.result-title {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #333;
+}
+.winner {
+    font-size: 1.8em;
+    font-weight: bold;
+    margin: 15px 0;
+    padding: 10px;
+    border-radius: 8px;
+}
+.winner.mafia {
+    color: white;
+    background-color: #d9534f;
+}
+.winner.villager {
+    color: white;
+    background-color: #5cb85c;
+}
+.tab-container {
+    margin-top: 20px;
+}
+.tabs {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+}
+.tab {
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: #f1f1f1;
+    border: 1px solid #ddd;
+    border-bottom: none;
+    margin-right: 5px;
+    border-radius: 5px 5px 0 0;
+}
+.tab.active {
+    background-color: white;
+    border-bottom: 1px solid white;
+    margin-bottom: -1px;
+    font-weight: bold;
+}
+.tab-content {
+    display: none;
+}
+.tab-content.active {
+    display: block;
+}
+.phase-tag {
+    font-weight: bold;
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    margin-left: 8px;
+}
+.phase-tag.night {
+    background-color: #0066cc;
+    color: white;
+}
+.phase-tag.day {
+    background-color: #ffcc00;
+    color: #333;
+} 
