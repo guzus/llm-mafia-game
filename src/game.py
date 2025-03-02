@@ -6,6 +6,7 @@ import random
 import uuid
 from player import Player, Role
 import config
+from logger import GameLogger, Color
 
 
 class MafiaGame:
@@ -42,6 +43,9 @@ class MafiaGame:
         if config.RANDOM_SEED is not None:
             random.seed(config.RANDOM_SEED)
 
+        # Initialize logger
+        self.logger = GameLogger()
+
     def setup_game(self):
         """
         Set up the game by assigning roles to players.
@@ -51,10 +55,13 @@ class MafiaGame:
         """
         # Check if we have enough models
         if len(self.models) < config.PLAYERS_PER_GAME:
-            print(
+            self.logger.error(
                 f"Not enough models. Need {config.PLAYERS_PER_GAME}, but only have {len(self.models)}."
             )
             return False
+
+        # Log game start
+        self.logger.game_start(1, self.game_id)
 
         # Randomly select models for this game
         selected_models = random.sample(self.models, config.PLAYERS_PER_GAME)
@@ -81,6 +88,7 @@ class MafiaGame:
         random.shuffle(roles)
 
         # Create players
+        self.logger.header("PLAYER SETUP", Color.CYAN)
         for i, model_name in enumerate(selected_models):
             player = Player(model_name, roles[i])
             self.players.append(player)
@@ -93,6 +101,9 @@ class MafiaGame:
             else:  # Role.VILLAGER
                 self.villager_players.append(player)
 
+            # Log player setup
+            self.logger.player_setup(player.model_name, player.role.value)
+
         # Set phase to night
         self.phase = "night"
         self.round_number = 1
@@ -104,9 +115,6 @@ class MafiaGame:
             "outcome": "",
         }
 
-        print(
-            f"Game setup complete. {len(self.players)} players, {len(self.mafia_players)} Mafia, {len(self.villager_players)} Villagers, {1 if self.doctor_player else 0} Doctor."
-        )
         return True
 
     def get_game_state(self):
@@ -171,7 +179,7 @@ class MafiaGame:
         Returns:
             list: List of eliminated players.
         """
-        print(f"\n--- Night Phase (Round {self.round_number}) ---")
+        self.logger.phase_header("Night", self.round_number)
 
         # Reset protected status
         for player in self.players:
@@ -191,7 +199,7 @@ class MafiaGame:
 
                 # Get response
                 response = player.get_response(prompt)
-                print(f"{player.model_name} (Mafia) response: {response}")
+                self.logger.player_response(player.model_name, "Mafia", response)
 
                 # Parse action
                 action_type, target = player.parse_night_action(
@@ -200,11 +208,13 @@ class MafiaGame:
 
                 if action_type == "kill" and target:
                     mafia_targets.append(target)
-                    self.current_round_data["actions"][
-                        player.model_name
-                    ] = f"Kill {target.model_name}"
+                    action_text = f"Kill {target.model_name}"
+                    self.current_round_data["actions"][player.model_name] = action_text
+                    self.logger.player_action(player.model_name, "Mafia", action_text)
                 else:
-                    print(f"Invalid action from {player.model_name} (Mafia)")
+                    self.logger.error(
+                        f"Invalid action from {player.model_name} (Mafia)"
+                    )
                     self.current_round_data["actions"][
                         player.model_name
                     ] = "Invalid action"
@@ -243,7 +253,9 @@ class MafiaGame:
 
             # Get response
             response = self.doctor_player.get_response(prompt)
-            print(f"{self.doctor_player.model_name} (Doctor) response: {response}")
+            self.logger.player_response(
+                self.doctor_player.model_name, "Doctor", response
+            )
 
             # Parse action
             action_type, target = self.doctor_player.parse_night_action(
@@ -253,11 +265,17 @@ class MafiaGame:
             if action_type == "protect" and target:
                 protected_player = target
                 target.protected = True
+                action_text = f"Protect {target.model_name}"
                 self.current_round_data["actions"][
                     self.doctor_player.model_name
-                ] = f"Protect {target.model_name}"
+                ] = action_text
+                self.logger.player_action(
+                    self.doctor_player.model_name, "Doctor", action_text
+                )
             else:
-                print(f"Invalid action from {self.doctor_player.model_name} (Doctor)")
+                self.logger.error(
+                    f"Invalid action from {self.doctor_player.model_name} (Doctor)"
+                )
                 self.current_round_data["actions"][
                     self.doctor_player.model_name
                 ] = "Invalid action"
@@ -268,21 +286,20 @@ class MafiaGame:
             kill_target.alive = False
             eliminated_players.append(kill_target)
             self.current_round_data["eliminations"].append(kill_target.model_name)
-            self.current_round_data["outcome"] = (
-                f"{kill_target.model_name} was killed by the Mafia."
-            )
-            print(f"{kill_target.model_name} was killed by the Mafia.")
+            outcome_text = f"{kill_target.model_name} was killed by the Mafia."
+            self.current_round_data["outcome"] = outcome_text
+            self.logger.event(outcome_text, Color.RED)
         else:
             if kill_target and kill_target.protected:
-                self.current_round_data["outcome"] = (
+                outcome_text = (
                     f"The Doctor protected {kill_target.model_name} from the Mafia."
                 )
-                print(f"The Doctor protected {kill_target.model_name} from the Mafia.")
+                self.current_round_data["outcome"] = outcome_text
+                self.logger.event(outcome_text, Color.BLUE)
             else:
-                self.current_round_data["outcome"] = (
-                    "No one was killed during the night."
-                )
-                print("No one was killed during the night.")
+                outcome_text = "No one was killed during the night."
+                self.current_round_data["outcome"] = outcome_text
+                self.logger.event(outcome_text, Color.YELLOW)
 
         # Set phase to day
         self.phase = "day"
@@ -296,7 +313,7 @@ class MafiaGame:
         Returns:
             list: List of eliminated players.
         """
-        print(f"\n--- Day Phase (Round {self.round_number}) ---")
+        self.logger.phase_header("Day", self.round_number)
 
         # Get alive players
         alive_players = self.get_alive_players()
@@ -317,7 +334,7 @@ class MafiaGame:
 
             # Get response
             response = player.get_response(prompt)
-            print(f"{player.model_name} ({player.role.value}) response: {response}")
+            self.logger.player_response(player.model_name, player.role.value, response)
 
             # Add to messages
             messages.append({"speaker": player.model_name, "content": response})
@@ -329,11 +346,13 @@ class MafiaGame:
             vote_target = player.parse_day_vote(response, alive_players)
             if vote_target:
                 votes[player.model_name] = vote_target.model_name
-                self.current_round_data["actions"][
-                    player.model_name
-                ] = f"Vote {vote_target.model_name}"
+                action_text = f"Vote {vote_target.model_name}"
+                self.current_round_data["actions"][player.model_name] = action_text
+                self.logger.player_action(
+                    player.model_name, player.role.value, action_text
+                )
             else:
-                print(f"Invalid vote from {player.model_name}")
+                self.logger.error(f"Invalid vote from {player.model_name}")
                 self.current_round_data["actions"][player.model_name] = "Invalid vote"
 
         # Update discussion history
@@ -366,13 +385,13 @@ class MafiaGame:
             eliminated_player.alive = False
             eliminated_players.append(eliminated_player)
             self.current_round_data["eliminations"].append(eliminated_player.model_name)
-            self.current_round_data[
-                "outcome"
-            ] += f" {eliminated_player.model_name} was eliminated by vote."
-            print(f"{eliminated_player.model_name} was eliminated by vote.")
+            outcome_text = f"{eliminated_player.model_name} was eliminated by vote."
+            self.current_round_data["outcome"] += f" {outcome_text}"
+            self.logger.event(outcome_text, Color.YELLOW)
         else:
-            self.current_round_data["outcome"] += " No one was eliminated by vote."
-            print("No one was eliminated by vote.")
+            outcome_text = "No one was eliminated by vote."
+            self.current_round_data["outcome"] += f" {outcome_text}"
+            self.logger.event(outcome_text, Color.YELLOW)
 
         # Set phase to night and increment round
         self.phase = "night"
@@ -429,8 +448,7 @@ class MafiaGame:
         for player in self.players:
             participants[player.model_name] = player.role.value
 
-        print(f"\n--- Game Over ---")
-        print(f"Winner: {winner}")
-        print(f"Rounds: {self.round_number}")
+        # Log game end
+        self.logger.game_end(1, winner, self.round_number)
 
         return winner, self.rounds_data, participants

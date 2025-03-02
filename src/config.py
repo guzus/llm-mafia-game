@@ -29,7 +29,7 @@ MODELS = [
 ]
 
 # Game configuration
-NUM_GAMES = int(os.getenv("NUM_GAMES", 100))  # Number of games to simulate
+NUM_GAMES = 1  # Number of games to simulate (temporarily set to 1 for testing)
 PLAYERS_PER_GAME = int(
     os.getenv("PLAYERS_PER_GAME", 6)
 )  # Number of players in each game

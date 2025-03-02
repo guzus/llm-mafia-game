@@ -9,6 +9,7 @@ from collections import defaultdict
 import config
 from game import MafiaGame
 from firebase_manager import FirebaseManager
+from logger import GameLogger, Color
 
 
 def run_single_game(game_number):
@@ -21,10 +22,8 @@ def run_single_game(game_number):
     Returns:
         tuple: (game_number, winner, rounds_data, participants)
     """
-    print(f"\n=== Starting Game {game_number} ===")
     game = MafiaGame()
     winner, rounds_data, participants = game.run_game()
-    print(f"=== Game {game_number} Complete ===")
     return game_number, winner, rounds_data, participants, game.game_id
 
 
@@ -40,7 +39,10 @@ def run_simulation(num_games=config.NUM_GAMES, parallel=True, max_workers=4):
     Returns:
         dict: Statistics about the games.
     """
-    print(f"Starting simulation with {num_games} games...")
+    # Initialize logger
+    logger = GameLogger()
+    logger.header(f"STARTING SIMULATION WITH {num_games} GAMES", Color.BRIGHT_MAGENTA)
+
     start_time = time.time()
 
     # Initialize Firebase
@@ -113,9 +115,16 @@ def run_simulation(num_games=config.NUM_GAMES, parallel=True, max_workers=4):
                                 stats["model_stats"][model]["villager_wins"] += 1
                                 stats["model_stats"][model]["wins"] += 1
 
-                    print(f"Game {game_number} completed. Winner: {winner}")
+                    # Log game completion
+                    win_color = Color.RED if winner == "Mafia" else Color.GREEN
+                    logger.print(
+                        f"Game {game_number} completed. Winner: {winner}",
+                        win_color,
+                        bold=True,
+                    )
+
                 except Exception as e:
-                    print(f"Game {game_number} generated an exception: {e}")
+                    logger.error(f"Game {game_number} generated an exception: {e}")
     else:
         # Run games sequentially
         for i in range(1, num_games + 1):
@@ -155,62 +164,23 @@ def run_simulation(num_games=config.NUM_GAMES, parallel=True, max_workers=4):
                             stats["model_stats"][model]["villager_wins"] += 1
                             stats["model_stats"][model]["wins"] += 1
 
-                print(f"Game {game_number} completed. Winner: {winner}")
+                # Log game completion
+                win_color = Color.RED if winner == "Mafia" else Color.GREEN
+                logger.print(
+                    f"Game {game_number} completed. Winner: {winner}",
+                    win_color,
+                    bold=True,
+                )
+
             except Exception as e:
-                print(f"Game {game_number} generated an exception: {e}")
+                logger.error(f"Game {game_number} generated an exception: {e}")
 
     # Calculate elapsed time
     elapsed_time = time.time() - start_time
     stats["elapsed_time"] = elapsed_time
 
-    # Print statistics
-    print("\n=== Simulation Complete ===")
-    print(f"Total games: {stats['total_games']}")
-    print(f"Completed games: {stats['completed_games']}")
-    print(
-        f"Mafia wins: {stats['mafia_wins']} ({stats['mafia_wins'] / stats['completed_games'] * 100:.2f}%)"
-    )
-    print(
-        f"Villager wins: {stats['villager_wins']} ({stats['villager_wins'] / stats['completed_games'] * 100:.2f}%)"
-    )
-    print(f"Elapsed time: {elapsed_time:.2f} seconds")
-
-    # Print model statistics
-    print("\n=== Model Statistics ===")
-    for model, model_stats in stats["model_stats"].items():
-        win_rate = (
-            model_stats["wins"] / model_stats["games"] * 100
-            if model_stats["games"] > 0
-            else 0
-        )
-        mafia_win_rate = (
-            model_stats["mafia_wins"] / model_stats["mafia_games"] * 100
-            if model_stats["mafia_games"] > 0
-            else 0
-        )
-        villager_win_rate = (
-            model_stats["villager_wins"] / model_stats["villager_games"] * 100
-            if model_stats["villager_games"] > 0
-            else 0
-        )
-        doctor_win_rate = (
-            model_stats["doctor_wins"] / model_stats["doctor_games"] * 100
-            if model_stats["doctor_games"] > 0
-            else 0
-        )
-
-        print(f"\n{model}:")
-        print(f"  Games played: {model_stats['games']}")
-        print(f"  Overall win rate: {win_rate:.2f}%")
-        print(
-            f"  Mafia win rate: {mafia_win_rate:.2f}% ({model_stats['mafia_wins']}/{model_stats['mafia_games']})"
-        )
-        print(
-            f"  Villager win rate: {villager_win_rate:.2f}% ({model_stats['villager_wins']}/{model_stats['villager_games']})"
-        )
-        print(
-            f"  Doctor win rate: {doctor_win_rate:.2f}% ({model_stats['doctor_wins']}/{model_stats['doctor_games']})"
-        )
+    # Log statistics using our logger
+    logger.stats(stats)
 
     return stats
 
