@@ -258,6 +258,22 @@
         .tab-content.active {
             display: block;
         }
+        .phase-tag {
+            font-weight: bold;
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin-left: 8px;
+        }
+        .phase-tag.night {
+            background-color: #0066cc;
+            color: white;
+        }
+        .phase-tag.day {
+            background-color: #ffcc00;
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -463,8 +479,28 @@
             
             // Process each round's conversation
             data.rounds.forEach((round, index) => {
-                // Add round header with phase information
+                // Add round header
                 dialogueHtml += `<h3>Round ${index + 1}</h3>`;
+                
+                // Add round summary
+                dialogueHtml += `<div class="dialogue-message" style="background-color: #f8f8f8; border-left: 5px solid #333;">
+                    <div class="dialogue-speaker phase-header"><strong>Round Summary</strong></div>
+                    <div class="dialogue-content">`;
+                
+                // Show eliminations if any
+                if (round.eliminations && round.eliminations.length > 0) {
+                    const eliminatedNames = round.eliminations.map(name => name.split('/').pop());
+                    dialogueHtml += `<div class="elimination" style="display: inline-block; margin: 5px;">
+                        ${eliminatedNames.join(', ')} ${eliminatedNames.length === 1 ? 'was' : 'were'} eliminated in this round.
+                    </div>`;
+                }
+                
+                // Show round outcome
+                if (round.outcome) {
+                    dialogueHtml += `<div style="margin-top: 10px;">${round.outcome}</div>`;
+                }
+                
+                dialogueHtml += `</div></div>`;
                 
                 // Add night phase information if available
                 if (index > 0 && data.rounds[index-1] && data.rounds[index-1].actions) {
@@ -509,54 +545,7 @@
                     dialogueHtml += `</div></div>`;
                 }
                 
-                // Add round summary
-                dialogueHtml += `<div class="dialogue-message" style="background-color: #f8f8f8; border-left: 5px solid #333;">
-                    <div class="dialogue-speaker phase-header"><strong>Round Summary</strong></div>
-                    <div class="dialogue-content">`;
-                
-                // Show eliminations if any
-                if (round.eliminations && round.eliminations.length > 0) {
-                    const eliminatedNames = round.eliminations.map(name => name.split('/').pop());
-                    dialogueHtml += `<div class="elimination" style="display: inline-block; margin: 5px;">
-                        ${eliminatedNames.join(', ')} ${eliminatedNames.length === 1 ? 'was' : 'were'} eliminated in this round.
-                    </div>`;
-                }
-                
-                // Show round outcome
-                if (round.outcome) {
-                    dialogueHtml += `<div style="margin-top: 10px;">${round.outcome}</div>`;
-                }
-                
-                dialogueHtml += `</div></div>`;
-                
-                // Add day phase information
-                dialogueHtml += `<div class="dialogue-message day-phase">
-                    <div class="dialogue-speaker phase-header"><strong>Day Phase (Round ${index + 1})</strong></div>
-                    <div class="dialogue-content">`;
-                
-                // Show voting actions if available
-                if (round.actions) {
-                    const votes = [];
-                    Object.entries(round.actions).forEach(([model, action]) => {
-                        if (action.includes('Vote')) {
-                            const target = action.replace('Vote ', '');
-                            votes.push(`${model.split('/').pop()} voted for ${target}`);
-                        }
-                    });
-                    
-                    if (votes.length > 0) {
-                        dialogueHtml += `<div class="action-list"><strong>Votes:</strong> ${votes.join(', ')}</div>`;
-                    }
-                }
-                
-                // Show day outcome
-                if (round.outcome) {
-                    dialogueHtml += `<div class="phase-outcome"><strong>Outcome:</strong> ${round.outcome}</div>`;
-                }
-                
-                dialogueHtml += `</div></div>`;
-                
-                // Add the actual dialogue messages
+                // Add the actual dialogue messages in chronological order
                 if (round.messages && round.messages.length > 0) {
                     dialogueHtml += `<div class="dialogue-message" style="background-color: #f5f5f5; border-left: 5px solid #666; margin-top: 15px;">
                         <div class="dialogue-speaker phase-header"><strong>Full Dialogue (Round ${index + 1})</strong></div>
@@ -565,13 +554,23 @@
                         </div>
                     </div>`;
                     
+                    // Display all messages in chronological order
                     round.messages.forEach((message, msgIndex) => {
                         const model = message.speaker || 'System';
                         const modelName = model.split('/').pop();
                         const roleClass = modelRoles[model] || '';
                         
-                        dialogueHtml += `<div class="dialogue-message ${roleClass}" style="margin-left: 20px; border-left: 3px solid #ddd;">
-                            <div class="dialogue-speaker ${roleClass}">${modelName} (${participants[model] || 'System'}):</div>
+                        // Set border color based on phase
+                        const borderStyle = message.phase === 'night' 
+                            ? 'border-left: 3px solid #0066cc; background-color: #f0f8ff;' 
+                            : 'border-left: 3px solid #ffcc00; background-color: #fffaf0;';
+                        
+                        dialogueHtml += `<div class="dialogue-message ${roleClass}" style="margin-left: 20px; ${borderStyle}">
+                            <div class="dialogue-speaker ${roleClass}">
+                                ${modelName} (${participants[model] || 'System'})
+                                ${message.phase === 'night' ? '<span class="phase-tag night">Night</span>' : '<span class="phase-tag day">Day</span>'}
+                                <span style="float: right; font-size: 0.8em; color: #666;">Message #${msgIndex + 1}</span>
+                            </div>
                             <div class="dialogue-content">${message.content}</div>
                         </div>`;
                     });
