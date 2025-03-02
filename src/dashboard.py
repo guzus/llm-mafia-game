@@ -168,8 +168,10 @@ def get_win_rate_chart():
         ]
         doctor_win_rates = [stats[model]["doctor_win_rate"] * 100 for model in models]
 
-        # Create chart
-        plt.figure(figsize=(12, 8))
+        # Create chart with explicit figure and axes
+        fig, ax = plt.subplots(figsize=(12, 8))
+        fig.set_facecolor("white")  # Set white background
+        ax.set_facecolor("white")  # Set white background for plot area
 
         # Set width of bars
         bar_width = 0.2
@@ -181,38 +183,51 @@ def get_win_rate_chart():
         r4 = [x + bar_width for x in r3]
 
         # Create bars
-        plt.bar(r1, win_rates, width=bar_width, label="Overall", color="blue")
-        plt.bar(r2, mafia_win_rates, width=bar_width, label="Mafia", color="red")
-        plt.bar(
-            r3, villager_win_rates, width=bar_width, label="Villager", color="green"
-        )
-        plt.bar(r4, doctor_win_rates, width=bar_width, label="Doctor", color="purple")
+        ax.bar(r1, win_rates, width=bar_width, label="Overall", color="blue")
+        ax.bar(r2, mafia_win_rates, width=bar_width, label="Mafia", color="red")
+        ax.bar(r3, villager_win_rates, width=bar_width, label="Villager", color="green")
+        ax.bar(r4, doctor_win_rates, width=bar_width, label="Doctor", color="purple")
 
         # Add labels and title
-        plt.xlabel("Models")
-        plt.ylabel("Win Rate (%)")
-        plt.title("Win Rates by Model and Role")
-        plt.xticks(
-            [r + bar_width * 1.5 for r in range(len(models))],
-            [model.split("/")[-1] for model in models],
-            rotation=45,
-            ha="right",
+        ax.set_xlabel("Models", fontsize=12, fontweight="bold")
+        ax.set_ylabel("Win Rate (%)", fontsize=12, fontweight="bold")
+        ax.set_title("Win Rates by Model and Role", fontsize=14, fontweight="bold")
+
+        # Ensure axes are visible
+        ax.spines["top"].set_visible(True)
+        ax.spines["right"].set_visible(True)
+        ax.spines["bottom"].set_visible(True)
+        ax.spines["left"].set_visible(True)
+
+        # Set tick parameters to ensure visibility
+        ax.tick_params(axis="both", which="major", labelsize=10, width=1, length=5)
+        ax.tick_params(axis="both", which="minor", width=1, length=3)
+
+        # Set x-ticks
+        ax.set_xticks([r + bar_width * 1.5 for r in range(len(models))])
+        ax.set_xticklabels(
+            [model.split("/")[-1] for model in models], rotation=45, ha="right"
         )
-        plt.legend()
+
+        # Add grid for better readability
+        ax.grid(axis="y", linestyle="--", alpha=0.7)
+
+        # Add legend
+        ax.legend(fontsize=10)
 
         # Adjust layout
         plt.tight_layout()
 
         # Save chart to memory with optimized settings
         img = io.BytesIO()
-        plt.savefig(img, format="png", dpi=100, optimize=True, bbox_inches="tight")
+        plt.savefig(img, format="png", dpi=120, bbox_inches="tight", pad_inches=0.2)
         img.seek(0)
 
         # Encode chart as base64
         chart_url = base64.b64encode(img.getvalue()).decode()
 
         # Close the figure to free memory
-        plt.close()
+        plt.close(fig)
 
         # Create response with appropriate headers
         response = make_response(jsonify({"chart_url": chart_url}))
@@ -245,15 +260,17 @@ def get_games_played_chart():
         villager_games = [stats[model]["villager_games"] for model in models]
         doctor_games = [stats[model]["doctor_games"] for model in models]
 
-        # Create chart
-        plt.figure(figsize=(12, 8))
+        # Create chart with explicit figure and axes
+        fig, ax = plt.subplots(figsize=(12, 8))
+        fig.set_facecolor("white")  # Set white background
+        ax.set_facecolor("white")  # Set white background for plot area
 
         # Create stacked bars
-        plt.bar(models, mafia_games, label="Mafia", color="red")
-        plt.bar(
+        ax.bar(models, mafia_games, label="Mafia", color="red")
+        ax.bar(
             models, villager_games, bottom=mafia_games, label="Villager", color="green"
         )
-        plt.bar(
+        ax.bar(
             models,
             doctor_games,
             bottom=[mafia_games[i] + villager_games[i] for i in range(len(models))],
@@ -262,30 +279,45 @@ def get_games_played_chart():
         )
 
         # Add labels and title
-        plt.xlabel("Models")
-        plt.ylabel("Games Played")
-        plt.title("Games Played by Model and Role")
-        plt.xticks(
-            [model for model in models],
-            [model.split("/")[-1] for model in models],
-            rotation=45,
-            ha="right",
+        ax.set_xlabel("Models", fontsize=12, fontweight="bold")
+        ax.set_ylabel("Games Played", fontsize=12, fontweight="bold")
+        ax.set_title("Games Played by Model and Role", fontsize=14, fontweight="bold")
+
+        # Ensure axes are visible
+        ax.spines["top"].set_visible(True)
+        ax.spines["right"].set_visible(True)
+        ax.spines["bottom"].set_visible(True)
+        ax.spines["left"].set_visible(True)
+
+        # Set tick parameters to ensure visibility
+        ax.tick_params(axis="both", which="major", labelsize=10, width=1, length=5)
+        ax.tick_params(axis="both", which="minor", width=1, length=3)
+
+        # Set x-ticks
+        ax.set_xticks([model for model in models])
+        ax.set_xticklabels(
+            [model.split("/")[-1] for model in models], rotation=45, ha="right"
         )
-        plt.legend()
+
+        # Add grid for better readability
+        ax.grid(axis="y", linestyle="--", alpha=0.7)
+
+        # Add legend
+        ax.legend(fontsize=10)
 
         # Adjust layout
         plt.tight_layout()
 
         # Save chart to memory with optimized settings
         img = io.BytesIO()
-        plt.savefig(img, format="png", dpi=100, optimize=True, bbox_inches="tight")
+        plt.savefig(img, format="png", dpi=120, bbox_inches="tight", pad_inches=0.2)
         img.seek(0)
 
         # Encode chart as base64
         chart_url = base64.b64encode(img.getvalue()).decode()
 
         # Close the figure to free memory
-        plt.close()
+        plt.close(fig)
 
         # Create response with appropriate headers
         response = make_response(jsonify({"chart_url": chart_url}))
@@ -320,8 +352,10 @@ def get_win_rate_image():
         ]
         doctor_win_rates = [stats[model]["doctor_win_rate"] * 100 for model in models]
 
-        # Create chart
-        plt.figure(figsize=(12, 8))
+        # Create chart with explicit figure and axes
+        fig, ax = plt.subplots(figsize=(12, 8))
+        fig.set_facecolor("white")  # Set white background
+        ax.set_facecolor("white")  # Set white background for plot area
 
         # Set width of bars
         bar_width = 0.2
@@ -333,35 +367,48 @@ def get_win_rate_image():
         r4 = [x + bar_width for x in r3]
 
         # Create bars
-        plt.bar(r1, win_rates, width=bar_width, label="Overall", color="blue")
-        plt.bar(r2, mafia_win_rates, width=bar_width, label="Mafia", color="red")
-        plt.bar(
-            r3, villager_win_rates, width=bar_width, label="Villager", color="green"
-        )
-        plt.bar(r4, doctor_win_rates, width=bar_width, label="Doctor", color="purple")
+        ax.bar(r1, win_rates, width=bar_width, label="Overall", color="blue")
+        ax.bar(r2, mafia_win_rates, width=bar_width, label="Mafia", color="red")
+        ax.bar(r3, villager_win_rates, width=bar_width, label="Villager", color="green")
+        ax.bar(r4, doctor_win_rates, width=bar_width, label="Doctor", color="purple")
 
         # Add labels and title
-        plt.xlabel("Models")
-        plt.ylabel("Win Rate (%)")
-        plt.title("Win Rates by Model and Role")
-        plt.xticks(
-            [r + bar_width * 1.5 for r in range(len(models))],
-            [model.split("/")[-1] for model in models],
-            rotation=45,
-            ha="right",
+        ax.set_xlabel("Models", fontsize=12, fontweight="bold")
+        ax.set_ylabel("Win Rate (%)", fontsize=12, fontweight="bold")
+        ax.set_title("Win Rates by Model and Role", fontsize=14, fontweight="bold")
+
+        # Ensure axes are visible
+        ax.spines["top"].set_visible(True)
+        ax.spines["right"].set_visible(True)
+        ax.spines["bottom"].set_visible(True)
+        ax.spines["left"].set_visible(True)
+
+        # Set tick parameters to ensure visibility
+        ax.tick_params(axis="both", which="major", labelsize=10, width=1, length=5)
+        ax.tick_params(axis="both", which="minor", width=1, length=3)
+
+        # Set x-ticks
+        ax.set_xticks([r + bar_width * 1.5 for r in range(len(models))])
+        ax.set_xticklabels(
+            [model.split("/")[-1] for model in models], rotation=45, ha="right"
         )
-        plt.legend()
+
+        # Add grid for better readability
+        ax.grid(axis="y", linestyle="--", alpha=0.7)
+
+        # Add legend
+        ax.legend(fontsize=10)
 
         # Adjust layout
         plt.tight_layout()
 
         # Save chart to memory with optimized settings
         img = io.BytesIO()
-        plt.savefig(img, format="png", dpi=100, optimize=True, bbox_inches="tight")
+        plt.savefig(img, format="png", dpi=120, bbox_inches="tight", pad_inches=0.2)
         img.seek(0)
 
         # Close the figure to free memory
-        plt.close()
+        plt.close(fig)
 
         # Return the image directly
         response = make_response(img.getvalue())
@@ -394,15 +441,17 @@ def get_games_played_image():
         villager_games = [stats[model]["villager_games"] for model in models]
         doctor_games = [stats[model]["doctor_games"] for model in models]
 
-        # Create chart
-        plt.figure(figsize=(12, 8))
+        # Create chart with explicit figure and axes
+        fig, ax = plt.subplots(figsize=(12, 8))
+        fig.set_facecolor("white")  # Set white background
+        ax.set_facecolor("white")  # Set white background for plot area
 
         # Create stacked bars
-        plt.bar(models, mafia_games, label="Mafia", color="red")
-        plt.bar(
+        ax.bar(models, mafia_games, label="Mafia", color="red")
+        ax.bar(
             models, villager_games, bottom=mafia_games, label="Villager", color="green"
         )
-        plt.bar(
+        ax.bar(
             models,
             doctor_games,
             bottom=[mafia_games[i] + villager_games[i] for i in range(len(models))],
@@ -411,27 +460,42 @@ def get_games_played_image():
         )
 
         # Add labels and title
-        plt.xlabel("Models")
-        plt.ylabel("Games Played")
-        plt.title("Games Played by Model and Role")
-        plt.xticks(
-            [model for model in models],
-            [model.split("/")[-1] for model in models],
-            rotation=45,
-            ha="right",
+        ax.set_xlabel("Models", fontsize=12, fontweight="bold")
+        ax.set_ylabel("Games Played", fontsize=12, fontweight="bold")
+        ax.set_title("Games Played by Model and Role", fontsize=14, fontweight="bold")
+
+        # Ensure axes are visible
+        ax.spines["top"].set_visible(True)
+        ax.spines["right"].set_visible(True)
+        ax.spines["bottom"].set_visible(True)
+        ax.spines["left"].set_visible(True)
+
+        # Set tick parameters to ensure visibility
+        ax.tick_params(axis="both", which="major", labelsize=10, width=1, length=5)
+        ax.tick_params(axis="both", which="minor", width=1, length=3)
+
+        # Set x-ticks
+        ax.set_xticks([model for model in models])
+        ax.set_xticklabels(
+            [model.split("/")[-1] for model in models], rotation=45, ha="right"
         )
-        plt.legend()
+
+        # Add grid for better readability
+        ax.grid(axis="y", linestyle="--", alpha=0.7)
+
+        # Add legend
+        ax.legend(fontsize=10)
 
         # Adjust layout
         plt.tight_layout()
 
         # Save chart to memory with optimized settings
         img = io.BytesIO()
-        plt.savefig(img, format="png", dpi=100, optimize=True, bbox_inches="tight")
+        plt.savefig(img, format="png", dpi=120, bbox_inches="tight", pad_inches=0.2)
         img.seek(0)
 
         # Close the figure to free memory
-        plt.close()
+        plt.close(fig)
 
         # Return the image directly
         response = make_response(img.getvalue())
@@ -713,6 +777,15 @@ def create_templates():
 
 if __name__ == "__main__":
     try:
+        # Parse command line arguments
+        import argparse
+
+        parser = argparse.ArgumentParser(description="LLM Mafia Dashboard")
+        parser.add_argument(
+            "--port", type=int, default=5000, help="Port to run the server on"
+        )
+        args = parser.parse_args()
+
         # Create templates
         import os
 
@@ -728,7 +801,7 @@ if __name__ == "__main__":
                 print("Created index.html template")
 
         # Run the app
-        print("Starting the dashboard application...")
-        app.run(debug=True, host="0.0.0.0", port=5000)
+        print(f"Starting the dashboard application on port {args.port}...")
+        app.run(debug=True, host="0.0.0.0", port=args.port)
     except Exception as e:
         print(f"Error starting application: {e}")
