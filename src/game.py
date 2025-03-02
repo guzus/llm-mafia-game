@@ -416,6 +416,11 @@ class MafiaGame:
         # Eliminate player with most votes
         eliminated_players = []
         if eliminated_player:
+            # Get last words from the player before elimination
+            last_words = self.get_last_words(
+                eliminated_player, vote_counts[eliminated_player.model_name]
+            )
+
             eliminated_player.alive = False
             eliminated_players.append(eliminated_player)
             self.current_round_data["eliminations"].append(eliminated_player.model_name)
@@ -432,6 +437,27 @@ class MafiaGame:
             outcome_text = f"{eliminated_player.model_name} was eliminated by vote with {vote_counts[eliminated_player.model_name]} votes."
             self.current_round_data["outcome"] += f" {outcome_text}"
             self.logger.event(outcome_text, Color.YELLOW)
+
+            # Add last words to the outcome and discussion history
+            if last_words:
+                last_words_text = (
+                    f'{eliminated_player.model_name}\'s last words: "{last_words}"'
+                )
+                self.current_round_data["last_words"] = last_words
+                self.logger.event(last_words_text, Color.CYAN)
+                # Add last words to discussion history
+                self.discussion_history += (
+                    f"{eliminated_player.model_name} (last words): {last_words}\n\n"
+                )
+                # Add to messages
+                self.current_round_data["messages"].append(
+                    {
+                        "speaker": eliminated_player.model_name,
+                        "content": last_words,
+                        "phase": "day",
+                        "role": eliminated_player.role.value,
+                    }
+                )
 
             # Log who voted for the eliminated player
             voters = vote_details.get(eliminated_player.model_name, [])
@@ -465,6 +491,36 @@ class MafiaGame:
         }
 
         return eliminated_players
+
+    def get_last_words(self, player, vote_count):
+        """
+        Get the last words from a player who is about to be eliminated.
+
+        Args:
+            player (Player): The player who is about to be eliminated.
+            vote_count (int): The number of votes against the player.
+
+        Returns:
+            str: The player's last words.
+        """
+        self.logger.event(f"Getting last words from {player.model_name}...", Color.CYAN)
+
+        # Generate prompt for last words
+        game_state = f"{self.get_game_state()} You have been voted out with {vote_count} votes and will be eliminated. Share your final thoughts before leaving the game."
+        prompt = player.generate_prompt(
+            game_state,
+            self.get_alive_players(),
+            self.mafia_players if player.role == Role.MAFIA else None,
+            self.discussion_history,
+        )
+
+        # Get response
+        response = player.get_response(prompt)
+        self.logger.player_response(
+            player.model_name, f"{player.role.value} (Last Words)", response
+        )
+
+        return response
 
     def run_game(self):
         """
