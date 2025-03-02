@@ -174,6 +174,32 @@
             white-space: pre-wrap;
             word-break: break-word;
         }
+        /* New styles for game phases */
+        .night-phase {
+            background-color: #e6f2ff !important;
+            border-left: 5px solid #0066cc !important;
+        }
+        .day-phase {
+            background-color: #fff9e6 !important;
+            border-left: 5px solid #ffcc00 !important;
+        }
+        .phase-header {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .phase-outcome {
+            margin-top: 10px;
+            padding: 8px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 5px;
+        }
+        .action-list {
+            margin: 10px 0;
+        }
+        .action-item {
+            margin: 5px 0;
+        }
         .game-result {
             margin-top: 30px;
             padding: 20px;
@@ -437,15 +463,114 @@
             
             // Process each round's conversation
             data.rounds.forEach((round, index) => {
+                // Add round header with phase information
+                dialogueHtml += `<h3>Round ${index + 1}</h3>`;
+                
+                // Add night phase information if available
+                if (index > 0 && data.rounds[index-1] && data.rounds[index-1].actions) {
+                    const prevRound = data.rounds[index-1];
+                    
+                    // Create a section for Night Phase
+                    dialogueHtml += `<div class="dialogue-message night-phase">
+                        <div class="dialogue-speaker phase-header"><strong>Night Phase (Round ${index})</strong></div>
+                        <div class="dialogue-content">`;
+                    
+                    // Show mafia kill votes
+                    const mafiaActions = [];
+                    Object.entries(prevRound.actions).forEach(([model, action]) => {
+                        if (participants[model] === 'Mafia' && action.includes('Kill')) {
+                            const target = action.replace('Kill ', '');
+                            mafiaActions.push(`${model.split('/').pop()} voted to kill ${target}`);
+                        }
+                    });
+                    
+                    if (mafiaActions.length > 0) {
+                        dialogueHtml += `<div class="action-list"><strong>Mafia Actions:</strong> ${mafiaActions.join(', ')}</div>`;
+                    }
+                    
+                    // Show doctor protection
+                    const doctorActions = [];
+                    Object.entries(prevRound.actions).forEach(([model, action]) => {
+                        if (participants[model] === 'Doctor' && action.includes('Protect')) {
+                            const target = action.replace('Protect ', '');
+                            doctorActions.push(`${model.split('/').pop()} protected ${target}`);
+                        }
+                    });
+                    
+                    if (doctorActions.length > 0) {
+                        dialogueHtml += `<div class="action-list"><strong>Doctor Action:</strong> ${doctorActions.join(', ')}</div>`;
+                    }
+                    
+                    // Show night outcome
+                    if (prevRound.outcome) {
+                        dialogueHtml += `<div class="phase-outcome"><strong>Outcome:</strong> ${prevRound.outcome}</div>`;
+                    }
+                    
+                    dialogueHtml += `</div></div>`;
+                }
+                
+                // Add round summary
+                dialogueHtml += `<div class="dialogue-message" style="background-color: #f8f8f8; border-left: 5px solid #333;">
+                    <div class="dialogue-speaker phase-header"><strong>Round Summary</strong></div>
+                    <div class="dialogue-content">`;
+                
+                // Show eliminations if any
+                if (round.eliminations && round.eliminations.length > 0) {
+                    const eliminatedNames = round.eliminations.map(name => name.split('/').pop());
+                    dialogueHtml += `<div class="elimination" style="display: inline-block; margin: 5px;">
+                        ${eliminatedNames.join(', ')} ${eliminatedNames.length === 1 ? 'was' : 'were'} eliminated in this round.
+                    </div>`;
+                }
+                
+                // Show round outcome
+                if (round.outcome) {
+                    dialogueHtml += `<div style="margin-top: 10px;">${round.outcome}</div>`;
+                }
+                
+                dialogueHtml += `</div></div>`;
+                
+                // Add day phase information
+                dialogueHtml += `<div class="dialogue-message day-phase">
+                    <div class="dialogue-speaker phase-header"><strong>Day Phase (Round ${index + 1})</strong></div>
+                    <div class="dialogue-content">`;
+                
+                // Show voting actions if available
+                if (round.actions) {
+                    const votes = [];
+                    Object.entries(round.actions).forEach(([model, action]) => {
+                        if (action.includes('Vote')) {
+                            const target = action.replace('Vote ', '');
+                            votes.push(`${model.split('/').pop()} voted for ${target}`);
+                        }
+                    });
+                    
+                    if (votes.length > 0) {
+                        dialogueHtml += `<div class="action-list"><strong>Votes:</strong> ${votes.join(', ')}</div>`;
+                    }
+                }
+                
+                // Show day outcome
+                if (round.outcome) {
+                    dialogueHtml += `<div class="phase-outcome"><strong>Outcome:</strong> ${round.outcome}</div>`;
+                }
+                
+                dialogueHtml += `</div></div>`;
+                
+                // Add the actual dialogue messages
                 if (round.messages && round.messages.length > 0) {
-                    dialogueHtml += `<h3>Round ${index + 1} Dialogue</h3>`;
+                    dialogueHtml += `<div class="dialogue-message" style="background-color: #f5f5f5; border-left: 5px solid #666; margin-top: 15px;">
+                        <div class="dialogue-speaker phase-header"><strong>Full Dialogue (Round ${index + 1})</strong></div>
+                        <div class="dialogue-content">
+                            <p>Below is the complete conversation between all players during this round.</p>
+                        </div>
+                    </div>`;
                     
                     round.messages.forEach((message, msgIndex) => {
                         const model = message.speaker || 'System';
                         const modelName = model.split('/').pop();
                         const roleClass = modelRoles[model] || '';
                         
-                        dialogueHtml += `<div class="dialogue-message ${roleClass}">
+                        dialogueHtml += `<div class="dialogue-message ${roleClass}" style="margin-left: 20px; border-left: 3px solid #ddd;">
                             <div class="dialogue-speaker ${roleClass}">${modelName} (${participants[model] || 'System'}):</div>
                             <div class="dialogue-content">${message.content}</div>
                         </div>`;
@@ -517,4 +642,4 @@
         }
     </script>
 </body>
-</html> 
+</html>
