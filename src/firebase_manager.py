@@ -6,7 +6,16 @@ import json
 import time
 import firebase_admin
 from firebase_admin import credentials, firestore
-import config
+import os
+import sys
+
+# Add flexible import handling
+try:
+    import src.config as config
+except ImportError:
+    # When running the script directly
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    import config
 
 
 class FirebaseManager:
@@ -208,3 +217,40 @@ class FirebaseManager:
         except Exception as e:
             print(f"Error getting model stats: {e}")
             return {}
+
+    def get_game_log(self, game_id):
+        """
+        Get the log of a specific game from Firebase.
+
+        Args:
+            game_id (str): Unique identifier for the game.
+
+        Returns:
+            dict: Game log data including rounds and participant information.
+        """
+        if not self.initialized:
+            print("Firebase not initialized. Cannot get game log.")
+            return None
+
+        try:
+            # Get game log from Firestore
+            log_doc = self.db.collection("game_logs").document(game_id).get()
+
+            if not log_doc.exists:
+                print(f"Game log not found for game ID: {game_id}")
+                return None
+
+            log_data = log_doc.to_dict()
+
+            # Get game result to include participant roles
+            result_doc = self.db.collection("mafia_games").document(game_id).get()
+
+            if result_doc.exists:
+                result_data = result_doc.to_dict()
+                log_data["participants"] = result_data.get("participants", {})
+                log_data["winner"] = result_data.get("winner", "Unknown")
+
+            return log_data
+        except Exception as e:
+            print(f"Error getting game log: {e}")
+            return None

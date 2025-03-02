@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Details - LLM Mafia Game Competition</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #0066cc;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .game-info {
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .participant {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .mafia {
+            color: #d9534f;
+            background-color: #ffeeee;
+            border-left: 3px solid #d9534f;
+        }
+        .villager {
+            color: #5cb85c;
+            background-color: #eeffee;
+            border-left: 3px solid #5cb85c;
+        }
+        .doctor {
+            color: #5bc0de;
+            background-color: #eef9ff;
+            border-left: 3px solid #5bc0de;
+        }
+        .game-log {
+            margin-top: 20px;
+        }
+        .round {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .round-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .round-section {
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px dashed #ddd;
+        }
+        .elimination {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #ffeeee;
+            border-radius: 5px;
+            font-weight: bold;
+            color: #d9534f;
+            border-left: 5px solid #d9534f;
+        }
+        .action {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 5px solid #eee;
+            background-color: #fafafa;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .action.mafia {
+            border-left-color: #d9534f;
+        }
+        .action.villager {
+            border-left-color: #5cb85c;
+        }
+        .action.doctor {
+            border-left-color: #5bc0de;
+        }
+        .action-header {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .action-header.mafia {
+            color: #d9534f;
+        }
+        .action-header.villager {
+            color: #5cb85c;
+        }
+        .action-header.doctor {
+            color: #5bc0de;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-style: italic;
+            color: #666;
+        }
+        .spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #0066cc;
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .error {
+            color: #d9534f;
+            padding: 20px;
+            background-color: #ffeeee;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Back to Dashboard</a>
+        <h1>Game Details</h1>
+        
+        <div id="gameInfo" class="game-info">
+            <div class="loading">
+                <div class="spinner"></div>
+                <div>Loading game information...</div>
+            </div>
+        </div>
+        
+        <h2>Game Log</h2>
+        <div id="gameLog" class="game-log">
+            <div class="loading">
+                <div class="spinner"></div>
+                <div>Loading game log...</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Get game ID from URL
+        const gameId = window.location.pathname.split('/').pop();
+        
+        // Fetch game data
+        fetch(`/api/game/${gameId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Game data received:', data);
+                displayGameInfo(data);
+                displayGameLog(data);
+            })
+            .catch(error => {
+                console.error('Error fetching game data:', error);
+                document.getElementById('gameInfo').innerHTML = `
+                    <div class="error">
+                        Error loading game information: ${error.message}
+                    </div>`;
+                document.getElementById('gameLog').innerHTML = `
+                    <div class="error">
+                        Error loading game log: ${error.message}
+                    </div>`;
+            });
+        
+        // Function to display game information
+        function displayGameInfo(data) {
+            const gameInfoElement = document.getElementById('gameInfo');
+            
+            // Display game info
+            const timestamp = new Date(data.timestamp * 1000).toLocaleString();
+            const participants = data.participants || {};
+            
+            // Create participant elements with appropriate colors
+            const participantsHtml = Object.entries(participants)
+                .map(([model, role]) => {
+                    const modelName = model.split('/').pop();
+                    const roleClass = role.toLowerCase();
+                    return `<div class="participant ${roleClass}">${modelName} (${role})</div>`;
+                })
+                .join('');
+            
+            gameInfoElement.innerHTML = `
+                <h2>Game: ${data.game_id}</h2>
+                <p><strong>Winner:</strong> ${data.winner}</p>
+                <p><strong>Game Type:</strong> ${data.game_type || 'Classic Mafia'}</p>
+                <p><strong>Time:</strong> ${timestamp}</p>
+                <h3>Participants:</h3>
+                <div class="participants-container">
+                    ${participantsHtml}
+                </div>
+            `;
+            
+            // Update page title
+            document.title = `Game ${data.game_id} - LLM Mafia Game Competition`;
+        }
+        
+        // Function to display game log
+        function displayGameLog(data) {
+            const gameLogElement = document.getElementById('gameLog');
+            
+            // Display rounds
+            if (!data.rounds || data.rounds.length === 0) {
+                gameLogElement.innerHTML = '<div class="error">No game log data available</div>';
+                return;
+            }
+            
+            // Create a mapping of model names to their roles for coloring
+            const modelRoles = {};
+            const participants = data.participants || {};
+            Object.entries(participants).forEach(([model, role]) => {
+                modelRoles[model] = role.toLowerCase();
+            });
+            
+            let gameLogHtml = '';
+            
+            // Process each round
+            data.rounds.forEach((round, index) => {
+                let roundHtml = `<div class="round">
+                    <div class="round-title">Round ${index + 1}</div>`;
+                
+                // Process actions (votes, etc.)
+                if (round.actions && typeof round.actions === 'object') {
+                    roundHtml += `<div class="round-section">Actions:</div>`;
+                    Object.entries(round.actions).forEach(([model, action]) => {
+                        const modelName = model.split('/').pop();
+                        const roleClass = modelRoles[model] || '';
+                        
+                        roundHtml += `<div class="action ${roleClass}">
+                            <div class="action-header ${roleClass}">${modelName}:</div>
+                            ${action}
+                        </div>`;
+                    });
+                }
+                
+                // Process eliminations if any
+                if (round.eliminations && round.eliminations.length > 0) {
+                    roundHtml += `<div class="round-section">Eliminations:</div>`;
+                    round.eliminations.forEach(eliminated => {
+                        const modelName = eliminated.split('/').pop();
+                        roundHtml += `<div class="elimination">
+                            ${modelName} was eliminated
+                        </div>`;
+                    });
+                }
+                
+                // Process conversations/dialogues
+                if (round.conversation && round.conversation.length > 0) {
+                    roundHtml += `<div class="round-section">Conversation:</div>`;
+                    round.conversation.forEach(message => {
+                        const model = message.speaker || 'System';
+                        const modelName = model.split('/').pop();
+                        const roleClass = modelRoles[model] || '';
+                        
+                        roundHtml += `<div class="action ${roleClass}">
+                            <div class="action-header ${roleClass}">${modelName}:</div>
+                            ${message.content}
+                        </div>`;
+                    });
+                }
+                
+                roundHtml += '</div>';
+                gameLogHtml += roundHtml;
+            });
+            
+            gameLogElement.innerHTML = gameLogHtml;
+        }
+    </script>
+</body>
+</html> 

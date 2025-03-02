@@ -6,6 +6,7 @@ import io
 import base64
 import json
 import time
+import datetime
 from typing import Dict, List, Any, Optional, Union
 from dataclasses import dataclass, asdict
 import matplotlib
@@ -18,6 +19,17 @@ from firebase_manager import FirebaseManager
 
 app = Flask(__name__)
 firebase = FirebaseManager()
+
+
+# Add template filter for formatting timestamps
+@app.template_filter("strftime")
+def _jinja2_filter_strftime(timestamp):
+    """Convert a Unix timestamp to a formatted datetime string."""
+    try:
+        dt = datetime.datetime.fromtimestamp(timestamp)
+        return dt.strftime("%Y-%m-%d %H:%M:%S")
+    except (ValueError, TypeError):
+        return "Invalid timestamp"
 
 
 # Data models for type safety and validation
@@ -63,6 +75,19 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/game/<game_id>")
+def game_detail(game_id):
+    """Render the game detail page."""
+    # Get game data to pass to the template
+    game_data = firebase.get_game_log(game_id)
+
+    # If game data not found, return 404
+    if not game_data:
+        return render_template("404.html", message="Game not found"), 404
+
+    return render_template("game_detail.html", game_id=game_id, game_data=game_data)
+
+
 @app.route("/api/stats")
 def get_stats():
     """Get statistics from Firebase."""
@@ -102,6 +127,22 @@ def get_games():
         return response
     except Exception as e:
         return make_response(jsonify({"error": str(e)}), 500)
+
+
+@app.route("/api/game/<game_id>")
+def get_game(game_id):
+    """Get game data from Firebase."""
+    game_data = firebase.get_game_log(game_id)
+
+    if not game_data:
+        return jsonify({"error": "Game not found"}), 404
+
+    # Set cache control headers for better performance
+    response = make_response(jsonify(game_data))
+    response.headers["Content-Type"] = "application/json"
+    response.headers["Cache-Control"] = "max-age=60"  # Cache for 60 seconds
+
+    return response
 
 
 @app.route("/api/chart/win_rates")
