@@ -47,6 +47,7 @@ class Player:
             all_players (list): List of all players in the game.
             mafia_members (list, optional): List of mafia members (only for Mafia role).
             discussion_history (str, optional): History of previous discussions.
+                Note: This should only contain day phase messages, night messages are filtered out.
 
         Returns:
             str: The prompt for the player.

@@ -201,6 +201,16 @@ class MafiaGame:
                 response = player.get_response(prompt)
                 self.logger.player_response(player.model_name, "Mafia", response)
 
+                # Add to messages with night phase marker
+                self.current_round_data["messages"].append(
+                    {
+                        "speaker": player.model_name,
+                        "content": response,
+                        "phase": "night",
+                        "role": "Mafia",
+                    }
+                )
+
                 # Parse action
                 action_type, target = player.parse_night_action(
                     response, self.get_alive_players()
@@ -255,6 +265,16 @@ class MafiaGame:
             response = self.doctor_player.get_response(prompt)
             self.logger.player_response(
                 self.doctor_player.model_name, "Doctor", response
+            )
+
+            # Add to messages with night phase marker
+            self.current_round_data["messages"].append(
+                {
+                    "speaker": self.doctor_player.model_name,
+                    "content": response,
+                    "phase": "night",
+                    "role": "Doctor",
+                }
             )
 
             # Parse action
@@ -329,7 +349,7 @@ class MafiaGame:
                 game_state,
                 alive_players,
                 self.mafia_players if player.role == Role.MAFIA else None,
-                self.discussion_history,  # TODO: hide the other players' thinking history
+                self.discussion_history,  # Only contains day phase messages
             )
 
             # Get response
@@ -339,7 +359,12 @@ class MafiaGame:
             # Add to messages
             messages.append({"speaker": player.model_name, "content": response})
             self.current_round_data["messages"].append(
-                {"speaker": player.model_name, "content": response}
+                {
+                    "speaker": player.model_name,
+                    "content": response,
+                    "phase": "day",
+                    "role": player.role.value,
+                }
             )
 
             # Parse vote
@@ -355,7 +380,7 @@ class MafiaGame:
                 self.logger.error(f"Invalid vote from {player.model_name}")
                 self.current_round_data["actions"][player.model_name] = "Invalid vote"
 
-        # Update discussion history
+        # Update discussion history - only include day phase messages
         for message in messages:
             self.discussion_history += f"{message['speaker']}: {message['content']}\n\n"
 
@@ -413,6 +438,8 @@ class MafiaGame:
 
         Returns:
             tuple: (winner, rounds_data, participants) where winner is "Mafia" or "Villagers".
+                   rounds_data includes all messages (day and night phases) for game details,
+                   but players only see day phase messages during the game.
         """
         # Setup game
         if not self.setup_game():
