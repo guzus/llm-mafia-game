@@ -64,7 +64,7 @@ class MafiaGame:
             return False
 
         # Log game start
-        self.logger.game_start(1, self.game_id)
+        self.logger.game_start(1, self.game_id, self.language)
 
         # Randomly select models for this game
         selected_models = random.sample(self.models, config.PLAYERS_PER_GAME)

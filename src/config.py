@@ -56,7 +56,7 @@ GAME_TYPE = "Classic Mafia"  # Type of Mafia game to run
 
 # Language setting
 LANGUAGE = os.getenv(
-    "LANGUAGE", "English"
+    "GAME_LANGUAGE", "English"
 )  # Language for game prompts and interactions (supported: English, Spanish, French, Korean)
 
 # Maximum number of rounds before declaring a draw

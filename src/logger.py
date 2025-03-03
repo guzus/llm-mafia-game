@@ -135,9 +135,12 @@ class GameLogger:
         self.print(f"| {text} |", color, bold=True)
         self.print(border, color, bold=True)
 
-    def game_start(self, game_number, game_id):
+    def game_start(self, game_number, game_id, language):
         """Log game start."""
-        self.header(f"GAME {game_number} (ID: {game_id}) STARTED", Color.BRIGHT_MAGENTA)
+        self.header(
+            f"GAME {game_number} (ID: {game_id} LANGUAGE: {language}) STARTED",
+            Color.BRIGHT_MAGENTA,
+        )
 
     def game_end(self, game_number, winner, rounds):
         """Log game end."""
