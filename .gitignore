@@ -45,3 +45,6 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+games_played.png
+win_rates.png
