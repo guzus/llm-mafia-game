@@ -18,7 +18,18 @@ FIREBASE_CREDENTIALS_PATH = (
 )
 
 # Game settings
+
+# MODELS = FREE_MODELS
 MODELS = [
+    "google/gemini-2.0-flash-001",
+    "google/gemini-flash-1.5",
+    "google/gemini-flash-1.5-8b",
+    "openai/gpt-4o-mini",
+    "mistralai/mistral-nemo",
+    "meta-llama/llama-3.3-70b-instruct",
+]
+
+FREE_MODELS = [
     "deepseek/deepseek-r1:free",
     "google/gemini-2.0-pro-exp-02-05:free",
     "google/gemini-2.0-flash-exp:free",
