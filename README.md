@@ -195,7 +195,7 @@ Your response:
 ### 1. Clone the Repository
 
 ```
-git clone https://github.com/your-repo/llm-mafia-game.git
+git clone https://github.com/guzus/llm-mafia-game.git
 cd llm-mafia-game
 ```
 
@@ -270,3 +270,7 @@ The dashboard displays:
 - Create a real-time viewer for ongoing games.
 - Add authentication to the dashboard.
 - Implement a REST API for programmatic access to game results.
+
+## Development
+
+See [DEVELOPMENT.md](DEVELOPMENT.md) for more details on the development process.
