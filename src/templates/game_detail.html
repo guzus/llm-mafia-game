@@ -442,9 +442,12 @@
                                 const voters = round.vote_details[target] || [];
                                 const voterNames = voters.map(voter => voter.split('/').pop());
                                 
-                                dialogueHtml += `<div style="margin: 5px 0; padding: 5px; background-color: rgba(255,255,255,0.5); border-radius: 4px;">
-                                    <strong>${targetName}:</strong> ${count} vote${count > 1 ? 's' : ''}
-                                    <div style="font-size: 0.9em; margin-top: 3px;">From: ${voterNames.join(', ')}</div>
+                                dialogueHtml += `<div class="vote-item">
+                                    <div class="vote-target">
+                                        <span class="vote-name">To Kill: ${targetName}</span>
+                                        <span class="vote-count">${count} vote${count > 1 ? 's' : ''}</span>
+                                    </div>
+                                    <div class="vote-voters">From: ${voterNames.join(', ')}</div>
                                 </div>`;
                             });
                         } else {
@@ -522,9 +525,12 @@
                             const voters = round.vote_details[target] || [];
                             const voterNames = voters.map(voter => voter.split('/').pop());
                             
-                            dialogueHtml += `<div style="margin: 5px 0; padding: 5px; background-color: rgba(255,255,255,0.5); border-radius: 4px;">
-                                <strong>${targetName}:</strong> ${count} vote${count > 1 ? 's' : ''}
-                                <div style="font-size: 0.9em; margin-top: 3px;">From: ${voterNames.join(', ')}</div>
+                            dialogueHtml += `<div class="vote-item">
+                                <div class="vote-target">
+                                    <span class="vote-name">${targetName}</span>
+                                    <span class="vote-count">${count} vote${count > 1 ? 's' : ''}</span>
+                                </div>
+                                <div class="vote-voters">From: ${voterNames.join(', ')}</div>
                             </div>`;
                         });
                         

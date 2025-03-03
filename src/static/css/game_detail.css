@@ -301,4 +301,36 @@ h1, h2, h3 {
 }
 .disagree-voters {
     color: #d9534f;
+}
+.vote-item {
+    margin: 8px 0;
+    padding: 10px;
+    background-color: rgba(255,255,255,0.7);
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.vote-target {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+.vote-name {
+    font-weight: bold;
+    color: #333;
+    font-size: 1.05em;
+}
+.vote-count {
+    background-color: #5bc0de;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: bold;
+}
+.vote-voters {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 3px;
 } 
