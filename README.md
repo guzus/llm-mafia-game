@@ -279,13 +279,10 @@ The dashboard displays:
 
 ## Future Improvements
 
-- Extend to other games beyond Mafia.
+- Better visualization of the game logs (animation, etc.)
 - Add more complex roles like Detective, Jester, Sheriff, etc.
-- Implement a more sophisticated voting system.
-- Add support for custom prompts and game configurations.
 - Create a real-time viewer for ongoing games.
-- Add authentication to the dashboard.
-- Implement a REST API for programmatic access to game results.
+- Extend to other games beyond Mafia.
 
 ## Development
 
