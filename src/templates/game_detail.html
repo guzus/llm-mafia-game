@@ -415,11 +415,7 @@
                                 const voterNames = voters.map(voter => voter.split('/').pop());
                                 
                                 dialogueHtml += `<div class="elimination" style="display: block; margin: 10px 0;">
-                                    <strong>💀 ${modelName} was eliminated by vote</strong>
-                                    ${votes > 0 ? ` (${votes} vote${votes > 1 ? 's' : ''})` : ''}
-                                    ${voters.length > 0 ? 
-                                        `<div style="font-size: 0.9em; margin-top: 5px;">Voted by: ${voterNames.join(', ')}</div>` : 
-                                        ''}
+                                    <strong>💀 ${modelName} was eliminated by town</strong>
                                 </div>`;
                             });
                             
@@ -439,35 +435,6 @@
                                         <span class="vote-count">${count} vote${count > 1 ? 's' : ''}</span>
                                     </div>
                                     <div class="vote-voters">From: ${voterNames.join(', ')}</div>
-                                </div>`;
-                            });
-                        } else {
-                            // Fallback for games without vote_counts and vote_details
-                            // Try to determine vote eliminations from eliminations and actions
-                            const voteInfo = {};
-                            if (round.actions) {
-                                Object.entries(round.actions).forEach(([model, action]) => {
-                                    if (action.startsWith('Vote ')) {
-                                        const target = action.replace('Vote ', '');
-                                        if (!voteInfo[target]) {
-                                            voteInfo[target] = { votes: 0, voters: [] };
-                                        }
-                                        voteInfo[target].votes++;
-                                        voteInfo[target].voters.push(model.split('/').pop());
-                                    }
-                                });
-                            }
-                            
-                            // Display each eliminated player with vote information if available
-                            round.eliminations.forEach(eliminated => {
-                                const modelName = eliminated.split('/').pop();
-                                const votes = voteInfo[eliminated] ? voteInfo[eliminated].votes : 0;
-                                const voters = voteInfo[eliminated] ? voteInfo[eliminated].voters.join(', ') : 'Unknown';
-                                
-                                dialogueHtml += `<div class="elimination" style="display: block; margin: 10px 0;">
-                                    <strong>💀 ${modelName} was eliminated by vote</strong>
-                                    ${votes > 0 ? ` (${votes} vote${votes > 1 ? 's' : ''})` : ''}
-                                    ${votes > 0 ? `<div style="font-size: 0.9em; margin-top: 5px;">Voted by: ${voters}</div>` : ''}
                                 </div>`;
                             });
                         }
