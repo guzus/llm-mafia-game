@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Details - LLM Mafia Game Competition</title>
     <link rel="stylesheet" href="/static/css/game_detail.css">
+    <link rel="stylesheet" href="/static/css/game_visualization.css">
 </head>
 <body>
     <div class="container">
@@ -22,6 +23,7 @@
             <div class="tabs">
                 <div class="tab active" onclick="switchTab('summary')">Game Summary</div>
                 <div class="tab" onclick="switchTab('dialogue')">Full Dialogue</div>
+                <div class="tab" onclick="switchTab('visualization')">Game Visualization</div>
             </div>
             
             <div id="summary" class="tab-content active">
@@ -40,6 +42,30 @@
                     <div class="loading">
                         <div class="spinner"></div>
                         <div>Loading dialogue...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="visualization" class="tab-content">
+                <h2>Game Visualization</h2>
+                <div id="gameVisualization" class="visualization-container">
+                    <div class="visualization-loading">
+                        <div class="visualization-spinner"></div>
+                        <div>Loading visualization...</div>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button id="prevBtn" class="control-button prev" disabled>Previous</button>
+                    <button id="playPauseBtn" class="control-button play">Play</button>
+                    <button id="nextBtn" class="control-button next" disabled>Next</button>
+                </div>
+                
+                <div class="game-info-panel">
+                    <div id="gamePhase" class="game-phase phase-day">Day Phase</div>
+                    <div id="roundInfo" class="round-info">Round 1</div>
+                    <div class="event-log" id="eventLog">
+                        <div class="event-item">Game started.</div>
                     </div>
                 </div>
             </div>
@@ -67,10 +93,12 @@
             })
             .then(data => {
                 console.log('Game data received:', data);
+                gameData = data;
                 displayGameInfo(data);
                 displayGameLog(data);
-                displayGameDialogue(data);
+                displayDialogue(data);
                 displayGameResult(data);
+                initializeVisualization(data);
             })
             .catch(error => {
                 console.error('Error fetching game data:', error);
@@ -90,6 +118,7 @@
                     <div class="error">
                         Error loading game result: ${error.message}
                     </div>`;
+                document.getElementById('gameVisualization').innerHTML = '<div class="error">Error loading game visualization</div>';
             });
         
         // Function to display game information
@@ -230,7 +259,7 @@
         }
         
         // Function to display full dialogue
-        function displayGameDialogue(data) {
+        function displayDialogue(data) {
             const dialogueElement = document.getElementById('gameDialogue');
             
             if (!data.rounds || data.rounds.length === 0) {
@@ -558,6 +587,371 @@
             // Activate selected tab and content
             document.getElementById(tabId).classList.add('active');
             document.querySelector(`.tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
+        }
+        
+        // Game Visualization Functions
+        function initializeVisualization(data) {
+            if (!data || !data.participants || !data.rounds) {
+                document.getElementById('gameVisualization').innerHTML = '<div class="error">No data available for visualization</div>';
+                return;
+            }
+            
+            const visualizationContainer = document.getElementById('gameVisualization');
+            
+            // Create the visualization structure
+            visualizationContainer.innerHTML = `
+                <div class="game-table">
+                    <div class="day-overlay"></div>
+                    <!-- Players will be added here dynamically -->
+                </div>
+            `;
+            
+            const gameTable = visualizationContainer.querySelector('.game-table');
+            const participants = Object.entries(data.participants);
+            const playerCount = participants.length;
+            
+            // Add players around the table
+            participants.forEach(([model, role], index) => {
+                const angle = (index / playerCount) * 2 * Math.PI;
+                const centerX = 300; // Center of the table
+                const centerY = 300;
+                const radius = 220; // Distance from center
+                
+                // Calculate position
+                const x = centerX + radius * Math.cos(angle) - 40; // 40 is half the player width
+                const y = centerY + radius * Math.sin(angle) - 40; // 40 is half the player height
+                
+                // Create player element
+                const playerElement = document.createElement('div');
+                playerElement.className = `player ${role.toLowerCase()}`;
+                playerElement.id = `player-${model.split('/').pop()}`;
+                playerElement.style.left = `${x}px`;
+                playerElement.style.top = `${y}px`;
+                
+                // Create player avatar and info
+                const modelName = model.split('/').pop();
+                const shortName = modelName.length > 10 ? modelName.substring(0, 10) + '...' : modelName;
+                playerElement.innerHTML = `
+                    <div class="player-avatar">${modelName.charAt(0)}</div>
+                    <div class="player-name">${shortName}</div>
+                    <div class="player-role">${role}</div>
+                    <div class="speech-bubble"></div>
+                `;
+                
+                gameTable.appendChild(playerElement);
+            });
+            
+            // Initialize visualization state
+            initializeVisualizationControls(data);
+        }
+        
+        // Visualization state variables
+        let currentRoundIndex = 0;
+        let currentMessageIndex = -1;
+        let isPlaying = false;
+        let playInterval = null;
+        let visualizationSpeed = 2000; // 2 seconds per message
+        
+        function initializeVisualizationControls(data) {
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            // Enable next button if there are messages
+            if (data.rounds && data.rounds.length > 0 && data.rounds[0].messages && data.rounds[0].messages.length > 0) {
+                nextBtn.disabled = false;
+            }
+            
+            // Play/Pause button
+            playPauseBtn.addEventListener('click', () => {
+                if (isPlaying) {
+                    pauseVisualization();
+                } else {
+                    playVisualization(data);
+                }
+            });
+            
+            // Next button
+            nextBtn.addEventListener('click', () => {
+                pauseVisualization();
+                showNextMessage(data);
+            });
+            
+            // Previous button
+            prevBtn.addEventListener('click', () => {
+                pauseVisualization();
+                showPreviousMessage(data);
+            });
+            
+            // Initialize with the first round and phase
+            updateGamePhaseDisplay(data.rounds[0].phase || 'day');
+            document.getElementById('roundInfo').textContent = `Round 1`;
+            
+            // Mark eliminated players
+            updatePlayerStatus(data);
+        }
+        
+        function playVisualization(data) {
+            isPlaying = true;
+            document.getElementById('playPauseBtn').textContent = 'Pause';
+            document.getElementById('playPauseBtn').classList.remove('play');
+            document.getElementById('playPauseBtn').classList.add('pause');
+            
+            // Clear any existing interval
+            if (playInterval) clearInterval(playInterval);
+            
+            // Start playing from current position
+            playInterval = setInterval(() => {
+                const hasMore = showNextMessage(data);
+                if (!hasMore) {
+                    pauseVisualization();
+                }
+            }, visualizationSpeed);
+        }
+        
+        function pauseVisualization() {
+            isPlaying = false;
+            document.getElementById('playPauseBtn').textContent = 'Play';
+            document.getElementById('playPauseBtn').classList.remove('pause');
+            document.getElementById('playPauseBtn').classList.add('play');
+            
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+        
+        function showNextMessage(data) {
+            // Clear any existing speech bubbles
+            clearSpeechBubbles();
+            
+            // Get current round
+            const round = data.rounds[currentRoundIndex];
+            if (!round || !round.messages) return false;
+            
+            // Move to next message
+            currentMessageIndex++;
+            
+            // Check if we need to move to the next round
+            if (currentMessageIndex >= round.messages.length) {
+                currentRoundIndex++;
+                currentMessageIndex = 0;
+                
+                // Check if we've reached the end of all rounds
+                if (currentRoundIndex >= data.rounds.length) {
+                    currentRoundIndex = data.rounds.length - 1;
+                    currentMessageIndex = data.rounds[currentRoundIndex].messages.length - 1;
+                    return false; // No more messages
+                }
+                
+                // Update round info and phase
+                const newRound = data.rounds[currentRoundIndex];
+                updateGamePhaseDisplay(newRound.phase || 'day');
+                document.getElementById('roundInfo').textContent = `Round ${currentRoundIndex + 1}`;
+                
+                // Add round transition event
+                addEventLogItem(`Round ${currentRoundIndex + 1} started - ${newRound.phase || 'day'} phase`, true);
+                
+                // Update player status for the new round
+                updatePlayerStatus(data, currentRoundIndex);
+            }
+            
+            // Get the current message
+            const message = data.rounds[currentRoundIndex].messages[currentMessageIndex];
+            
+            // Display the message
+            if (message && message.speaker) {
+                const speakerElement = document.getElementById(`player-${message.speaker.split('/').pop()}`);
+                if (speakerElement) {
+                    // Highlight the speaking player
+                    document.querySelectorAll('.player').forEach(p => p.classList.remove('speaking'));
+                    speakerElement.classList.add('speaking');
+                    
+                    // Show speech bubble
+                    const speechBubble = speakerElement.querySelector('.speech-bubble');
+                    if (speechBubble) {
+                        // Truncate long messages
+                        const truncatedContent = message.content.length > 100 ? 
+                            message.content.substring(0, 100) + '...' : message.content;
+                        
+                        // Replace newlines with spaces
+                        const formattedContent = truncatedContent.replace(/\n/g, ' ');
+                        
+                        speechBubble.textContent = formattedContent;
+                        speechBubble.classList.add('visible');
+                    }
+                    
+                    // Add to event log
+                    addEventLogItem(`${message.speaker.split('/').pop()}: ${message.content.substring(0, 50)}${message.content.length > 50 ? '...' : ''}`);
+                }
+            }
+            
+            // Update button states
+            document.getElementById('prevBtn').disabled = (currentRoundIndex === 0 && currentMessageIndex === 0);
+            document.getElementById('nextBtn').disabled = (currentRoundIndex === data.rounds.length - 1 && 
+                                                         currentMessageIndex === data.rounds[currentRoundIndex].messages.length - 1);
+            
+            return true; // More messages available
+        }
+        
+        function showPreviousMessage(data) {
+            // Clear any existing speech bubbles
+            clearSpeechBubbles();
+            
+            // Move to previous message
+            currentMessageIndex--;
+            
+            // Check if we need to move to the previous round
+            if (currentMessageIndex < 0) {
+                currentRoundIndex--;
+                
+                // Check if we've reached the beginning
+                if (currentRoundIndex < 0) {
+                    currentRoundIndex = 0;
+                    currentMessageIndex = 0;
+                    return false; // No more previous messages
+                }
+                
+                // Set to the last message of the previous round
+                const prevRound = data.rounds[currentRoundIndex];
+                currentMessageIndex = prevRound.messages ? prevRound.messages.length - 1 : 0;
+                
+                // Update round info and phase
+                updateGamePhaseDisplay(prevRound.phase || 'day');
+                document.getElementById('roundInfo').textContent = `Round ${currentRoundIndex + 1}`;
+                
+                // Add round transition event
+                addEventLogItem(`Moved back to Round ${currentRoundIndex + 1} - ${prevRound.phase || 'day'} phase`, true);
+                
+                // Update player status for the previous round
+                updatePlayerStatus(data, currentRoundIndex);
+            }
+            
+            // Get the current message
+            const round = data.rounds[currentRoundIndex];
+            if (!round || !round.messages) return false;
+            
+            const message = round.messages[currentMessageIndex];
+            
+            // Display the message
+            if (message && message.speaker) {
+                const speakerElement = document.getElementById(`player-${message.speaker.split('/').pop()}`);
+                if (speakerElement) {
+                    // Highlight the speaking player
+                    document.querySelectorAll('.player').forEach(p => p.classList.remove('speaking'));
+                    speakerElement.classList.add('speaking');
+                    
+                    // Show speech bubble
+                    const speechBubble = speakerElement.querySelector('.speech-bubble');
+                    if (speechBubble) {
+                        // Truncate long messages
+                        const truncatedContent = message.content.length > 100 ? 
+                            message.content.substring(0, 100) + '...' : message.content;
+                        
+                        // Replace newlines with spaces
+                        const formattedContent = truncatedContent.replace(/\n/g, ' ');
+                        
+                        speechBubble.textContent = formattedContent;
+                        speechBubble.classList.add('visible');
+                    }
+                    
+                    // Add to event log
+                    addEventLogItem(`${message.speaker.split('/').pop()}: ${message.content.substring(0, 50)}${message.content.length > 50 ? '...' : ''}`);
+                }
+            }
+            
+            // Update button states
+            document.getElementById('prevBtn').disabled = (currentRoundIndex === 0 && currentMessageIndex === 0);
+            document.getElementById('nextBtn').disabled = (currentRoundIndex === data.rounds.length - 1 && 
+                                                         currentMessageIndex === data.rounds[currentRoundIndex].messages.length - 1);
+            
+            return true; // More previous messages available
+        }
+        
+        function clearSpeechBubbles() {
+            document.querySelectorAll('.speech-bubble').forEach(bubble => {
+                bubble.classList.remove('visible');
+                bubble.textContent = '';
+            });
+        }
+        
+        function updateGamePhaseDisplay(phase) {
+            const gamePhaseElement = document.getElementById('gamePhase');
+            const dayOverlay = document.querySelector('.day-overlay');
+            
+            if (phase.toLowerCase() === 'night') {
+                gamePhaseElement.textContent = 'Night Phase';
+                gamePhaseElement.className = 'game-phase phase-night';
+                
+                // Change to night overlay
+                dayOverlay.className = 'night-overlay';
+                dayOverlay.style.animation = 'dayToNight 1s forwards';
+            } else {
+                gamePhaseElement.textContent = 'Day Phase';
+                gamePhaseElement.className = 'game-phase phase-day';
+                
+                // Change to day overlay
+                dayOverlay.className = 'day-overlay';
+                dayOverlay.style.animation = 'nightToDay 1s forwards';
+            }
+        }
+        
+        function updatePlayerStatus(data, roundIndex = 0) {
+            // Reset all players
+            document.querySelectorAll('.player').forEach(player => {
+                player.classList.remove('dead');
+            });
+            
+            // Mark eliminated players
+            const eliminatedPlayers = new Set();
+            
+            // Process all rounds up to the current one
+            for (let i = 0; i <= roundIndex; i++) {
+                const round = data.rounds[i];
+                
+                // Add players eliminated by vote
+                if (round.eliminated_by_vote) {
+                    round.eliminated_by_vote.forEach(player => eliminatedPlayers.add(player));
+                }
+                
+                // Add players eliminated by mafia
+                if (round.eliminated_by_mafia) {
+                    round.eliminated_by_mafia.forEach(player => eliminatedPlayers.add(player));
+                }
+                
+                // Add any other eliminations
+                if (round.eliminations) {
+                    round.eliminations.forEach(player => eliminatedPlayers.add(player));
+                }
+            }
+            
+            // Mark eliminated players as dead
+            eliminatedPlayers.forEach(player => {
+                const playerElement = document.getElementById(`player-${player.split('/').pop()}`);
+                if (playerElement) {
+                    playerElement.classList.add('dead');
+                    
+                    // Add elimination event if this is the current round
+                    if (roundIndex === currentRoundIndex) {
+                        addEventLogItem(`${player.split('/').pop()} was eliminated!`, true);
+                    }
+                }
+            });
+        }
+        
+        function addEventLogItem(text, important = false) {
+            const eventLog = document.getElementById('eventLog');
+            const eventItem = document.createElement('div');
+            eventItem.className = `event-item${important ? ' important' : ''}`;
+            eventItem.textContent = text;
+            
+            // Add to the top of the log
+            eventLog.insertBefore(eventItem, eventLog.firstChild);
+            
+            // Limit the number of items
+            while (eventLog.children.length > 20) {
+                eventLog.removeChild(eventLog.lastChild);
+            }
         }
     </script>
 </body>
