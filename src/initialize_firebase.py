@@ -20,6 +20,7 @@ def initialize_database():
         {
             "game_id": str(uuid.uuid4()),
             "winner": "Mafia",
+            "language": "English",
             "participants": {
                 "openai/gpt-4-turbo": "Mafia",
                 "anthropic/claude-3-opus": "Villager",
@@ -33,6 +34,7 @@ def initialize_database():
         {
             "game_id": str(uuid.uuid4()),
             "winner": "Villagers",
+            "language": "English",
             "participants": {
                 "openai/gpt-4-turbo": "Villager",
                 "anthropic/claude-3-opus": "Mafia",
@@ -46,6 +48,7 @@ def initialize_database():
         {
             "game_id": str(uuid.uuid4()),
             "winner": "Villagers",
+            "language": "English",
             "participants": {
                 "openai/gpt-4-turbo": "Doctor",
                 "anthropic/claude-3-opus": "Villager",
@@ -62,7 +65,10 @@ def initialize_database():
     success_count = 0
     for game in sample_games:
         if firebase.store_game_result(
-            game["game_id"], game["winner"], game["participants"]
+            game["game_id"],
+            game["winner"],
+            game["participants"],
+            language=game["language"],
         ):
             success_count += 1
             print(f"Successfully stored game {game['game_id']}")

@@ -43,6 +43,11 @@ DOCTOR_COUNT = int(os.getenv("DOCTOR_COUNT", 1))  # Number of Doctor players
 # Game type
 GAME_TYPE = "Classic Mafia"  # Type of Mafia game to run
 
+# Language setting
+LANGUAGE = os.getenv(
+    "LANGUAGE", "English"
+)  # Language for game prompts and interactions (supported: English, Spanish, French, Korean)
+
 # Maximum number of rounds before declaring a draw
 MAX_ROUNDS = int(os.getenv("MAX_ROUNDS", 20))
 

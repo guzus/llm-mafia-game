@@ -34,7 +34,12 @@ class FirebaseManager:
             self.initialized = False
 
     def store_game_result(
-        self, game_id, winner, participants, game_type=config.GAME_TYPE
+        self,
+        game_id,
+        winner,
+        participants,
+        game_type=config.GAME_TYPE,
+        language=config.LANGUAGE,
     ):
         """
         Store the result of a game in Firebase.
@@ -44,6 +49,7 @@ class FirebaseManager:
             winner (str): The winning team ("Mafia" or "Villagers").
             participants (dict): Dictionary mapping model names to roles.
             game_type (str, optional): Type of Mafia game played.
+            language (str, optional): Language used for the game.
 
         Returns:
             bool: True if successful, False otherwise.
@@ -58,6 +64,7 @@ class FirebaseManager:
                 "game_id": game_id,
                 "timestamp": int(time.time()),
                 "game_type": game_type,
+                "language": language,
                 "participant_count": len(participants),
                 "winner": winner,
                 "participants": participants,
@@ -70,7 +77,14 @@ class FirebaseManager:
             print(f"Error storing game result: {e}")
             return False
 
-    def store_game_log(self, game_id, rounds, participants, game_type=config.GAME_TYPE):
+    def store_game_log(
+        self,
+        game_id,
+        rounds,
+        participants,
+        game_type=config.GAME_TYPE,
+        language=config.LANGUAGE,
+    ):
         """
         Store the log of a game in Firebase.
 
@@ -79,6 +93,7 @@ class FirebaseManager:
             rounds (list): List of round data.
             participants (dict): Dictionary mapping model names to roles.
             game_type (str, optional): Type of Mafia game played.
+            language (str, optional): Language used for the game.
 
         Returns:
             bool: True if successful, False otherwise.
@@ -93,6 +108,7 @@ class FirebaseManager:
                 "game_id": game_id,
                 "timestamp": int(time.time()),
                 "game_type": game_type,
+                "language": language,
                 "participant_count": len(participants),
                 "rounds": rounds,
             }

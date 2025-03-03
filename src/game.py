@@ -12,12 +12,13 @@ from logger import GameLogger, Color
 class MafiaGame:
     """Represents a Mafia game with LLM players."""
 
-    def __init__(self, models=None):
+    def __init__(self, models=None, language=None):
         """
         Initialize a Mafia game.
 
         Args:
             models (list, optional): List of model names to use as players.
+            language (str, optional): Language for game prompts and interactions. Defaults to config.LANGUAGE.
         """
         self.game_id = str(uuid.uuid4())
         self.round_number = 0
@@ -28,6 +29,7 @@ class MafiaGame:
         self.villager_players = []
         self.discussion_history = ""
         self.rounds_data = []
+        self.language = language if language is not None else config.LANGUAGE
         self.current_round_data = {
             "round_number": 0,
             "messages": [],
@@ -91,7 +93,7 @@ class MafiaGame:
         # Create players
         self.logger.header("PLAYER SETUP", Color.CYAN)
         for i, model_name in enumerate(selected_models):
-            player = Player(model_name, roles[i])
+            player = Player(model_name, roles[i], language=self.language)
             self.players.append(player)
 
             # Add to role-specific lists
@@ -602,13 +604,14 @@ class MafiaGame:
         Run the Mafia game until completion.
 
         Returns:
-            tuple: (winner, rounds_data, participants) where winner is "Mafia" or "Villagers".
+            tuple: (winner, rounds_data, participants, language) where winner is "Mafia" or "Villagers".
                    rounds_data includes all messages (day and night phases) for game details,
                    but players only see day phase messages during the game.
+                   language is the language used for the game.
         """
         # Setup game
         if not self.setup_game():
-            return None, [], {}
+            return None, [], {}, self.language
 
         # Game loop
         game_over = False
@@ -643,4 +646,4 @@ class MafiaGame:
         # Log game end
         self.logger.game_end(1, winner, self.round_number)
 
-        return winner, self.rounds_data, participants
+        return winner, self.rounds_data, participants, self.language

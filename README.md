@@ -11,6 +11,7 @@ This project allows multiple Large Language Models (LLMs) to compete against eac
 - Runs the game **n times** and tracks win rates.
 - Stores results in **Firebase** for real-time updates.
 - Provides a **Flask-based dashboard** with graphical representation of model performance using **Matplotlib**.
+- Supports **multiple languages** for game prompts and interactions.
 
 ## Mafia Game Rules
 
@@ -47,6 +48,21 @@ This project allows multiple Large Language Models (LLMs) to compete against eac
 - 1-2 Mafia members
 - 1 Doctor
 - Remaining players are Villagers
+
+### Language Support
+
+The game supports multiple languages for prompts and interactions:
+
+- English (default)
+- Spanish
+- French
+- Korean
+
+You can configure the language by:
+
+1. Setting the `LANGUAGE` environment variable
+2. Modifying the `LANGUAGE` setting in `config.py`
+3. Passing the language parameter when running a simulation
 
 ## Game Implementation
 

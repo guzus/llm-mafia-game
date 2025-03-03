@@ -12,22 +12,25 @@ from firebase_manager import FirebaseManager
 from logger import GameLogger, Color
 
 
-def run_single_game(game_number):
+def run_single_game(game_number, language=None):
     """
     Run a single Mafia game.
 
     Args:
         game_number (int): The game number.
+        language (str, optional): Language for game prompts and interactions. Defaults to config.LANGUAGE.
 
     Returns:
-        tuple: (game_number, winner, rounds_data, participants)
+        tuple: (game_number, winner, rounds_data, participants, game_id, language)
     """
-    game = MafiaGame()
-    winner, rounds_data, participants = game.run_game()
-    return game_number, winner, rounds_data, participants, game.game_id
+    game = MafiaGame(language=language)
+    winner, rounds_data, participants, language = game.run_game()
+    return game_number, winner, rounds_data, participants, game.game_id, language
 
 
-def run_simulation(num_games=config.NUM_GAMES, parallel=True, max_workers=4):
+def run_simulation(
+    num_games=config.NUM_GAMES, parallel=True, max_workers=4, language=None
+):
     """
     Run multiple Mafia games and store results.
 
@@ -35,6 +38,7 @@ def run_simulation(num_games=config.NUM_GAMES, parallel=True, max_workers=4):
         num_games (int, optional): Number of games to run.
         parallel (bool, optional): Whether to run games in parallel.
         max_workers (int, optional): Maximum number of worker threads.
+        language (str, optional): Language for game prompts and interactions. Defaults to config.LANGUAGE.
 
     Returns:
         dict: Statistics about the games.
@@ -48,7 +52,7 @@ def run_simulation(num_games=config.NUM_GAMES, parallel=True, max_workers=4):
     # Initialize Firebase
     firebase = FirebaseManager()
 
-    # Statistics
+    # Initialize statistics
     stats = {
         "total_games": num_games,
         "completed_games": 0,
@@ -68,26 +72,39 @@ def run_simulation(num_games=config.NUM_GAMES, parallel=True, max_workers=4):
         ),
     }
 
+    # Use the provided language or default from config
+    game_language = language if language is not None else config.LANGUAGE
+
     if parallel and num_games > 1:
         # Run games in parallel
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             # Submit all games
             future_to_game = {
-                executor.submit(run_single_game, i): i for i in range(1, num_games + 1)
+                executor.submit(run_single_game, i, game_language): i
+                for i in range(1, num_games + 1)
             }
 
             # Process results as they complete
             for future in concurrent.futures.as_completed(future_to_game):
                 game_number = future_to_game[future]
                 try:
-                    game_number, winner, rounds_data, participants, game_id = (
-                        future.result()
-                    )
+                    (
+                        game_number,
+                        winner,
+                        rounds_data,
+                        participants,
+                        game_id,
+                        language,
+                    ) = future.result()
 
                     # Store results in Firebase
                     if firebase.initialized:
-                        firebase.store_game_result(game_id, winner, participants)
-                        firebase.store_game_log(game_id, rounds_data, participants)
+                        firebase.store_game_result(
+                            game_id, winner, participants, language=language
+                        )
+                        firebase.store_game_log(
+                            game_id, rounds_data, participants, language=language
+                        )
 
                     # Update statistics
                     stats["completed_games"] += 1
@@ -130,14 +147,18 @@ def run_simulation(num_games=config.NUM_GAMES, parallel=True, max_workers=4):
         for i in range(1, num_games + 1):
             game_number = i  # Define game_number at the start of each iteration
             try:
-                game_number, winner, rounds_data, participants, game_id = (
-                    run_single_game(i)
+                game_number, winner, rounds_data, participants, game_id, language = (
+                    run_single_game(i, game_language)
                 )
 
                 # Store results in Firebase
                 if firebase.initialized:
-                    firebase.store_game_result(game_id, winner, participants)
-                    firebase.store_game_log(game_id, rounds_data, participants)
+                    firebase.store_game_result(
+                        game_id, winner, participants, language=language
+                    )
+                    firebase.store_game_log(
+                        game_id, rounds_data, participants, language=language
+                    )
 
                 # Update statistics
                 stats["completed_games"] += 1
