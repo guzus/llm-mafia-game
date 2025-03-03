@@ -42,5 +42,7 @@ def get_llm_response(model_name, prompt):
         result = response.json()
         return result["choices"][0]["message"]["content"]
     except Exception as e:
-        print(f"Error getting response from {model_name}: {e}")
+        print(
+            f"Error getting response from {model_name}: error: {e}, response: {response.text}"
+        )
         return "ERROR: Could not get response"
