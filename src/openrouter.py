@@ -27,7 +27,7 @@ def get_llm_response(model_name, prompt):
     data = {
         "model": model_name,
         "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 500,
+        "max_tokens": 400,
     }
 
     try:
