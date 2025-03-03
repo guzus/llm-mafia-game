@@ -2,6 +2,7 @@ services:
   dashboard:
     build: .
     image: guzus/llm-mafia-game-dashboard:latest
+    platform: linux/amd64
     ports:
       - "5001:5001"
     volumes:
@@ -13,6 +14,7 @@ services:
   simulation:
     build: .
     image: guzus/llm-mafia-game-simulation:latest
+    platform: linux/amd64
     volumes:
       - ./firebase_credentials.json:/app/firebase_credentials.json
     environment:
