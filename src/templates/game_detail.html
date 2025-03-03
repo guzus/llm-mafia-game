@@ -421,7 +421,7 @@
                                 const voterNames = voters.map(voter => voter.split('/').pop());
                                 
                                 dialogueHtml += `<div class="elimination" style="display: block; margin: 10px 0;">
-                                    <strong>💀 ${modelName} was eliminated by town</strong>
+                                    <strong>💀 ${modelName} was eliminated by the town</strong>
                                 </div>`;
                             });
                             
@@ -491,7 +491,7 @@
                             
                             dialogueHtml += `<div class="vote-item">
                                 <div class="vote-target">
-                                    <span class="vote-name">${targetName}</span>
+                                    <span class="vote-name">To Kill: ${targetName}</span>
                                     <span class="vote-count">${count} vote${count > 1 ? 's' : ''}</span>
                                 </div>
                                 <div class="vote-voters">From: ${voterNames.join(', ')}</div>
