@@ -7,6 +7,7 @@ import uuid
 from player import Player, Role
 import config
 from logger import GameLogger, Color
+import re
 
 
 class MafiaGame:
@@ -176,6 +177,15 @@ class MafiaGame:
 
         return False, None
 
+    def discussion_history_without_thinkings(self):
+        """
+        Get the discussion history for the current round, excluding thinking messages. Remove any <think></think> tags and their contents.
+        """
+        discussion_history_without_thinkings = re.sub(
+            r"<think>.*?</think>", "", self.discussion_history
+        )
+        return discussion_history_without_thinkings
+
     def execute_night_phase(self):
         """
         Execute the night phase of the game.
@@ -198,7 +208,10 @@ class MafiaGame:
                     f"{self.get_game_state()} It's night time. Choose a player to kill."
                 )
                 prompt = player.generate_prompt(
-                    game_state, self.get_alive_players(), self.mafia_players
+                    game_state,
+                    self.get_alive_players(),
+                    self.mafia_players,
+                    self.discussion_history_without_thinkings(),
                 )
 
                 # Get response
@@ -262,7 +275,10 @@ class MafiaGame:
                 f"{self.get_game_state()} It's night time. Choose a player to protect."
             )
             prompt = self.doctor_player.generate_prompt(
-                game_state, self.get_alive_players()
+                game_state,
+                self.get_alive_players(),
+                None,
+                self.discussion_history_without_thinkings(),
             )
 
             # Get response
@@ -354,7 +370,7 @@ class MafiaGame:
                 game_state,
                 alive_players,
                 self.mafia_players if player.role == Role.MAFIA else None,
-                self.discussion_history,  # Only contains day phase messages
+                self.discussion_history_without_thinkings(),
             )
 
             # Get response
@@ -536,7 +552,7 @@ class MafiaGame:
             game_state,
             self.get_alive_players(),
             self.mafia_players if player.role == Role.MAFIA else None,
-            self.discussion_history,
+            self.discussion_history_without_thinkings(),
         )
 
         # Get response
