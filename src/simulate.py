@@ -29,7 +29,7 @@ def run_single_game(game_number, language=None):
 
 
 def run_simulation(
-    num_games=config.NUM_GAMES, parallel=True, max_workers=4, language=None
+    num_games=config.NUM_GAMES, parallel=False, max_workers=4, language=None
 ):
     """
     Run multiple Mafia games and store results.
