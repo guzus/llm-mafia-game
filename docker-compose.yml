@@ -1,0 +1,20 @@
+services:
+  dashboard:
+    build: .
+    image: guzus/llm-mafia-game-dashboard:latest
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./firebase_credentials.json:/app/firebase_credentials.json
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+    command: uv run src/dashboard.py --port 5001
+
+  simulation:
+    build: .
+    image: guzus/llm-mafia-game-simulation:latest
+    volumes:
+      - ./firebase_credentials.json:/app/firebase_credentials.json
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+    command: uv run src/simulate.py
