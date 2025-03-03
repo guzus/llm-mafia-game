@@ -6,67 +6,6 @@
     <title>Game Details - LLM Mafia Game Competition</title>
     <link rel="stylesheet" href="/static/css/game_detail.css">
     <link rel="stylesheet" href="/static/css/game_visualization.css">
-    <style>
-        /* Night phase summary styles */
-        .night-phase {
-            background-color: #f0f8ff;
-            border-left: 5px solid #0066cc;
-            margin: 15px 0;
-            padding: 15px;
-            border-radius: 5px;
-        }
-        
-        .night-outcome {
-            font-weight: 500;
-        }
-        
-        .doctor-protection {
-            border-left: 5px solid #28a745 !important;
-            background-color: rgba(40, 167, 69, 0.1) !important;
-        }
-        
-        .mafia-kill {
-            border-left: 5px solid #dc3545 !important;
-            background-color: rgba(220, 53, 69, 0.1) !important;
-        }
-        
-        .no-kill {
-            border-left: 5px solid #ffc107 !important;
-            background-color: rgba(255, 193, 7, 0.1) !important;
-        }
-        
-        .action-list {
-            padding: 8px;
-            background-color: rgba(255, 255, 255, 0.7);
-            border-radius: 4px;
-            margin-bottom: 10px;
-        }
-        
-        .night-eliminations {
-            padding: 8px;
-            background-color: rgba(220, 53, 69, 0.1);
-            border-radius: 4px;
-            border-left: 3px solid #dc3545;
-        }
-        
-        /* Player visualization states */
-        .player.targeted {
-            box-shadow: 0 0 10px 3px rgba(220, 53, 69, 0.7);
-        }
-        
-        .player.protected {
-            box-shadow: 0 0 10px 3px rgba(40, 167, 69, 0.7);
-        }
-        
-        .player.targeted.protected {
-            box-shadow: 0 0 10px 3px rgba(220, 53, 69, 0.7), 
-                        0 0 15px 5px rgba(40, 167, 69, 0.7);
-        }
-        
-        .mafia-target {
-            background-color: rgba(220, 53, 69, 0.1);
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -239,6 +178,9 @@
                 let roundHtml = `<div class="round">
                     <div class="round-title">Round ${index + 1}</div>`;
                 
+                // Add player status at the start of the round
+                roundHtml += createPlayerStatusSection(data, index, 'start');
+                
                 // Process actions (votes, etc.)
                 if (round.actions && typeof round.actions === 'object') {
                     roundHtml += `<div class="round-section">Actions:</div>`;
@@ -312,12 +254,51 @@
                         <a href="#" onclick="switchTab('dialogue'); return false;">View full dialogue</a>
                     </div>`;
                 }
-                
                 roundHtml += '</div>';
                 gameLogHtml += roundHtml;
             });
             
             gameLogElement.innerHTML = gameLogHtml;
+        }
+        
+        // Function to create player status section showing alive players and their roles
+        function createPlayerStatusSection(data, roundIndex, position) {
+            const participants = data.participants || {};
+            const eliminatedPlayers = new Set();
+            
+            // Determine which players are eliminated up to this point
+            for (let i = 0; i < roundIndex; i++) {
+                const round = data.rounds[i];
+                if (round.eliminations) {
+                    round.eliminations.forEach(player => eliminatedPlayers.add(player));
+                }
+            }
+            
+            // For end of round, also include eliminations from the current round
+            if (position === 'end' && data.rounds[roundIndex].eliminations) {
+                data.rounds[roundIndex].eliminations.forEach(player => eliminatedPlayers.add(player));
+            }
+            
+            // Create the player status section
+            let html = `<div class="player-status-section ${position}-of-round">
+                <div class="player-status-header">${position === 'start' ? 'Players Alive at Start of Round' : 'Players Alive at End of Round'}</div>
+                <div class="player-status-list">`;
+            
+            // Add each player with their role
+            Object.entries(participants).forEach(([model, role]) => {
+                const isEliminated = eliminatedPlayers.has(model);
+                if (!isEliminated) {
+                    const modelName = model.split('/').pop();
+                    const roleClass = role.toLowerCase();
+                    html += `<div class="player-status-item ${roleClass}">
+                        <span class="player-status-name">${modelName}</span>
+                        <span class="player-status-role">${role}</span>
+                    </div>`;
+                }
+            });
+            
+            html += `</div></div>`;
+            return html;
         }
         
         // Function to display full dialogue
@@ -342,6 +323,16 @@
             data.rounds.forEach((round, index) => {
                 // Add round header
                 dialogueHtml += `<h3>Round ${index + 1}</h3>`;
+                
+                // Add player status at the start of the round
+                dialogueHtml += `<div class="dialogue-message" style="background-color: #f5f5f5; border-left: 5px solid #28a745; margin-top: 15px;">
+                    <div class="dialogue-speaker phase-header"><strong>Players Alive at Start of Round ${index + 1}</strong></div>
+                    <div class="dialogue-content">
+                        <div class="player-status-list" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                            ${createPlayerStatusListHTML(data, index, 'start')}
+                        </div>
+                    </div>
+                </div>`;
                 
                 // Add round summary
                 dialogueHtml += `<div class="dialogue-message" style="background-color: #f8f8f8; border-left: 5px solid #333;">
@@ -570,6 +561,42 @@
             } else {
                 dialogueElement.innerHTML = dialogueHtml;
             }
+        }
+        
+        // Helper function to create player status list HTML for dialogue view
+        function createPlayerStatusListHTML(data, roundIndex, position) {
+            const participants = data.participants || {};
+            const eliminatedPlayers = new Set();
+            
+            // Determine which players are eliminated up to this point
+            for (let i = 0; i < roundIndex; i++) {
+                const round = data.rounds[i];
+                if (round.eliminations) {
+                    round.eliminations.forEach(player => eliminatedPlayers.add(player));
+                }
+            }
+            
+            // For end of round, also include eliminations from the current round
+            if (position === 'end' && data.rounds[roundIndex].eliminations) {
+                data.rounds[roundIndex].eliminations.forEach(player => eliminatedPlayers.add(player));
+            }
+            
+            let html = '';
+            
+            // Add each player with their role
+            Object.entries(participants).forEach(([model, role]) => {
+                const isEliminated = eliminatedPlayers.has(model);
+                if (!isEliminated) {
+                    const modelName = model.split('/').pop();
+                    const roleClass = role.toLowerCase();
+                    html += `<div class="player-status-item ${roleClass}" style="padding: 8px 12px; border-radius: 4px; text-align: center;">
+                        <span style="font-weight: bold;">${modelName}</span>
+                        <span style="font-size: 0.85em;">${role}</span>
+                    </div>`;
+                }
+            });
+            
+            return html;
         }
         
         // Function to display game result

@@ -334,3 +334,112 @@ h1, h2, h3 {
     color: #666;
     margin-top: 3px;
 } 
+.night-phase {
+    background-color: #f0f8ff;
+    border-left: 5px solid #0066cc;
+    margin: 15px 0;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.night-outcome {
+    font-weight: 500;
+}
+
+.doctor-protection {
+    border-left: 5px solid #28a745 !important;
+    background-color: rgba(40, 167, 69, 0.1) !important;
+}
+
+.mafia-kill {
+    border-left: 5px solid #dc3545 !important;
+    background-color: rgba(220, 53, 69, 0.1) !important;
+}
+
+.no-kill {
+    border-left: 5px solid #ffc107 !important;
+    background-color: rgba(255, 193, 7, 0.1) !important;
+}
+
+.action-list {
+    padding: 8px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.night-eliminations {
+    padding: 8px;
+    background-color: rgba(220, 53, 69, 0.1);
+    border-radius: 4px;
+    border-left: 3px solid #dc3545;
+}
+
+/* Player visualization states */
+.player.targeted {
+    box-shadow: 0 0 10px 3px rgba(220, 53, 69, 0.7);
+}
+
+.player.protected {
+    box-shadow: 0 0 10px 3px rgba(40, 167, 69, 0.7);
+}
+
+.player.targeted.protected {
+    box-shadow: 0 0 10px 3px rgba(220, 53, 69, 0.7), 
+                0 0 15px 5px rgba(40, 167, 69, 0.7);
+}
+
+.mafia-target {
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+/* Player status section styles */
+.player-status-section {
+    margin: 15px 0;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    border-left: 5px solid #6c757d;
+}
+
+.start-of-round {
+    border-left-color: #28a745;
+    background-color: rgba(40, 167, 69, 0.05);
+}
+
+.end-of-round {
+    border-left-color: #17a2b8;
+    background-color: rgba(23, 162, 184, 0.05);
+}
+
+.player-status-header {
+    font-weight: bold;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.player-status-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.player-status-item {
+    padding: 8px 12px;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 120px;
+}
+
+.player-status-name {
+    font-weight: bold;
+    margin-bottom: 3px;
+}
+
+.player-status-role {
+    font-size: 0.85em;
+    opacity: 0.9;
+}
