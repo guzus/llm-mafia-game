@@ -36,7 +36,9 @@ class MafiaGame:
             "messages": [],
             "actions": {},
             "eliminations": [],
-            "eliminated_by_vote": [],  # New field to track players eliminated by vote
+            "eliminated_by_vote": [],  # Reset for the new round
+            "targeted_by_mafia": [],  # Reset for the new round
+            "protected_by_doctor": [],  # Reset for the new round
             "outcome": "",
         }
 
@@ -117,6 +119,8 @@ class MafiaGame:
             "actions": {},
             "eliminations": [],
             "eliminated_by_vote": [],  # Reset for the new round
+            "targeted_by_mafia": [],  # Reset for the new round
+            "protected_by_doctor": [],  # Reset for the new round
             "outcome": "",
         }
 
@@ -267,6 +271,12 @@ class MafiaGame:
                             kill_target = player
                             break
 
+            # Record the final mafia target
+            if kill_target:
+                self.current_round_data["targeted_by_mafia"].append(
+                    kill_target.model_name
+                )
+
         # Get action from Doctor
         protected_player = None
         if self.doctor_player and self.doctor_player.alive:
@@ -309,6 +319,7 @@ class MafiaGame:
                 self.current_round_data["actions"][
                     self.doctor_player.model_name
                 ] = action_text
+                self.current_round_data["protected_by_doctor"].append(target.model_name)
                 self.logger.player_action(
                     self.doctor_player.model_name, "Doctor", action_text
                 )
@@ -326,6 +337,7 @@ class MafiaGame:
             kill_target.alive = False
             eliminated_players.append(kill_target)
             self.current_round_data["eliminations"].append(kill_target.model_name)
+            # We already added to targeted_by_mafia above
             # Not adding to eliminated_by_vote since this is a night kill
             outcome_text = f"{kill_target.model_name} was killed by the Mafia."
             self.current_round_data["outcome"] = outcome_text
@@ -528,6 +540,8 @@ class MafiaGame:
             "actions": {},
             "eliminations": [],
             "eliminated_by_vote": [],  # Reset for the new round
+            "targeted_by_mafia": [],  # Reset for the new round
+            "protected_by_doctor": [],  # Reset for the new round
             "outcome": "",
         }
 

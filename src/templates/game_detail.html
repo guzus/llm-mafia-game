@@ -6,6 +6,67 @@
     <title>Game Details - LLM Mafia Game Competition</title>
     <link rel="stylesheet" href="/static/css/game_detail.css">
     <link rel="stylesheet" href="/static/css/game_visualization.css">
+    <style>
+        /* Night phase summary styles */
+        .night-phase {
+            background-color: #f0f8ff;
+            border-left: 5px solid #0066cc;
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        
+        .night-outcome {
+            font-weight: 500;
+        }
+        
+        .doctor-protection {
+            border-left: 5px solid #28a745 !important;
+            background-color: rgba(40, 167, 69, 0.1) !important;
+        }
+        
+        .mafia-kill {
+            border-left: 5px solid #dc3545 !important;
+            background-color: rgba(220, 53, 69, 0.1) !important;
+        }
+        
+        .no-kill {
+            border-left: 5px solid #ffc107 !important;
+            background-color: rgba(255, 193, 7, 0.1) !important;
+        }
+        
+        .action-list {
+            padding: 8px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .night-eliminations {
+            padding: 8px;
+            background-color: rgba(220, 53, 69, 0.1);
+            border-radius: 4px;
+            border-left: 3px solid #dc3545;
+        }
+        
+        /* Player visualization states */
+        .player.targeted {
+            box-shadow: 0 0 10px 3px rgba(220, 53, 69, 0.7);
+        }
+        
+        .player.protected {
+            box-shadow: 0 0 10px 3px rgba(40, 167, 69, 0.7);
+        }
+        
+        .player.targeted.protected {
+            box-shadow: 0 0 10px 3px rgba(220, 53, 69, 0.7), 
+                        0 0 15px 5px rgba(40, 167, 69, 0.7);
+        }
+        
+        .mafia-target {
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -306,10 +367,22 @@
                 if (index > 0 && data.rounds[index-1] && data.rounds[index-1].actions) {
                     const prevRound = data.rounds[index-1];
                     
-                    // Create a section for Night Phase
+                    // Create a section for Night Phase Results
                     dialogueHtml += `<div class="dialogue-message night-phase">
-                        <div class="dialogue-speaker phase-header"><strong>Night Phase (Round ${index})</strong></div>
+                        <div class="dialogue-speaker phase-header"><strong>End of the Night of Round ${index} - What Happened</strong></div>
                         <div class="dialogue-content">`;
+                    
+                    // Show mafia targets
+                    if (prevRound.targeted_by_mafia && prevRound.targeted_by_mafia.length > 0) {
+                        const targetName = prevRound.targeted_by_mafia[0].split('/').pop();
+                        const wasProtected = prevRound.protected_by_doctor && 
+                                            prevRound.protected_by_doctor.includes(prevRound.targeted_by_mafia[0]);
+                        
+                        dialogueHtml += `<div class="action-list mafia-target" style="margin-bottom: 10px; ${wasProtected ? 'border-left: 3px solid #28a745;' : 'border-left: 3px solid #dc3545;'}">
+                            <strong>Mafia Target:</strong> ${targetName}
+                            ${wasProtected ? ' <span style="color: #28a745;">(Protected by Doctor)</span>' : ' <span style="color: #dc3545;">(Killed)</span>'}
+                        </div>`;
+                    }
                     
                     // Show mafia kill votes
                     const mafiaActions = [];
@@ -321,20 +394,47 @@
                     });
                     
                     if (mafiaActions.length > 0) {
-                        dialogueHtml += `<div class="action-list"><strong>Mafia Actions:</strong> ${mafiaActions.join(', ')}</div>`;
+                        dialogueHtml += `<div class="action-list" style="margin-bottom: 10px;">
+                            <strong>Mafia Votes:</strong> ${mafiaActions.join(', ')}
+                        </div>`;
                     }
                     
                     // Show doctor protection
-                    const doctorActions = [];
-                    Object.entries(prevRound.actions).forEach(([model, action]) => {
-                        if (participants[model] === 'Doctor' && action.includes('Protect')) {
-                            const target = action.replace('Protect ', '');
-                            doctorActions.push(`${model.split('/').pop()} protected ${target}`);
+                    if (prevRound.protected_by_doctor && prevRound.protected_by_doctor.length > 0) {
+                        const protectedName = prevRound.protected_by_doctor[0].split('/').pop();
+                        const wasTargeted = prevRound.targeted_by_mafia && 
+                                           prevRound.targeted_by_mafia.includes(prevRound.protected_by_doctor[0]);
+                        
+                        dialogueHtml += `<div class="action-list doctor-protection" style="margin-bottom: 10px; border-left: 3px solid #28a745;">
+                            <strong>Doctor Protected:</strong> ${protectedName}
+                            ${wasTargeted ? ' <span style="color: #28a745;">(Saved from Mafia)</span>' : ' <span style="color: #6c757d;">(Not targeted by Mafia)</span>'}
+                        </div>`;
+                    } else {
+                        // Show doctor action from actions if available
+                        const doctorActions = [];
+                        Object.entries(prevRound.actions).forEach(([model, action]) => {
+                            if (participants[model] === 'Doctor' && action.includes('Protect')) {
+                                const target = action.replace('Protect ', '');
+                                doctorActions.push(`${model.split('/').pop()} protected ${target}`);
+                            }
+                        });
+                        
+                        if (doctorActions.length > 0) {
+                            dialogueHtml += `<div class="action-list" style="margin-bottom: 10px;">
+                                <strong>Doctor Action:</strong> ${doctorActions.join(', ')}
+                            </div>`;
                         }
-                    });
+                    }
                     
-                    if (doctorActions.length > 0) {
-                        dialogueHtml += `<div class="action-list"><strong>Doctor Action:</strong> ${doctorActions.join(', ')}</div>`;
+                    // Show eliminations during the night if any
+                    const nightEliminations = prevRound.eliminations ? prevRound.eliminations.filter(
+                        player => !prevRound.eliminated_by_vote || !prevRound.eliminated_by_vote.includes(player)
+                    ) : [];
+                    
+                    if (nightEliminations.length > 0) {
+                        dialogueHtml += `<div class="night-eliminations" style="color: #d9534f; font-weight: bold; margin-top: 10px;">
+                            Players killed during the night: ${nightEliminations.map(p => p.split('/').pop()).join(', ')}
+                        </div>`;
                     }
                     
                     dialogueHtml += `</div></div>`;
@@ -896,10 +996,14 @@
             // Reset all players
             document.querySelectorAll('.player').forEach(player => {
                 player.classList.remove('dead');
+                player.classList.remove('targeted');
+                player.classList.remove('protected');
             });
             
             // Mark eliminated players
             const eliminatedPlayers = new Set();
+            const targetedPlayers = new Set();
+            const protectedPlayers = new Set();
             
             // Process all rounds up to the current one
             for (let i = 0; i <= roundIndex; i++) {
@@ -910,12 +1014,30 @@
                     round.eliminated_by_vote.forEach(player => eliminatedPlayers.add(player));
                 }
                 
-                // Add players eliminated by mafia
-                if (round.eliminated_by_mafia) {
-                    round.eliminated_by_mafia.forEach(player => eliminatedPlayers.add(player));
+                // Add players targeted by mafia
+                if (round.targeted_by_mafia) {
+                    round.targeted_by_mafia.forEach(player => {
+                        // Only add to targeted if they weren't protected
+                        const wasProtected = round.protected_by_doctor && 
+                                           round.protected_by_doctor.includes(player);
+                        
+                        if (!wasProtected) {
+                            eliminatedPlayers.add(player);
+                        }
+                        
+                        // Always mark as targeted for the current round visualization
+                        if (i === roundIndex) {
+                            targetedPlayers.add(player);
+                        }
+                    });
                 }
                 
-                // Add any other eliminations
+                // Add protected players for the current round
+                if (i === roundIndex && round.protected_by_doctor) {
+                    round.protected_by_doctor.forEach(player => protectedPlayers.add(player));
+                }
+                
+                // Add any other eliminations (fallback)
                 if (round.eliminations) {
                     round.eliminations.forEach(player => eliminatedPlayers.add(player));
                 }
@@ -930,6 +1052,27 @@
                     // Add elimination event if this is the current round
                     if (roundIndex === currentRoundIndex) {
                         addEventLogItem(`${player.split('/').pop()} was eliminated!`, true);
+                    }
+                }
+            });
+            
+            // Mark targeted players for the current round
+            targetedPlayers.forEach(player => {
+                const playerElement = document.getElementById(`player-${player.split('/').pop()}`);
+                if (playerElement && !playerElement.classList.contains('dead')) {
+                    playerElement.classList.add('targeted');
+                }
+            });
+            
+            // Mark protected players for the current round
+            protectedPlayers.forEach(player => {
+                const playerElement = document.getElementById(`player-${player.split('/').pop()}`);
+                if (playerElement) {
+                    playerElement.classList.add('protected');
+                    
+                    // Add protection event if this is the current round
+                    if (roundIndex === currentRoundIndex && targetedPlayers.has(player)) {
+                        addEventLogItem(`${player.split('/').pop()} was protected by the Doctor!`, true);
                     }
                 }
             });
