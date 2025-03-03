@@ -375,47 +375,28 @@ class MafiaGame:
         messages = []
         votes = {}
 
-        for player in alive_players:
-            # Generate prompt
-            game_state = f"{self.get_game_state()} It's day time. Discuss with other players and vote to eliminate a suspected Mafia member."
-            prompt = player.generate_prompt(
-                game_state,
-                alive_players,
-                self.mafia_players if player.role == Role.MAFIA else None,
-                self.discussion_history_without_thinkings(),
-            )
+        # First round: Discussion without voting
+        self.logger.event("Discussion Round - Players share their thoughts", Color.CYAN)
+        self._conduct_player_interactions(
+            alive_players,
+            "day_discussion",
+            "It's day time. Discuss with other players about who might be Mafia. This is the discussion phase - you'll vote in the next round.",
+            messages,
+            collect_votes=False,
+        )
 
-            # Get response
-            response = player.get_response(prompt)
-            self.logger.player_response(player.model_name, player.role.value, response)
-
-            # Add to messages
-            messages.append({"speaker": player.model_name, "content": response})
-            self.current_round_data["messages"].append(
-                {
-                    "speaker": player.model_name,
-                    "content": response,
-                    "phase": "day",
-                    "role": player.role.value,
-                }
-            )
-
-            # Parse vote
-            vote_target = player.parse_day_vote(response, alive_players)
-            if vote_target:
-                votes[player.model_name] = vote_target.model_name
-                action_text = f"Vote {vote_target.model_name}"
-                self.current_round_data["actions"][player.model_name] = action_text
-                self.logger.player_action(
-                    player.model_name, player.role.value, action_text
-                )
-            else:
-                self.logger.error(f"Invalid vote from {player.model_name}")
-                self.current_round_data["actions"][player.model_name] = "Invalid vote"
-
-        # Update discussion history - only include day phase messages
-        for message in messages:
-            self.discussion_history += f"{message['speaker']}: {message['content']}\n\n"
+        # Second round: Discussion with voting
+        self.logger.event(
+            "Voting Round - Players make their final arguments and vote", Color.CYAN
+        )
+        self._conduct_player_interactions(
+            alive_players,
+            "day_voting",
+            "It's time to vote. Discuss your final thoughts and vote to eliminate a suspected Mafia member.",
+            messages,
+            collect_votes=True,
+            votes=votes,
+        )
 
         # Count votes
         vote_counts = {}
@@ -547,6 +528,70 @@ class MafiaGame:
         }
 
         return eliminated_players
+
+    def _conduct_player_interactions(
+        self,
+        alive_players,
+        phase_type,
+        instruction,
+        messages,
+        collect_votes=False,
+        votes=None,
+    ):
+        """
+        Conduct interactions with all alive players during the day phase.
+
+        Args:
+            alive_players (list): List of alive players
+            phase_type (str): Type of phase (day_discussion or day_voting)
+            instruction (str): Specific instruction for this interaction round
+            messages (list): List to collect all messages
+            collect_votes (bool): Whether to collect votes in this round
+            votes (dict): Dictionary to store votes if collect_votes is True
+        """
+        for player in alive_players:
+            # Generate prompt
+            game_state = f"{self.get_game_state()} {instruction}"
+            prompt = player.generate_prompt(
+                game_state,
+                alive_players,
+                self.mafia_players if player.role == Role.MAFIA else None,
+                self.discussion_history_without_thinkings(),
+            )
+
+            # Get response
+            response = player.get_response(prompt)
+            self.logger.player_response(player.model_name, player.role.value, response)
+
+            # Add to messages
+            messages.append({"speaker": player.model_name, "content": response})
+            self.current_round_data["messages"].append(
+                {
+                    "speaker": player.model_name,
+                    "content": response,
+                    "phase": phase_type,
+                    "role": player.role.value,
+                }
+            )
+
+            # Parse vote if in voting round
+            if collect_votes and votes is not None:
+                vote_target = player.parse_day_vote(response, alive_players)
+                if vote_target:
+                    votes[player.model_name] = vote_target.model_name
+                    action_text = f"Vote {vote_target.model_name}"
+                    self.current_round_data["actions"][player.model_name] = action_text
+                    self.logger.player_action(
+                        player.model_name, player.role.value, action_text
+                    )
+                else:
+                    self.logger.error(f"Invalid vote from {player.model_name}")
+                    self.current_round_data["actions"][
+                        player.model_name
+                    ] = "Invalid vote"
+
+            # Update discussion history
+            self.discussion_history += f"{player.model_name}: {response}\n\n"
 
     def get_last_words(self, player, vote_count):
         """
