@@ -416,58 +416,81 @@ class MafiaGame:
         # Eliminate player with most votes
         eliminated_players = []
         if eliminated_player:
-            # Get last words from the player before elimination
-            last_words = self.get_last_words(
-                eliminated_player, vote_counts[eliminated_player.model_name]
+            # Get confirmation vote before elimination
+            is_confirmed, confirmation_votes = self.get_confirmation_vote(
+                eliminated_player
             )
 
-            eliminated_player.alive = False
-            eliminated_players.append(eliminated_player)
-            self.current_round_data["eliminations"].append(eliminated_player.model_name)
-            # Add to eliminated_by_vote to track players eliminated by voting
-            self.current_round_data["eliminated_by_vote"] = [
-                eliminated_player.model_name
-            ]
+            # Store confirmation vote details in the round data
+            self.current_round_data["confirmation_votes"] = confirmation_votes
 
-            # Store vote details in the round data
-            self.current_round_data["vote_counts"] = vote_counts
-            self.current_round_data["vote_details"] = vote_details
+            if not is_confirmed:
+                confirmation_text = f"The elimination of {eliminated_player.model_name} was rejected by the town."
+                self.current_round_data["outcome"] += f" {confirmation_text}"
+                self.logger.event(confirmation_text, Color.YELLOW)
 
-            # Include vote count in the outcome text
-            outcome_text = f"{eliminated_player.model_name} was eliminated by vote with {vote_counts[eliminated_player.model_name]} votes."
-            self.current_round_data["outcome"] += f" {outcome_text}"
-            self.logger.event(outcome_text, Color.YELLOW)
+                # No elimination if confirmation vote fails
+                eliminated_player = None
+                eliminated_players = []
 
-            # Add last words to the outcome and discussion history
-            if last_words:
-                last_words_text = (
-                    f'{eliminated_player.model_name}\'s last words: "{last_words}"'
-                )
-                self.current_round_data["last_words"] = last_words
-                self.logger.event(last_words_text, Color.CYAN)
-                # Add last words to discussion history
-                self.discussion_history += (
-                    f"{eliminated_player.model_name} (last words): {last_words}\n\n"
-                )
-                # Add to messages
-                self.current_round_data["messages"].append(
-                    {
-                        "speaker": eliminated_player.model_name,
-                        "content": last_words,
-                        "phase": "day",
-                        "role": eliminated_player.role.value,
-                    }
+                # Store vote information even if no one was eliminated
+                self.current_round_data["vote_counts"] = vote_counts
+                self.current_round_data["vote_details"] = vote_details
+            else:
+                # Get last words from the player before elimination
+                last_words = self.get_last_words(
+                    eliminated_player, vote_counts[eliminated_player.model_name]
                 )
 
-            # Log who voted for the eliminated player
-            voters = vote_details.get(eliminated_player.model_name, [])
-            if voters:
-                voter_names = [
-                    name.split("/")[-1] for name in voters
-                ]  # Extract model names
-                voter_text = f"Voted by: {', '.join(voter_names)}"
-                self.current_round_data["voters"] = voters
-                self.logger.event(voter_text, Color.YELLOW)
+                eliminated_player.alive = False
+                eliminated_players.append(eliminated_player)
+                self.current_round_data["eliminations"].append(
+                    eliminated_player.model_name
+                )
+                # Add to eliminated_by_vote to track players eliminated by voting
+                self.current_round_data["eliminated_by_vote"] = [
+                    eliminated_player.model_name
+                ]
+
+                # Store vote details in the round data
+                self.current_round_data["vote_counts"] = vote_counts
+                self.current_round_data["vote_details"] = vote_details
+
+                # Include vote count in the outcome text
+                outcome_text = f"{eliminated_player.model_name} was eliminated by vote with {vote_counts[eliminated_player.model_name]} votes."
+                self.current_round_data["outcome"] += f" {outcome_text}"
+                self.logger.event(outcome_text, Color.YELLOW)
+
+                # Add last words to the outcome and discussion history
+                if last_words:
+                    last_words_text = (
+                        f'{eliminated_player.model_name}\'s last words: "{last_words}"'
+                    )
+                    self.current_round_data["last_words"] = last_words
+                    self.logger.event(last_words_text, Color.CYAN)
+                    # Add last words to discussion history
+                    self.discussion_history += (
+                        f"{eliminated_player.model_name} (last words): {last_words}\n\n"
+                    )
+                    # Add to messages
+                    self.current_round_data["messages"].append(
+                        {
+                            "speaker": eliminated_player.model_name,
+                            "content": last_words,
+                            "phase": "day",
+                            "role": eliminated_player.role.value,
+                        }
+                    )
+
+                # Log who voted for the eliminated player
+                voters = vote_details.get(eliminated_player.model_name, [])
+                if voters:
+                    voter_names = [
+                        name.split("/")[-1] for name in voters
+                    ]  # Extract model names
+                    voter_text = f"Voted by: {', '.join(voter_names)}"
+                    self.current_round_data["voters"] = voters
+                    self.logger.event(voter_text, Color.YELLOW)
         else:
             outcome_text = "No one was eliminated by vote."
             self.current_round_data["outcome"] += f" {outcome_text}"
@@ -521,6 +544,54 @@ class MafiaGame:
         )
 
         return response
+
+    def get_confirmation_vote(self, player_to_eliminate):
+        """
+        Get confirmation votes from all alive players on whether to eliminate a player.
+
+        Args:
+            player_to_eliminate: The player who is proposed for elimination
+
+        Returns:
+            tuple: (bool, dict) - Whether the elimination is confirmed and the vote details
+        """
+        alive_players = self.get_alive_players()
+
+        # Don't include the player to be eliminated in the voting
+        voting_players = [p for p in alive_players if p != player_to_eliminate]
+
+        self.logger.event(
+            f"Confirmation vote for eliminating {player_to_eliminate.model_name}",
+            Color.YELLOW,
+        )
+
+        # Collect votes
+        confirmation_votes = {"agree": [], "disagree": []}
+
+        for player in voting_players:
+            # Prepare game state for the player
+            player_state = self.get_game_state()
+            player_state["confirmation_vote_for"] = player_to_eliminate.model_name
+
+            # Get player's vote
+            vote = player.get_confirmation_vote(player_state)
+
+            # Validate and record vote
+            if vote.lower() in ["agree", "yes", "confirm", "true"]:
+                confirmation_votes["agree"].append(player.model_name)
+                self.logger.event(
+                    f"{player.model_name} voted to CONFIRM elimination", Color.GREEN
+                )
+            else:
+                confirmation_votes["disagree"].append(player.model_name)
+                self.logger.event(
+                    f"{player.model_name} voted to REJECT elimination", Color.RED
+                )
+
+        # Check if more than half of the voting players agreed
+        is_confirmed = len(confirmation_votes["agree"]) > len(voting_players) / 2
+
+        return is_confirmed, confirmation_votes
 
     def run_game(self):
         """

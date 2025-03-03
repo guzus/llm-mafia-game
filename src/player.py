@@ -169,3 +169,34 @@ Your response:
                     return player
 
         return None
+
+    def get_confirmation_vote(self, game_state):
+        """
+        Get a confirmation vote from the player on whether to eliminate another player.
+
+        Args:
+            game_state (dict): The current state of the game, including who is up for elimination.
+
+        Returns:
+            str: "agree" or "disagree" indicating the player's vote
+        """
+        player_to_eliminate = game_state["confirmation_vote_for"]
+
+        prompt = f"""
+You are playing a Mafia game. The town has voted to eliminate {player_to_eliminate}.
+Before the elimination is carried out, a confirmation vote is needed.
+
+Current game state: {game_state}
+
+Do you agree with eliminating {player_to_eliminate}? 
+Respond with either "AGREE" or "DISAGREE" and a brief explanation of your reasoning.
+
+Your response:
+"""
+        response = self.get_response(prompt)
+
+        # Parse the response for agree/disagree
+        if re.search(r"\b(agree|yes|confirm|approve)\b", response.lower()):
+            return "agree"
+        else:
+            return "disagree"
