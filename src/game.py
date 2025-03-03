@@ -509,6 +509,7 @@ class MafiaGame:
                             "content": last_words,
                             "phase": "day",
                             "role": eliminated_player.role.value,
+                            "type": "last_words",
                         }
                     )
 

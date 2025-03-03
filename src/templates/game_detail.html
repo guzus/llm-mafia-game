@@ -382,10 +382,16 @@
                             ? 'border-left: 3px solid #0066cc; background-color: #f0f8ff;' 
                             : 'border-left: 3px solid #ffcc00; background-color: #fffaf0;';
                         
+                        // Add last_words tag if message type is last_words
+                        const lastWordsTag = message.type === 'last_words' 
+                            ? '<span class="phase-tag last-words">Last Words</span>' 
+                            : '';
+                        
                         dialogueHtml += `<div class="dialogue-message ${roleClass}" style="margin-left: 20px; ${borderStyle}">
                             <div class="dialogue-speaker ${roleClass}">
                                 ${modelName} (${participants[model] || 'System'})
                                 ${message.phase === 'night' ? '<span class="phase-tag night">Night</span>' : '<span class="phase-tag day">Day</span>'}
+                                ${lastWordsTag}
                                 <span style="float: right; font-size: 0.8em; color: #666;">Message #${msgIndex + 1}</span>
                             </div>
                             <div class="dialogue-content">${message.content}</div>
