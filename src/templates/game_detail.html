@@ -363,83 +363,6 @@
                 
                 dialogueHtml += `</div></div>`;
                 
-                // Add night phase information if available
-                if (index > 0 && data.rounds[index-1] && data.rounds[index-1].actions) {
-                    const prevRound = data.rounds[index-1];
-                    
-                    // Create a section for Night Phase Results
-                    dialogueHtml += `<div class="dialogue-message night-phase">
-                        <div class="dialogue-speaker phase-header"><strong>End of the Night of Round ${index} - What Happened</strong></div>
-                        <div class="dialogue-content">`;
-                    
-                    // Show mafia targets
-                    if (prevRound.targeted_by_mafia && prevRound.targeted_by_mafia.length > 0) {
-                        const targetName = prevRound.targeted_by_mafia[0].split('/').pop();
-                        const wasProtected = prevRound.protected_by_doctor && 
-                                            prevRound.protected_by_doctor.includes(prevRound.targeted_by_mafia[0]);
-                        
-                        dialogueHtml += `<div class="action-list mafia-target" style="margin-bottom: 10px; ${wasProtected ? 'border-left: 3px solid #28a745;' : 'border-left: 3px solid #dc3545;'}">
-                            <strong>Mafia Target:</strong> ${targetName}
-                            ${wasProtected ? ' <span style="color: #28a745;">(Protected by Doctor)</span>' : ' <span style="color: #dc3545;">(Killed)</span>'}
-                        </div>`;
-                    }
-                    
-                    // Show mafia kill votes
-                    const mafiaActions = [];
-                    Object.entries(prevRound.actions).forEach(([model, action]) => {
-                        if (participants[model] === 'Mafia' && action.includes('Kill')) {
-                            const target = action.replace('Kill ', '');
-                            mafiaActions.push(`${model.split('/').pop()} voted to kill ${target}`);
-                        }
-                    });
-                    
-                    if (mafiaActions.length > 0) {
-                        dialogueHtml += `<div class="action-list" style="margin-bottom: 10px;">
-                            <strong>Mafia Votes:</strong> ${mafiaActions.join(', ')}
-                        </div>`;
-                    }
-                    
-                    // Show doctor protection
-                    if (prevRound.protected_by_doctor && prevRound.protected_by_doctor.length > 0) {
-                        const protectedName = prevRound.protected_by_doctor[0].split('/').pop();
-                        const wasTargeted = prevRound.targeted_by_mafia && 
-                                           prevRound.targeted_by_mafia.includes(prevRound.protected_by_doctor[0]);
-                        
-                        dialogueHtml += `<div class="action-list doctor-protection" style="margin-bottom: 10px; border-left: 3px solid #28a745;">
-                            <strong>Doctor Protected:</strong> ${protectedName}
-                            ${wasTargeted ? ' <span style="color: #28a745;">(Saved from Mafia)</span>' : ' <span style="color: #6c757d;">(Not targeted by Mafia)</span>'}
-                        </div>`;
-                    } else {
-                        // Show doctor action from actions if available
-                        const doctorActions = [];
-                        Object.entries(prevRound.actions).forEach(([model, action]) => {
-                            if (participants[model] === 'Doctor' && action.includes('Protect')) {
-                                const target = action.replace('Protect ', '');
-                                doctorActions.push(`${model.split('/').pop()} protected ${target}`);
-                            }
-                        });
-                        
-                        if (doctorActions.length > 0) {
-                            dialogueHtml += `<div class="action-list" style="margin-bottom: 10px;">
-                                <strong>Doctor Action:</strong> ${doctorActions.join(', ')}
-                            </div>`;
-                        }
-                    }
-                    
-                    // Show eliminations during the night if any
-                    const nightEliminations = prevRound.eliminations ? prevRound.eliminations.filter(
-                        player => !prevRound.eliminated_by_vote || !prevRound.eliminated_by_vote.includes(player)
-                    ) : [];
-                    
-                    if (nightEliminations.length > 0) {
-                        dialogueHtml += `<div class="night-eliminations" style="color: #d9534f; font-weight: bold; margin-top: 10px;">
-                            Players killed during the night: ${nightEliminations.map(p => p.split('/').pop()).join(', ')}
-                        </div>`;
-                    }
-                    
-                    dialogueHtml += `</div></div>`;
-                }
-                
                 // Add the actual dialogue messages in chronological order
                 if (round.messages && round.messages.length > 0) {
                     dialogueHtml += `<div class="dialogue-message" style="background-color: #f5f5f5; border-left: 5px solid #666; margin-top: 15px;">
@@ -448,6 +371,14 @@
                             <p>Below is the complete conversation between all players during this round.</p>
                         </div>
                     </div>`;
+                    
+                    // Find the last night message index
+                    let lastNightMessageIndex = -1;
+                    for (let i = 0; i < round.messages.length; i++) {
+                        if (round.messages[i].phase === 'night') {
+                            lastNightMessageIndex = i;
+                        }
+                    }
                     
                     // Display all messages in chronological order
                     round.messages.forEach((message, msgIndex) => {
@@ -468,6 +399,12 @@
                             </div>
                             <div class="dialogue-content">${message.content}</div>
                         </div>`;
+
+                        // Insert night phase summary after the last night message
+                        if (msgIndex === lastNightMessageIndex && message.phase === 'night') {
+                            // Create a section for Night Phase Results
+                            dialogueHtml += createNightPhaseSummary(index, data.rounds[index], participants);
+                        }
                     });
                     
                     // Add a section at the end of the round to show who died by vote
@@ -1091,6 +1028,87 @@
             while (eventLog.children.length > 20) {
                 eventLog.removeChild(eventLog.lastChild);
             }
+        }
+        
+        // Add this function before the displayGameResult function
+        function createNightPhaseSummary(roundIndex, prevRound, participants) {
+            if (!prevRound) return '';
+            
+            let summaryHtml = `<div class="dialogue-message night-phase">
+                <div class="dialogue-speaker phase-header"><strong>End of the Night of Round ${roundIndex} - What Happened</strong></div>
+                <div class="dialogue-content">`;
+            
+            // Show mafia targets
+            if (prevRound.targeted_by_mafia && prevRound.targeted_by_mafia.length > 0) {
+                const targetName = prevRound.targeted_by_mafia[0].split('/').pop();
+                const wasProtected = prevRound.protected_by_doctor && 
+                                    prevRound.protected_by_doctor.includes(prevRound.targeted_by_mafia[0]);
+                
+                summaryHtml += `<div class="action-list mafia-target" style="margin-bottom: 10px; ${wasProtected ? 'border-left: 3px solid #28a745;' : 'border-left: 3px solid #dc3545;'}">
+                    <strong>Mafia Target:</strong> ${targetName}
+                    ${wasProtected ? ' <span style="color: #28a745;">(Protected by Doctor)</span>' : ' <span style="color: #dc3545;">(Killed)</span>'}
+                </div>`;
+            }
+            
+            // Show mafia kill votes
+            const mafiaActions = [];
+            if (prevRound.actions) {
+                Object.entries(prevRound.actions).forEach(([model, action]) => {
+                    if (participants[model] === 'Mafia' && action.includes('Kill')) {
+                        const target = action.replace('Kill ', '');
+                        mafiaActions.push(`${model.split('/').pop()} voted to kill ${target}`);
+                    }
+                });
+            }
+            
+            if (mafiaActions.length > 0) {
+                summaryHtml += `<div class="action-list" style="margin-bottom: 10px;">
+                    <strong>Mafia Votes:</strong> ${mafiaActions.join(', ')}
+                </div>`;
+            }
+            
+            // Show doctor protection
+            if (prevRound.protected_by_doctor && prevRound.protected_by_doctor.length > 0) {
+                const protectedName = prevRound.protected_by_doctor[0].split('/').pop();
+                const wasTargeted = prevRound.targeted_by_mafia && 
+                                   prevRound.targeted_by_mafia.includes(prevRound.protected_by_doctor[0]);
+                
+                summaryHtml += `<div class="action-list doctor-protection" style="margin-bottom: 10px; border-left: 3px solid #28a745;">
+                    <strong>Doctor Protected:</strong> ${protectedName}
+                    ${wasTargeted ? ' <span style="color: #28a745;">(Saved from Mafia)</span>' : ' <span style="color: #6c757d;">(Not targeted by Mafia)</span>'}
+                </div>`;
+            } else {
+                // Show doctor action from actions if available
+                const doctorActions = [];
+                if (prevRound.actions) {
+                    Object.entries(prevRound.actions).forEach(([model, action]) => {
+                        if (participants[model] === 'Doctor' && action.includes('Protect')) {
+                            const target = action.replace('Protect ', '');
+                            doctorActions.push(`${model.split('/').pop()} protected ${target}`);
+                        }
+                    });
+                }
+                
+                if (doctorActions.length > 0) {
+                    summaryHtml += `<div class="action-list" style="margin-bottom: 10px;">
+                        <strong>Doctor Action:</strong> ${doctorActions.join(', ')}
+                    </div>`;
+                }
+            }
+            
+            // Show eliminations during the night if any
+            const nightEliminations = prevRound.eliminations ? prevRound.eliminations.filter(
+                player => !prevRound.eliminated_by_vote || !prevRound.eliminated_by_vote.includes(player)
+            ) : [];
+            
+            if (nightEliminations.length > 0) {
+                summaryHtml += `<div class="night-eliminations" style="color: #d9534f; font-weight: bold; margin-top: 10px;">
+                    Players killed during the night: ${nightEliminations.map(p => p.split('/').pop()).join(', ')}
+                </div>`;
+            }
+            
+            summaryHtml += `</div></div>`;
+            return summaryHtml;
         }
     </script>
 </body>
