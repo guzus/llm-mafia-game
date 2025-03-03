@@ -128,6 +128,7 @@ def run_simulation(num_games=config.NUM_GAMES, parallel=True, max_workers=4):
     else:
         # Run games sequentially
         for i in range(1, num_games + 1):
+            game_number = i  # Define game_number at the start of each iteration
             try:
                 game_number, winner, rounds_data, participants, game_id = (
                     run_single_game(i)

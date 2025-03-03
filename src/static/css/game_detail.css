@@ -266,4 +266,39 @@ h1, h2, h3 {
 .phase-tag.day {
     background-color: #ffcc00;
     color: #333;
+}
+/* Confirmation vote styles */
+.confirmation-vote {
+    margin: 10px 0;
+    padding: 15px;
+    background-color: #f8f8f8;
+    border-radius: 5px;
+    border-left: 5px solid #5bc0de;
+}
+.vote-summary {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+.vote-result {
+    margin-bottom: 10px;
+}
+.agree-votes {
+    color: #5cb85c;
+    font-weight: bold;
+}
+.disagree-votes {
+    color: #d9534f;
+    font-weight: bold;
+}
+.vote-details {
+    font-size: 0.9em;
+    padding: 8px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
+}
+.agree-voters {
+    margin-bottom: 5px;
+}
+.disagree-voters {
+    color: #d9534f;
 } 

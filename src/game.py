@@ -570,8 +570,12 @@ class MafiaGame:
 
         for player in voting_players:
             # Prepare game state for the player
-            player_state = self.get_game_state()
-            player_state["confirmation_vote_for"] = player_to_eliminate.model_name
+            game_state_str = self.get_game_state()
+            # Create a dictionary with the game state and the player to eliminate
+            player_state = {
+                "game_state": game_state_str,
+                "confirmation_vote_for": player_to_eliminate.model_name,
+            }
 
             # Get player's vote
             vote = player.get_confirmation_vote(player_state)

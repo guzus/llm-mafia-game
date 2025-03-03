@@ -181,12 +181,13 @@ Your response:
             str: "agree" or "disagree" indicating the player's vote
         """
         player_to_eliminate = game_state["confirmation_vote_for"]
+        game_state_str = game_state["game_state"]
 
         prompt = f"""
 You are playing a Mafia game. The town has voted to eliminate {player_to_eliminate}.
 Before the elimination is carried out, a confirmation vote is needed.
 
-Current game state: {game_state}
+Current game state: {game_state_str}
 
 Do you agree with eliminating {player_to_eliminate}? 
 Respond with either "AGREE" or "DISAGREE" and a brief explanation of your reasoning.

@@ -172,7 +172,47 @@
                         </div>`;
                     });
                 }
-
+                
+                // Process confirmation votes if any
+                if (round.confirmation_votes) {
+                    roundHtml += `<div class="round-section">Confirmation Votes:</div>`;
+                    
+                    // Get the player who was up for elimination
+                    let playerToEliminate = '';
+                    if (round.eliminated_by_vote && round.eliminated_by_vote.length > 0) {
+                        playerToEliminate = round.eliminated_by_vote[0].split('/').pop();
+                    } else if (round.vote_counts) {
+                        // Find the player with the most votes
+                        let maxVotes = 0;
+                        Object.entries(round.vote_counts).forEach(([player, count]) => {
+                            if (count > maxVotes) {
+                                maxVotes = count;
+                                playerToEliminate = player.split('/').pop();
+                            }
+                        });
+                    }
+                    
+                    // Display confirmation vote results
+                    const agreeVotes = round.confirmation_votes.agree || [];
+                    const disagreeVotes = round.confirmation_votes.disagree || [];
+                    
+                    roundHtml += `<div class="confirmation-vote">
+                        <div class="vote-summary">Confirmation vote for eliminating ${playerToEliminate}</div>
+                        <div class="vote-result">
+                            <span class="agree-votes">Agree: ${agreeVotes.length}</span> | 
+                            <span class="disagree-votes">Disagree: ${disagreeVotes.length}</span>
+                        </div>
+                        <div class="vote-details">
+                            <div class="agree-voters">
+                                <strong>Agreed:</strong> ${agreeVotes.map(v => v.split('/').pop()).join(', ') || 'None'}
+                            </div>
+                            <div class="disagree-voters">
+                                <strong>Disagreed:</strong> ${disagreeVotes.map(v => v.split('/').pop()).join(', ') || 'None'}
+                            </div>
+                        </div>
+                    </div>`;
+                }
+                
                 // Process conversations/dialogues (summary view)
                 if (round.messages && round.messages.length > 0) {
                     roundHtml += `<div class="round-section">Conversation Summary:</div>`;
@@ -376,6 +416,34 @@
                             });
                         }
                         
+                        // Add confirmation votes at the bottom of vote results if available
+                        if (round.confirmation_votes) {
+                            // Get the player who was up for elimination
+                            let playerToEliminate = '';
+                            if (round.eliminated_by_vote && round.eliminated_by_vote.length > 0) {
+                                playerToEliminate = round.eliminated_by_vote[0].split('/').pop();
+                            } else if (round.vote_counts) {
+                                // Find the player with the most votes
+                                let maxVotes = 0;
+                                Object.entries(round.vote_counts).forEach(([player, count]) => {
+                                    if (count > maxVotes) {
+                                        maxVotes = count;
+                                        playerToEliminate = player.split('/').pop();
+                                    }
+                                });
+                            }
+                            
+                            // Display confirmation vote results
+                            const agreeVotes = round.confirmation_votes.agree || [];
+                            const disagreeVotes = round.confirmation_votes.disagree || [];
+                            
+                            dialogueHtml += `<div style="margin-top: 20px; padding: 10px; background-color: #f5f8ff; border-radius: 4px; border-left: 4px solid #4a6da7;">
+                                <strong>Confirmation Vote for ${playerToEliminate}:</strong><br>
+                                <span style="color: green; display: block; margin-top: 5px;">✓ Agree: ${agreeVotes.length} (${agreeVotes.map(v => v.split('/').pop()).join(', ') || 'None'})</span>
+                                <span style="color: red; display: block; margin-top: 5px;">✗ Disagree: ${disagreeVotes.length} (${disagreeVotes.map(v => v.split('/').pop()).join(', ') || 'None'})</span>
+                            </div>`;
+                        }
+                        
                         dialogueHtml += `</div></div>`;
                     } else if (round.vote_counts && round.vote_details && Object.keys(round.vote_counts).length > 0) {
                         // If there are votes but no one was eliminated by vote, still show the voting results
@@ -397,6 +465,32 @@
                                 <div style="font-size: 0.9em; margin-top: 3px;">From: ${voterNames.join(', ')}</div>
                             </div>`;
                         });
+                        
+                        // Add confirmation votes at the bottom of vote results if available
+                        if (round.confirmation_votes) {
+                            // Get the player who was up for elimination (if any)
+                            let playerToEliminate = '';
+                            if (round.vote_counts) {
+                                // Find the player with the most votes
+                                let maxVotes = 0;
+                                Object.entries(round.vote_counts).forEach(([player, count]) => {
+                                    if (count > maxVotes) {
+                                        maxVotes = count;
+                                        playerToEliminate = player.split('/').pop();
+                                    }
+                                });
+                            }
+                            
+                            // Display confirmation vote results
+                            const agreeVotes = round.confirmation_votes.agree || [];
+                            const disagreeVotes = round.confirmation_votes.disagree || [];
+                            
+                            dialogueHtml += `<div style="margin-top: 20px; padding: 10px; background-color: #f5f8ff; border-radius: 4px; border-left: 4px solid #4a6da7;">
+                                <strong>Confirmation Vote for ${playerToEliminate}:</strong><br>
+                                <span style="color: green; display: block; margin-top: 5px;">✓ Agree: ${agreeVotes.length} (${agreeVotes.map(v => v.split('/').pop()).join(', ') || 'None'})</span>
+                                <span style="color: red; display: block; margin-top: 5px;">✗ Disagree: ${disagreeVotes.length} (${disagreeVotes.map(v => v.split('/').pop()).join(', ') || 'None'})</span>
+                            </div>`;
+                        }
                         
                         dialogueHtml += `</div></div>`;
                     }
