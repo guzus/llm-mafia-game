@@ -183,11 +183,26 @@ class MafiaGame:
 
     def discussion_history_without_thinkings(self):
         """
-        Get the discussion history for the current round, excluding thinking messages. Remove any <think></think> tags and their contents.
+        Get the discussion history for the current round, excluding thinking messages.
+        Removes any <think></think> or <THINK></THINK> tags and their contents.
+        If a closing tag is missing, removes everything from the opening tag to the end of the string.
         """
+        # First handle properly closed tags (both lowercase and uppercase)
         discussion_history_without_thinkings = re.sub(
-            r"<think>.*?</think>", "", self.discussion_history
+            r"<[tT][hH][iI][nN][kK]>.*?</[tT][hH][iI][nN][kK]>",
+            "",
+            self.discussion_history,
+            flags=re.DOTALL,
         )
+
+        # Then handle any unclosed tags - remove from opening tag to the end of the string
+        discussion_history_without_thinkings = re.sub(
+            r"<[tT][hH][iI][nN][kK]>.*$",
+            "",
+            discussion_history_without_thinkings,
+            flags=re.DOTALL,
+        )
+
         return discussion_history_without_thinkings
 
     def execute_night_phase(self):
