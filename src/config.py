@@ -57,7 +57,7 @@ FREE_MODELS = [
 # Game configuration
 NUM_GAMES = int(os.getenv("NUM_GAMES", 1))  # Number of games to simulate
 PLAYERS_PER_GAME = int(
-    os.getenv("PLAYERS_PER_GAME", 7)
+    os.getenv("PLAYERS_PER_GAME", 8)
 )  # Number of players in each game
 MAFIA_COUNT = int(os.getenv("MAFIA_COUNT", 2))  # Number of Mafia players
 DOCTOR_COUNT = int(os.getenv("DOCTOR_COUNT", 1))  # Number of Doctor players
