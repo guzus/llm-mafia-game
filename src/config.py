@@ -77,6 +77,9 @@ MAX_ROUNDS = int(os.getenv("MAX_ROUNDS", 20))
 # Timeout for API calls (in seconds)
 API_TIMEOUT = int(os.getenv("API_TIMEOUT", 30))
 
+# Maximum output tokens for LLM responses
+MAX_OUTPUT_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", 400))
+
 # Random seed for reproducibility (set to None for random behavior)
 RANDOM_SEED = os.getenv("RANDOM_SEED")
 if RANDOM_SEED is not None:
