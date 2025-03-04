@@ -1,13 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Details - LLM Mafia Game Competition</title>
+{% extends "base.html" %}
+
+{% block title %}Game Details - LLM Mafia Game Competition{% endblock %}
+
+{% block head %}
     <link rel="stylesheet" href="/static/css/game_detail.css">
     <link rel="stylesheet" href="/static/css/game_visualization.css">
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
     <div class="container">
         <a href="/" class="back-link">← Back to Dashboard</a>
         <h1>Game Details</h1>
@@ -78,7 +78,9 @@
             </div>
         </div>
     </div>
-    
+{% endblock %}
+
+{% block scripts %}
     <script>
         // Get game ID from URL
         const gameId = window.location.pathname.split('/').pop();
@@ -1117,5 +1119,4 @@
             return summaryHtml;
         }
     </script>
-</body>
-</html>
+{% endblock %}

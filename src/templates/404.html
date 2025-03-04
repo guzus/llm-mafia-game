@@ -1,16 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 - Page Not Found</title>
+{% extends "base.html" %}
+
+{% block title %}404 - Page Not Found{% endblock %}
+
+{% block head %}
     <link rel="stylesheet" href="/static/css/404.css">
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
     <div class="container">
         <h1>404</h1>
         <p>{{ message|default('Page not found') }}</p>
         <a href="/" class="back-link">Return to Dashboard</a>
     </div>
-</body>
-</html> 
+{% endblock %} 

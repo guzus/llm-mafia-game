@@ -1,9 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LLM Mafia Game Competition</title>
+{% extends "base.html" %}
+
+{% block title %}LLM Mafia Game Competition{% endblock %}
+
+{% block head %}
     <link rel="stylesheet" href="/static/css/index.css">
     <link rel="icon" href="/static/images/favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="/static/images/favicon.ico" type="image/x-icon">
@@ -18,8 +17,9 @@
             margin-right: 20px;
         }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
     <div class="container">
         <div class="header">
             <img src="/static/images/logo.webp" alt="LLM Mafia Game Logo" class="logo">
@@ -74,7 +74,9 @@
             </tbody>
         </table>
     </div>
-    
+{% endblock %}
+
+{% block scripts %}
     <script>
         // Load charts directly as images (more efficient)
         document.addEventListener('DOMContentLoaded', function() {
@@ -210,5 +212,4 @@
                 document.querySelector('#games-table tbody').innerHTML = '<tr><td colspan="5" class="loading">Error loading data</td></tr>';
             });
     </script>
-</body>
-</html>
+{% endblock %}
