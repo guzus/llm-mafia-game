@@ -39,6 +39,8 @@ MODELS = [
     "openai/gpt-4o",
     "anthropic/claude-3.5-sonnet",
     "deepseek/deepseek-r1-distill-llama-70b",
+    "anthropic/claude-3.7-sonnet",
+    "anthropic/claude-3.7-sonnet:thinking",
 ]
 
 FREE_MODELS = [
