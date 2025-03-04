@@ -42,7 +42,17 @@ def get_llm_response(model_name, prompt):
         result = response.json()
         return result["choices"][0]["message"]["content"]
     except Exception as e:
+        # Initialize response_text to handle cases where response is not defined
+        response_text = "No response received"
+
+        # Only try to access response.text if response is defined
+        try:
+            if "response" in locals():
+                response_text = response.text
+        except:
+            pass
+
         print(
-            f"Error getting response from {model_name}: error: {e}, response: {response.text}"
+            f"Error getting response from {model_name}: error: {e}, response: {response_text}"
         )
         return "ERROR: Could not get response"
