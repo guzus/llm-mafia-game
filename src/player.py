@@ -16,11 +16,78 @@ class Role(Enum):
     DOCTOR = "Doctor"
 
 
+# Constants for game rules by language
+GAME_RULES = {
+    "English": """
+GAME RULES:
+- The game alternates between night and day phases
+- During night: Mafia members secretly choose a villager to kill, Doctor can protect one player
+- During day: All players discuss and vote to eliminate one suspected Mafia member
+- Mafia wins when they equal or outnumber the villagers
+- Villagers win when all Mafia members are eliminated
+""",
+    "Spanish": """
+REGLAS DEL JUEGO:
+- El juego alterna entre fases de noche y día
+- Durante la noche: Los miembros de la Mafia eligen secretamente a un aldeano para matar, el Doctor puede proteger a un jugador
+- Durante el día: Todos los jugadores discuten y votan para eliminar a un sospechoso de ser miembro de la Mafia
+- La Mafia gana cuando iguala o supera en número a los aldeanos
+- Los aldeanos ganan cuando todos los miembros de la Mafia son eliminados
+""",
+    "French": """
+RÈGLES DU JEU:
+- Le jeu alterne entre les phases de nuit et de jour
+- Pendant la nuit: Les membres de la Mafia choisissent secrètement un villageois à tuer, le Docteur peut protéger un joueur
+- Pendant le jour: Tous les joueurs discutent et votent pour éliminer un membre suspecté de la Mafia
+- La Mafia gagne quand elle égale ou dépasse en nombre les villageois
+- Les villageois gagnent quand tous les membres de la Mafia sont éliminés
+""",
+    "Korean": """
+게임 규칙:
+- 게임은 밤과 낮 단계를 번갈아 진행합니다
+- 밤 동안: 마피아 멤버들은 비밀리에 죽일 마을 사람을 선택하고, 의사는 한 플레이어를 보호할 수 있습니다
+- 낮 동안: 모든 플레이어가 토론하고 마피아로 의심되는 한 명을 제거하기 위해 투표합니다
+- 마피아는 마을 사람과 같거나 더 많아지면 승리합니다
+- 마을 사람들은 모든 마피아 멤버가 제거되면 승리합니다
+""",
+}
+
+# Constants for confirmation vote explanations
+CONFIRMATION_VOTE_EXPLANATIONS = {
+    "English": """
+ABOUT CONFIRMATION VOTES:
+- This is the final chance to reconsider the town's decision
+- If the majority agrees, {player_to_eliminate} will be eliminated
+- If the majority disagrees, no one will be eliminated this round
+""",
+    "Spanish": """
+SOBRE LOS VOTOS DE CONFIRMACIÓN:
+- Esta es la última oportunidad para reconsiderar la decisión del pueblo
+- Si la mayoría está de acuerdo, {player_to_eliminate} será eliminado
+- Si la mayoría está en desacuerdo, nadie será eliminado en esta ronda
+""",
+    "French": """
+À PROPOS DES VOTES DE CONFIRMATION:
+- C'est la dernière chance de reconsidérer la décision de la ville
+- Si la majorité est d'accord, {player_to_eliminate} sera éliminé
+- Si la majorité n'est pas d'accord, personne ne sera éliminé ce tour-ci
+""",
+    "Korean": """
+확인 투표에 대하여:
+- 이것은 마을의 결정을 재고할 수 있는 마지막 기회입니다
+- 과반수가 동의하면 {player_to_eliminate}이(가) 제거됩니다
+- 과반수가 반대하면 이번 라운드에서는 아무도 제거되지 않습니다
+""",
+}
+
 # Constants for prompt templates
 PROMPT_TEMPLATES = {
     "English": {
         Role.MAFIA: """
 You are {model_name}, playing a Mafia game as a Mafia member. Your goal is to eliminate the villagers.
+
+{game_rules}
+
 Other Mafia members: {mafia_members}
 All players: {player_names}
 Current game state: {game_state}
@@ -35,6 +102,9 @@ Your response:
 """,
         Role.DOCTOR: """
 You are {model_name}, playing a Mafia game as the Doctor. Your goal is to help villagers by protecting players from Mafia kills.
+
+{game_rules}
+
 All players: {player_names}
 Current game state: {game_state}
 
@@ -48,6 +118,9 @@ Your response:
 """,
         Role.VILLAGER: """
 You are {model_name}, playing a Mafia game as a Villager. Your goal is to identify and eliminate the Mafia.
+
+{game_rules}
+
 All players: {player_names}
 Current game state: {game_state}
 
@@ -63,6 +136,9 @@ Your response:
     "Spanish": {
         Role.MAFIA: """
 Eres {model_name}, jugando un juego de Mafia como miembro de la Mafia. Tu objetivo es eliminar a los aldeanos.
+
+{game_rules}
+
 Otros miembros de la Mafia: {mafia_members}
 Todos los jugadores: {player_names}
 Estado actual del juego: {game_state}
@@ -77,6 +153,9 @@ Tu respuesta:
 """,
         Role.DOCTOR: """
 Eres {model_name}, jugando un juego de Mafia como el Doctor. Tu objetivo es ayudar a los aldeanos protegiendo a los jugadores de los asesinatos de la Mafia.
+
+{game_rules}
+
 Todos los jugadores: {player_names}
 Estado actual del juego: {game_state}
 
@@ -90,6 +169,9 @@ Tu respuesta:
 """,
         Role.VILLAGER: """
 Eres {model_name}, jugando un juego de Mafia como Aldeano. Tu objetivo es identificar y eliminar a la Mafia.
+
+{game_rules}
+
 Todos los jugadores: {player_names}
 Estado actual del juego: {game_state}
 
@@ -105,6 +187,9 @@ Tu respuesta:
     "French": {
         Role.MAFIA: """
 Vous êtes {model_name}, jouant à un jeu de Mafia en tant que membre de la Mafia. Votre objectif est d'éliminer les villageois.
+
+{game_rules}
+
 Autres membres de la Mafia: {mafia_members}
 Tous les joueurs: {player_names}
 État actuel du jeu: {game_state}
@@ -119,6 +204,9 @@ Votre réponse:
 """,
         Role.DOCTOR: """
 Vous êtes {model_name}, jouant à un jeu de Mafia en tant que Docteur. Votre objectif est d'aider les villageois en protégeant les joueurs des meurtres de la Mafia.
+
+{game_rules}
+
 Tous les joueurs: {player_names}
 État actuel du jeu: {game_state}
 
@@ -132,6 +220,9 @@ Votre réponse:
 """,
         Role.VILLAGER: """
 Vous êtes {model_name}, jouant à un jeu de Mafia en tant que Villageois. Votre objectif est d'identifier et d'éliminer la Mafia.
+
+{game_rules}
+
 Tous les joueurs: {player_names}
 État actuel du jeu: {game_state}
 
@@ -147,6 +238,9 @@ Votre réponse:
     "Korean": {
         Role.MAFIA: """
 당신은 {model_name}으로, 마피아 멤버로서 마피아 게임을 하고 있습니다. 당신의 목표는 마을 사람들을 제거하는 것입니다.
+
+{game_rules}
+
 다른 마피아 멤버: {mafia_members}
 모든 플레이어: {player_names}
 현재 게임 상태: {game_state}
@@ -161,6 +255,9 @@ Votre réponse:
 """,
         Role.DOCTOR: """
 당신은 {model_name}으로, 의사로서 마피아 게임을 하고 있습니다. 당신의 목표는 마피아의 살인으로부터 플레이어를 보호하여 마을 사람들을 돕는 것입니다.
+
+{game_rules}
+
 모든 플레이어: {player_names}
 현재 게임 상태: {game_state}
 
@@ -174,6 +271,9 @@ Votre réponse:
 """,
         Role.VILLAGER: """
 당신은 {model_name}으로, 마을 사람으로서 마피아 게임을 하고 있습니다. 당신의 목표는 마피아를 식별하고 제거하는 것입니다.
+
+{game_rules}
+
 모든 플레이어: {player_names}
 현재 게임 상태: {game_state}
 
@@ -194,6 +294,8 @@ CONFIRMATION_VOTE_TEMPLATES = {
 You are {model_name}, playing a Mafia game. The town has voted to eliminate {player_to_eliminate}.
 Before the elimination is carried out, a confirmation vote is needed.
 
+{confirmation_explanation}
+
 Current game state: {game_state_str}
 
 {thinking_tag}
@@ -206,6 +308,8 @@ Your response:
     "Spanish": """
 Eres {model_name}, jugando un juego de Mafia. El pueblo ha votado para eliminar a {player_to_eliminate}.
 Antes de que se lleve a cabo la eliminación, se necesita un voto de confirmación.
+
+{confirmation_explanation}
 
 Estado actual del juego: {game_state_str}
 
@@ -220,6 +324,8 @@ Tu respuesta:
 Vous êtes {model_name}, jouant à un jeu de Mafia. La ville a voté pour éliminer {player_to_eliminate}.
 Avant que l'élimination ne soit effectuée, un vote de confirmation est nécessaire.
 
+{confirmation_explanation}
+
 État actuel du jeu: {game_state_str}
 
 {thinking_tag}
@@ -232,6 +338,8 @@ Votre réponse:
     "Korean": """
 당신은 {model_name}으로, 마피아 게임을 하고 있습니다. 마을은 {player_to_eliminate}을(를) 제거하기로 투표했습니다.
 제거가 실행되기 전에 확인 투표가 필요합니다.
+
+{confirmation_explanation}
 
 현재 게임 상태: {game_state_str}
 
@@ -369,168 +477,53 @@ class Player:
         # Get list of player names
         player_names = [p.model_name for p in all_players if p.alive]
 
-        # Base prompt based on role and language
-        if self.language == "English":
-            if self.role == Role.MAFIA:
-                # For Mafia members
-                mafia_names = [
-                    p.model_name for p in mafia_members if p != self and p.alive
-                ]
-                prompt = PROMPT_TEMPLATES["English"][Role.MAFIA].format(
-                    model_name=self.model_name,
-                    mafia_members=f"{', '.join(mafia_names) if mafia_names else 'None (you are the only Mafia left)'}",
-                    player_names=", ".join(player_names),
-                    game_state=game_state,
-                    thinking_tag=THINKING_TAGS["English"],
-                    discussion_history=discussion_history,
-                )
-            elif self.role == Role.DOCTOR:
-                # For Doctor
-                prompt = PROMPT_TEMPLATES["English"][Role.DOCTOR].format(
-                    model_name=self.model_name,
-                    player_names=", ".join(player_names),
-                    game_state=game_state,
-                    thinking_tag=THINKING_TAGS["English"],
-                    discussion_history=discussion_history,
-                )
-            else:  # Role.VILLAGER
-                # For Villagers
-                prompt = PROMPT_TEMPLATES["English"][Role.VILLAGER].format(
-                    model_name=self.model_name,
-                    player_names=", ".join(player_names),
-                    game_state=game_state,
-                    thinking_tag=THINKING_TAGS["English"],
-                    discussion_history=discussion_history,
-                )
-        elif self.language == "Spanish":
-            if self.role == Role.MAFIA:
-                # For Mafia members in Spanish
-                mafia_names = [
-                    p.model_name for p in mafia_members if p != self and p.alive
-                ]
-                prompt = PROMPT_TEMPLATES["Spanish"][Role.MAFIA].format(
-                    model_name=self.model_name,
-                    mafia_members=f"{', '.join(mafia_names) if mafia_names else 'Ninguno (eres el único miembro de la Mafia que queda)'}",
-                    player_names=", ".join(player_names),
-                    game_state=game_state,
-                    thinking_tag=THINKING_TAGS["Spanish"],
-                    discussion_history=discussion_history,
-                )
-            elif self.role == Role.DOCTOR:
-                # For Doctor in Spanish
-                prompt = PROMPT_TEMPLATES["Spanish"][Role.DOCTOR].format(
-                    model_name=self.model_name,
-                    player_names=", ".join(player_names),
-                    game_state=game_state,
-                    thinking_tag=THINKING_TAGS["Spanish"],
-                    discussion_history=discussion_history,
-                )
-            else:  # Role.VILLAGER
-                # For Villagers in Spanish
-                prompt = PROMPT_TEMPLATES["Spanish"][Role.VILLAGER].format(
-                    model_name=self.model_name,
-                    player_names=", ".join(player_names),
-                    game_state=game_state,
-                    thinking_tag=THINKING_TAGS["Spanish"],
-                    discussion_history=discussion_history,
-                )
-        elif self.language == "French":
-            if self.role == Role.MAFIA:
-                # For Mafia members in French
-                mafia_names = [
-                    p.model_name for p in mafia_members if p != self and p.alive
-                ]
-                prompt = PROMPT_TEMPLATES["French"][Role.MAFIA].format(
-                    model_name=self.model_name,
-                    mafia_members=f"{', '.join(mafia_names) if mafia_names else 'Aucun (vous êtes le seul membre de la Mafia restant)'}",
-                    player_names=", ".join(player_names),
-                    game_state=game_state,
-                    thinking_tag=THINKING_TAGS["French"],
-                    discussion_history=discussion_history,
-                )
-            elif self.role == Role.DOCTOR:
-                # For Doctor in French
-                prompt = PROMPT_TEMPLATES["French"][Role.DOCTOR].format(
-                    model_name=self.model_name,
-                    player_names=", ".join(player_names),
-                    game_state=game_state,
-                    thinking_tag=THINKING_TAGS["French"],
-                    discussion_history=discussion_history,
-                )
-            else:  # Role.VILLAGER
-                # For Villagers in French
-                prompt = PROMPT_TEMPLATES["French"][Role.VILLAGER].format(
-                    model_name=self.model_name,
-                    player_names=", ".join(player_names),
-                    game_state=game_state,
-                    thinking_tag=THINKING_TAGS["French"],
-                    discussion_history=discussion_history,
-                )
-        elif self.language == "Korean":
-            if self.role == Role.MAFIA:
-                # For Mafia members in Korean
-                mafia_names = [
-                    p.model_name for p in mafia_members if p != self and p.alive
-                ]
-                prompt = PROMPT_TEMPLATES["Korean"][Role.MAFIA].format(
-                    model_name=self.model_name,
-                    mafia_members=f"{', '.join(mafia_names) if mafia_names else '없음 (당신이 유일하게 남은 마피아입니다)'}",
-                    player_names=", ".join(player_names),
-                    game_state=game_state,
-                    thinking_tag=THINKING_TAGS["Korean"],
-                    discussion_history=discussion_history,
-                )
-            elif self.role == Role.DOCTOR:
-                # For Doctor in Korean
-                prompt = PROMPT_TEMPLATES["Korean"][Role.DOCTOR].format(
-                    model_name=self.model_name,
-                    player_names=", ".join(player_names),
-                    game_state=game_state,
-                    thinking_tag=THINKING_TAGS["Korean"],
-                    discussion_history=discussion_history,
-                )
-            else:  # Role.VILLAGER
-                # For Villagers in Korean
-                prompt = PROMPT_TEMPLATES["Korean"][Role.VILLAGER].format(
-                    model_name=self.model_name,
-                    player_names=", ".join(player_names),
-                    game_state=game_state,
-                    thinking_tag=THINKING_TAGS["Korean"],
-                    discussion_history=discussion_history,
-                )
-        else:
-            # Default to English if language not supported
-            if self.role == Role.MAFIA:
-                # For Mafia members
-                mafia_names = [
-                    p.model_name for p in mafia_members if p != self and p.alive
-                ]
-                prompt = PROMPT_TEMPLATES["English"][Role.MAFIA].format(
-                    model_name=self.model_name,
-                    mafia_members=f"{', '.join(mafia_names) if mafia_names else 'None (you are the only Mafia left)'}",
-                    player_names=", ".join(player_names),
-                    game_state=game_state,
-                    thinking_tag=THINKING_TAGS["English"],
-                    discussion_history=discussion_history,
-                )
-            elif self.role == Role.DOCTOR:
-                # For Doctor
-                prompt = PROMPT_TEMPLATES["English"][Role.DOCTOR].format(
-                    model_name=self.model_name,
-                    player_names=", ".join(player_names),
-                    game_state=game_state,
-                    thinking_tag=THINKING_TAGS["English"],
-                    discussion_history=discussion_history,
-                )
-            else:  # Role.VILLAGER
-                # For Villagers
-                prompt = PROMPT_TEMPLATES["English"][Role.VILLAGER].format(
-                    model_name=self.model_name,
-                    player_names=", ".join(player_names),
-                    game_state=game_state,
-                    thinking_tag=THINKING_TAGS["English"],
-                    discussion_history=discussion_history,
-                )
+        # Get the appropriate language, defaulting to English if not supported
+        language = self.language if self.language in GAME_RULES else "English"
+
+        # Get game rules for the player's language
+        game_rules = GAME_RULES[language]
+
+        if self.role == Role.MAFIA:
+            # For Mafia members
+            mafia_names = [p.model_name for p in mafia_members if p != self and p.alive]
+            mafia_list = f"{', '.join(mafia_names) if mafia_names else 'None (you are the only Mafia left)'}"
+            if language == "Spanish":
+                mafia_list = f"{', '.join(mafia_names) if mafia_names else 'Ninguno (eres el único miembro de la Mafia que queda)'}"
+            elif language == "French":
+                mafia_list = f"{', '.join(mafia_names) if mafia_names else 'Aucun (vous êtes le seul membre de la Mafia restant)'}"
+            elif language == "Korean":
+                mafia_list = f"{', '.join(mafia_names) if mafia_names else '없음 (당신이 유일하게 남은 마피아입니다)'}"
+
+            prompt = PROMPT_TEMPLATES[language][Role.MAFIA].format(
+                model_name=self.model_name,
+                game_rules=game_rules,
+                mafia_members=mafia_list,
+                player_names=", ".join(player_names),
+                game_state=game_state,
+                thinking_tag=THINKING_TAGS[language],
+                discussion_history=discussion_history,
+            )
+        elif self.role == Role.DOCTOR:
+            # For Doctor
+            prompt = PROMPT_TEMPLATES[language][Role.DOCTOR].format(
+                model_name=self.model_name,
+                game_rules=game_rules,
+                player_names=", ".join(player_names),
+                game_state=game_state,
+                thinking_tag=THINKING_TAGS[language],
+                discussion_history=discussion_history,
+            )
+        else:  # Role.VILLAGER
+            # For Villagers
+            prompt = PROMPT_TEMPLATES[language][Role.VILLAGER].format(
+                model_name=self.model_name,
+                game_rules=game_rules,
+                player_names=", ".join(player_names),
+                game_state=game_state,
+                thinking_tag=THINKING_TAGS[language],
+                discussion_history=discussion_history,
+            )
+
         return prompt
 
     def get_response(self, prompt):
@@ -634,13 +627,23 @@ class Player:
         player_to_eliminate = game_state["confirmation_vote_for"]
         game_state_str = game_state["game_state"]
 
-        # Generate prompt based on language
+        # Get the appropriate language, defaulting to English if not supported
         language = (
-            self.language if self.language in CONFIRMATION_VOTE_TEMPLATES else "English"
+            self.language
+            if self.language in CONFIRMATION_VOTE_EXPLANATIONS
+            else "English"
         )
+
+        # Get confirmation vote explanation for the player's language
+        confirmation_explanation = CONFIRMATION_VOTE_EXPLANATIONS[language].format(
+            player_to_eliminate=player_to_eliminate
+        )
+
+        # Generate prompt based on language
         prompt = CONFIRMATION_VOTE_TEMPLATES[language].format(
             model_name=self.model_name,
             player_to_eliminate=player_to_eliminate,
+            confirmation_explanation=confirmation_explanation,
             game_state_str=game_state_str,
             thinking_tag=THINKING_TAGS[language],
         )
