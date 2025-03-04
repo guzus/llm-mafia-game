@@ -4,7 +4,8 @@ Game logic for the LLM Mafia Game Competition.
 
 import random
 import uuid
-from player import Player, Role
+from player import Player
+from game_templates import Role
 import config
 from logger import GameLogger, Color
 import re
