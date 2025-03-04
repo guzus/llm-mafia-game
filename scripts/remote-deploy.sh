@@ -14,7 +14,7 @@ SERVICE_NAME=$1
 CONFIG_FILE="$(dirname "$0")/remote-config.sh"
 
 if [ -f "$CONFIG_FILE" ]; then
-    source "$CONFIG_FILE"
+    . "$CONFIG_FILE"
 else
     echo "Error: Configuration file not found at $CONFIG_FILE"
     echo "Please create the configuration file with SSH_USER, SSH_HOST, and COMPOSE_DIR variables."
