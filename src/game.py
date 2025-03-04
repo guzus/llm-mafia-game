@@ -223,9 +223,7 @@ class MafiaGame:
         for player in self.mafia_players:
             if player.alive:
                 # Generate prompt
-                game_state = (
-                    f"{self.get_game_state()} It's night time. Choose a player to kill."
-                )
+                game_state = f"{self.get_game_state()} It's night time (Round {self.round_number}). Choose a player to kill."
                 prompt = player.generate_prompt(
                     game_state,
                     self.get_alive_players(),
@@ -296,9 +294,7 @@ class MafiaGame:
         protected_player = None
         if self.doctor_player and self.doctor_player.alive:
             # Generate prompt
-            game_state = (
-                f"{self.get_game_state()} It's night time. Choose a player to protect."
-            )
+            game_state = f"{self.get_game_state()} It's night time (Round {self.round_number}). Choose a player to protect."
             prompt = self.doctor_player.generate_prompt(
                 game_state,
                 self.get_alive_players(),
@@ -395,7 +391,7 @@ class MafiaGame:
         self._conduct_player_interactions(
             alive_players,
             "day_discussion",
-            "It's day time. Discuss with other players about who might be Mafia. This is the discussion phase - you'll vote in the next round.",
+            f"It's day time (Round {self.round_number}). Discuss with other players about who might be Mafia. This is the discussion phase - you'll vote in the next round.",
             messages,
             collect_votes=False,
         )
@@ -407,7 +403,7 @@ class MafiaGame:
         self._conduct_player_interactions(
             alive_players,
             "day_voting",
-            "It's time to vote. Discuss your final thoughts and vote to eliminate a suspected Mafia member.",
+            f"It's time to vote (Round {self.round_number}). Discuss your final thoughts and vote to eliminate a suspected Mafia member.",
             messages,
             collect_votes=True,
             votes=votes,
