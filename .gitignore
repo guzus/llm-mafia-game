@@ -48,3 +48,5 @@ Thumbs.db
 
 games_played.png
 win_rates.png
+
+scripts/remote-config.sh
