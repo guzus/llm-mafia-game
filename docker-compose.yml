@@ -19,4 +19,5 @@ services:
       - ./firebase_credentials.json:/app/firebase_credentials.json
     environment:
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - NUM_GAMES=${NUM_GAMES}
     command: uv run src/simulate.py
