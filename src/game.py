@@ -24,10 +24,10 @@ class MafiaGame:
         self.game_id = str(uuid.uuid4())
         self.round_number = 0
         self.phase = "setup"  # setup, night, day
-        self.players = []
-        self.mafia_players = []
-        self.doctor_player = None
-        self.villager_players = []
+        self.players: list[Player] = []
+        self.mafia_players: list[Player] = []
+        self.doctor_player: Player | None = None
+        self.villager_players: list[Player] = []
         self.discussion_history = ""
         self.rounds_data = []
         self.language = language if language is not None else config.LANGUAGE
