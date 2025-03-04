@@ -362,20 +362,20 @@ THINKING_TAGS = {
 # Constants for action patterns
 ACTION_PATTERNS = {
     "English": {
-        Role.MAFIA: r"ACTION:\s*Kill\s+(\w+[-\w]*)",
-        Role.DOCTOR: r"ACTION:\s*Protect\s+(\w+[-\w]*)",
+        Role.MAFIA: r"ACTION:\s*Kill\s+([\w./-]+(?:[-:]\w+)*)",
+        Role.DOCTOR: r"ACTION:\s*Protect\s+([\w./-]+(?:[-:]\w+)*)",
     },
     "Spanish": {
-        Role.MAFIA: r"ACCIÓN:\s*Matar\s+(\w+[-\w]*)",
-        Role.DOCTOR: r"ACCIÓN:\s*Proteger\s+(\w+[-\w]*)",
+        Role.MAFIA: r"ACCIÓN:\s*Matar\s+([\w./-]+(?:[-:]\w+)*)",
+        Role.DOCTOR: r"ACCIÓN:\s*Proteger\s+([\w./-]+(?:[-:]\w+)*)",
     },
     "French": {
-        Role.MAFIA: r"ACTION:\s*Tuer\s+(\w+[-\w]*)",
-        Role.DOCTOR: r"ACTION:\s*Protéger\s+(\w+[-\w]*)",
+        Role.MAFIA: r"ACTION:\s*Tuer\s+([\w./-]+(?:[-:]\w+)*)",
+        Role.DOCTOR: r"ACTION:\s*Protéger\s+([\w./-]+(?:[-:]\w+)*)",
     },
     "Korean": {
-        Role.MAFIA: r"행동:\s*죽이기\s+(\w+[-\w]*)",
-        Role.DOCTOR: r"행동:\s*보호하기\s+(\w+[-\w]*)",
+        Role.MAFIA: r"행동:\s*죽이기\s+([\w./-]+(?:[-:]\w+)*)",
+        Role.DOCTOR: r"행동:\s*보호하기\s+([\w./-]+(?:[-:]\w+)*)",
     },
 }
 
