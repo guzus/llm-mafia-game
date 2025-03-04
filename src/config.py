@@ -36,6 +36,9 @@ MODELS = [
     "minimax/minimax-01",
     "sao10k/l3-euryale-70b",
     "deepseek/deepseek-chat",
+    "openai/gpt-4o",
+    "anthropic/claude-3.5-sonnet",
+    "deepseek/deepseek-r1-distill-llama-70b",
 ]
 
 FREE_MODELS = [
