@@ -21,20 +21,20 @@ FIREBASE_CREDENTIALS_PATH = (
 
 # MODELS = FREE_MODELS
 MODELS = [
-    # "google/gemini-2.0-flash-001",
-    # "google/gemini-flash-1.5",
-    # "google/gemini-flash-1.5-8b",
-    # "openai/gpt-4o-mini",
-    # "meta-llama/llama-3.3-70b-instruct",
-    # "google/gemini-2.0-flash-lite-001",
-    # "meta-llama/llama-3.1-70b-instruct",
+    "google/gemini-2.0-flash-001",
+    "google/gemini-flash-1.5",
+    "google/gemini-flash-1.5-8b",
+    "openai/gpt-4o-mini",
+    "meta-llama/llama-3.3-70b-instruct",
+    "google/gemini-2.0-flash-lite-001",
+    "meta-llama/llama-3.1-70b-instruct",
     "deepseek/deepseek-r1",
     "gryphe/mythomax-l2-13b",
     "microsoft/wizardlm-2-8x22b",
     "mistralai/mistral-small-24b-instruct-2501",
     "nousresearch/hermes-3-llama-3.1-405b",
     "minimax/minimax-01",
-    "sao10k/l3-euryale-70b",
+    # "sao10k/l3-euryale-70b", # max context 8192
     "deepseek/deepseek-chat",
     "openai/gpt-4o",
     "anthropic/claude-3.5-sonnet",
