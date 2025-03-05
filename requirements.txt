@@ -5,3 +5,4 @@ matplotlib==3.10.1
 numpy==2.2.3
 futures==3.0.5
 python-dotenv==1.0.0
+flask-caching==2.3.1
