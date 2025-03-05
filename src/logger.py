@@ -6,6 +6,7 @@ Provides colorful and formatted logging for the game simulation.
 import os
 from enum import Enum
 from datetime import datetime
+import time
 
 
 class Color(Enum):
@@ -185,6 +186,35 @@ class GameLogger:
     def error(self, text):
         """Log error."""
         self.print(f"ERROR: {text}", Color.BRIGHT_RED, bold=True)
+
+    def log_model_issue(self, model_name, issue_type, details):
+        """
+        Log model-specific issues to help with debugging.
+
+        Args:
+            model_name (str): The name of the model having issues.
+            issue_type (str): Type of issue (e.g., "timeout", "empty_response", "invalid_format").
+            details (str): Additional details about the issue.
+        """
+        # Create a timestamp
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+
+        # Format the log message
+        log_message = (
+            f"[{timestamp}] MODEL ISSUE: {model_name} - {issue_type} - {details}"
+        )
+
+        # Print to console
+        self.print(log_message, Color.BRIGHT_YELLOW, bold=True)
+
+        # Also log to a model-specific log file
+        model_short_name = model_name.split("/")[-1].replace(":", "_")
+        log_dir = "logs/model_issues"
+        os.makedirs(log_dir, exist_ok=True)
+
+        log_file = f"{log_dir}/{model_short_name}_issues.log"
+        with open(log_file, "a") as f:
+            f.write(f"{log_message}\n")
 
     def stats(self, stats_dict):
         """Log game statistics."""

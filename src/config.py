@@ -21,13 +21,13 @@ FIREBASE_CREDENTIALS_PATH = (
 
 # MODELS = FREE_MODELS
 MODELS = [
-    "google/gemini-2.0-flash-001",
-    "google/gemini-flash-1.5",
-    "google/gemini-flash-1.5-8b",
-    "openai/gpt-4o-mini",
-    "meta-llama/llama-3.3-70b-instruct",
-    "google/gemini-2.0-flash-lite-001",
-    "meta-llama/llama-3.1-70b-instruct",
+    # "google/gemini-2.0-flash-001",
+    # "google/gemini-flash-1.5",
+    # "google/gemini-flash-1.5-8b",
+    # "openai/gpt-4o-mini",
+    # "meta-llama/llama-3.3-70b-instruct",
+    # "google/gemini-2.0-flash-lite-001",
+    # "meta-llama/llama-3.1-70b-instruct",
     "deepseek/deepseek-r1",
     "gryphe/mythomax-l2-13b",
     "microsoft/wizardlm-2-8x22b",
@@ -77,10 +77,29 @@ LANGUAGE = os.getenv(
 MAX_ROUNDS = int(os.getenv("MAX_ROUNDS", 20))
 
 # Timeout for API calls (in seconds)
-API_TIMEOUT = int(os.getenv("API_TIMEOUT", 30))
+API_TIMEOUT = int(os.getenv("API_TIMEOUT", 60))
 
 # Maximum output tokens for LLM responses
 MAX_OUTPUT_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", 400))
+
+# Model-specific configurations
+MODEL_CONFIGS = {
+    "deepseek/deepseek-r1": {
+        "timeout": 90,  # Longer timeout for DeepSeek-R1
+    },
+    "deepseek/deepseek-r1:free": {
+        "timeout": 90,
+    },
+    "deepseek/deepseek-r1-distill-llama-70b": {
+        "timeout": 90,
+    },
+    "deepseek/deepseek-r1-distill-llama-70b:free": {
+        "timeout": 90,
+    },
+    "deepseek/deepseek-chat": {
+        "timeout": 60,
+    },
+}
 
 # Random seed for reproducibility (set to None for random behavior)
 RANDOM_SEED = os.getenv("RANDOM_SEED")
