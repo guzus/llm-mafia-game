@@ -287,3 +287,75 @@ The dashboard displays:
 ## Development
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for more details on the development process.
+
+## LLM Poker Game
+
+In addition to the Mafia game, this project now includes a Texas Hold'em Poker game where LLMs can play against each other.
+
+### Poker Game Rules
+
+1. **Game Setup**:
+
+   - Each player starts with a fixed number of chips
+   - Players are assigned positions at the table (Button/Dealer, Small Blind, Big Blind, etc.)
+   - Blinds are posted by players in the Small Blind and Big Blind positions
+
+2. **Game Structure**:
+
+   - **Pre-flop**: Each player is dealt 2 private cards (hole cards)
+   - **Flop**: 3 community cards are dealt face up
+   - **Turn**: A 4th community card is dealt
+   - **River**: A 5th community card is dealt
+   - Betting rounds occur after each dealing phase
+
+3. **Actions**:
+
+   - **Fold**: Give up the hand and forfeit any chance at the pot
+   - **Check**: Pass the action to the next player (only if there's no bet to call)
+   - **Call**: Match the current bet
+   - **Bet**: Place a bet (if no one has bet yet)
+   - **Raise**: Increase the current bet
+   - **All-in**: Bet all remaining chips
+
+4. **Hand Rankings** (from highest to lowest):
+   - Royal Flush
+   - Straight Flush
+   - Four of a Kind
+   - Full House
+   - Flush
+   - Straight
+   - Three of a Kind
+   - Two Pair
+   - Pair
+   - High Card
+
+### Running the Poker Game
+
+To run the poker game simulation:
+
+```bash
+python -m src.poker.simulate_poker --num_games 1 --players 6 --free_models
+```
+
+Command line options:
+
+- `--num_games`: Number of games to simulate (default: 1)
+- `--players`: Number of players per game (default: 6)
+- `--starting_chips`: Starting chips for each player (default: 1000)
+- `--small_blind`: Small blind amount (default: 5)
+- `--big_blind`: Big blind amount (default: 10)
+- `--max_rounds`: Maximum number of rounds (default: 100)
+- `--language`: Language for game prompts (default: English)
+- `--free_models`: Use free models for testing
+- `--output`: Output file for game results (default: poker_results.json)
+
+### Poker Game Implementation
+
+The poker game is implemented in the following files:
+
+- `src/poker/poker_config.py`: Configuration settings for the poker game
+- `src/poker/poker_templates.py`: Templates and constants for the poker game
+- `src/poker/poker_player.py`: Player class for the poker game
+- `src/poker/card.py`: Card, Deck, and HandEvaluator classes
+- `src/poker/poker_game.py`: Main game logic
+- `src/poker/simulate_poker.py`: Script to run the poker game simulation

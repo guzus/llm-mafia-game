@@ -1,11 +1,16 @@
 """
-OpenRouter API client for the LLM Mafia Game Competition.
+OpenRouter API client for the LLM Poker Game.
 This module handles all interactions with the OpenRouter API.
 """
 
 import json
 import requests
-from src import config
+import os
+from src.poker import poker_config as config
+from src.poker.mock_llm import get_mock_response
+
+# Flag to use mock responses instead of real API calls
+USE_MOCK = os.getenv("USE_MOCK", "true").lower() == "true"
 
 
 def get_llm_response(model_name, prompt):
@@ -19,6 +24,11 @@ def get_llm_response(model_name, prompt):
     Returns:
         str: The response from the model.
     """
+    # Use mock responses for testing
+    if USE_MOCK:
+        return get_mock_response(model_name, prompt)
+
+    # Use real API for production
     headers = {
         "Authorization": f"Bearer {config.OPENROUTER_API_KEY}",
         "Content-Type": "application/json",

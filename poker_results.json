@@ -1,0 +1,111 @@
+[
+  {
+    "game_id": "90d701cd-53ba-43d1-9d6a-c0c87fd6fa5c",
+    "overall_winner": "deepseek/deepseek-r1:free",
+    "player_chips": {
+      "deepseek/deepseek-r1:free": 1010,
+      "meta-llama/llama-3.3-70b-instruct:free": 1000,
+      "google/gemini-2.0-flash-exp:free": 990
+    },
+    "hand_results": [
+      {
+        "hand_number": 1,
+        "winners": [
+          "deepseek/deepseek-r1:free"
+        ],
+        "pot": 15,
+        "community_cards": [
+          "9\u2666",
+          "9\u2665",
+          "2\u2665",
+          "10\u2660",
+          "J\u2665"
+        ],
+        "player_chips": {
+          "google/gemini-2.0-flash-exp:free": 990,
+          "deepseek/deepseek-r1:free": 1015,
+          "meta-llama/llama-3.3-70b-instruct:free": 995
+        }
+      },
+      {
+        "hand_number": 2,
+        "winners": [
+          "meta-llama/llama-3.3-70b-instruct:free"
+        ],
+        "pot": 15,
+        "community_cards": [
+          "A\u2663",
+          "8\u2666",
+          "10\u2666",
+          "2\u2666",
+          "Q\u2663"
+        ],
+        "player_chips": {
+          "google/gemini-2.0-flash-exp:free": 985,
+          "deepseek/deepseek-r1:free": 1005,
+          "meta-llama/llama-3.3-70b-instruct:free": 1010
+        }
+      },
+      {
+        "hand_number": 3,
+        "winners": [
+          "google/gemini-2.0-flash-exp:free",
+          "deepseek/deepseek-r1:free",
+          "meta-llama/llama-3.3-70b-instruct:free"
+        ],
+        "pot": 15,
+        "community_cards": [
+          "7\u2665",
+          "2\u2665",
+          "A\u2660",
+          "7\u2660",
+          "9\u2665"
+        ],
+        "player_chips": {
+          "google/gemini-2.0-flash-exp:free": 990,
+          "deepseek/deepseek-r1:free": 1005,
+          "meta-llama/llama-3.3-70b-instruct:free": 1005
+        }
+      },
+      {
+        "hand_number": 4,
+        "winners": [
+          "google/gemini-2.0-flash-exp:free"
+        ],
+        "pot": 15,
+        "community_cards": [
+          "Q\u2665",
+          "6\u2660",
+          "A\u2665",
+          "3\u2666",
+          "A\u2663"
+        ],
+        "player_chips": {
+          "google/gemini-2.0-flash-exp:free": 995,
+          "deepseek/deepseek-r1:free": 1005,
+          "meta-llama/llama-3.3-70b-instruct:free": 1000
+        }
+      },
+      {
+        "hand_number": 5,
+        "winners": [
+          "deepseek/deepseek-r1:free"
+        ],
+        "pot": 15,
+        "community_cards": [
+          "8\u2666",
+          "J\u2666",
+          "5\u2663",
+          "4\u2665",
+          "5\u2666"
+        ],
+        "player_chips": {
+          "google/gemini-2.0-flash-exp:free": 990,
+          "deepseek/deepseek-r1:free": 1010,
+          "meta-llama/llama-3.3-70b-instruct:free": 1000
+        }
+      }
+    ],
+    "timestamp": "2025-03-05T17:00:25.262351"
+  }
+]
