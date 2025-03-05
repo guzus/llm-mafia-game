@@ -89,6 +89,31 @@ def save_results(results, output_file):
         json.dump(results, f, indent=2)
 
 
+def save_result_with_uuid(result, base_output_file):
+    """
+    Save a single game result to a file with UUID in the filename.
+
+    Args:
+        result (dict): The game result to save
+        base_output_file (str): Base output filename
+
+    Returns:
+        str: The actual filename used
+    """
+    # Extract file extension and base name
+    if "." in base_output_file:
+        base_name, extension = base_output_file.rsplit(".", 1)
+        filename = f"{base_name}_{result['game_id']}.{extension}"
+    else:
+        filename = f"{base_output_file}_{result['game_id']}"
+
+    # Save to file
+    with open(filename, "w") as f:
+        json.dump(result, f, indent=2)
+
+    return filename
+
+
 def save_to_firebase(game_result, firebase):
     """
     Save poker game results to Firebase.
@@ -179,15 +204,15 @@ def main():
         # Add results to all_results
         all_results.append(results)
 
+        # Save individual game result with UUID in filename
+        result_filename = save_result_with_uuid(results, args.output)
+        logger.print(f"Game {i+1} results saved to {result_filename}", Color.GREEN)
+
         # Save to Firebase if enabled
         if save_to_firebase(results, firebase):
             logger.print(f"Game {i+1} results saved to Firebase", Color.GREEN)
         else:
             logger.print(f"Failed to save game {i+1} results to Firebase", Color.RED)
-
-    # Save results locally
-    save_results(all_results, args.output)
-    logger.print(f"Results saved to {args.output}")
 
 
 if __name__ == "__main__":
