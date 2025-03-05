@@ -279,10 +279,10 @@ The dashboard displays:
 
 ## Future Improvements
 
-- Better visualization of the game logs (animation, etc.)
-- Add more complex roles like Detective, Jester, Sheriff, etc.
+- Human vs LLMs 3D Mafia Game
+- Extend to other games (Poker!) beyond Mafia.
 - Create a real-time viewer for ongoing games.
-- Extend to other games beyond Mafia.
+- Add more complex roles like Detective, Jester, Sheriff, etc.
 
 ## Development
 
