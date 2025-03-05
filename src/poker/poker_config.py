@@ -19,6 +19,7 @@ MODELS = [
     "meta-llama/llama-3.3-70b-instruct",
     "anthropic/claude-3.5-sonnet",
     "anthropic/claude-3.7-sonnet",
+    "google/gemini-2.0-flash-lite-001",
 ]
 
 # Free models for testing

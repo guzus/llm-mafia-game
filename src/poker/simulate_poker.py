@@ -14,6 +14,7 @@ from datetime import datetime
 from poker_game import PokerGame
 import poker_config as config
 from src.logger import GameLogger, Color
+from src.firebase_manager import FirebaseManager
 
 
 def parse_args():
@@ -88,6 +89,47 @@ def save_results(results, output_file):
         json.dump(results, f, indent=2)
 
 
+def save_to_firebase(game_result, firebase):
+    """
+    Save poker game results to Firebase.
+
+    Args:
+        game_result (dict): The poker game result data
+        firebase (FirebaseManager): Initialized Firebase manager
+
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        game_id = game_result["game_id"]
+
+        # Create participants dictionary mapping model names to their role (in poker, just "Player")
+        participants = {model: "Player" for model in game_result["player_chips"].keys()}
+
+        # Store game result in Firebase using poker-specific methods
+        firebase.store_poker_game_result(
+            game_id=game_id,
+            winner=game_result["overall_winner"],
+            participants=participants,
+            game_type=config.GAME_TYPE,
+            language=config.LANGUAGE,
+        )
+
+        # Store game log (hand results) in Firebase using poker-specific methods
+        firebase.store_poker_game_log(
+            game_id=game_id,
+            hands=game_result["hand_results"],
+            participants=participants,
+            game_type=config.GAME_TYPE,
+            language=config.LANGUAGE,
+        )
+
+        return True
+    except Exception as e:
+        print(f"Error storing game result in Firebase: {e}")
+        return False
+
+
 def main():
     """Main function to run the simulation."""
     # Parse command line arguments
@@ -110,6 +152,18 @@ def main():
         f"Models: {', '.join(config.MODELS[:5])}{'...' if len(config.MODELS) > 5 else ''}"
     )
 
+    # Initialize Firebase if saving to Firebase
+    firebase = FirebaseManager()
+    if firebase.initialized:
+        logger.print(
+            "Firebase initialized successfully for storing results", Color.GREEN
+        )
+    else:
+        logger.print(
+            "Failed to initialize Firebase. Results will only be saved locally.",
+            Color.RED,
+        )
+
     # Run games
     all_results = []
     for i in range(config.NUM_GAMES):
@@ -125,7 +179,13 @@ def main():
         # Add results to all_results
         all_results.append(results)
 
-    # Save results
+        # Save to Firebase if enabled
+        if save_to_firebase(results, firebase):
+            logger.print(f"Game {i+1} results saved to Firebase", Color.GREEN)
+        else:
+            logger.print(f"Failed to save game {i+1} results to Firebase", Color.RED)
+
+    # Save results locally
     save_results(all_results, args.output)
     logger.print(f"Results saved to {args.output}")
 

@@ -270,3 +270,166 @@ class FirebaseManager:
         except Exception as e:
             print(f"Error getting game log: {e}")
             return None
+
+    def store_poker_game_result(
+        self,
+        game_id,
+        winner,
+        participants,
+        game_type="Texas Hold'em",
+        language=config.LANGUAGE,
+    ):
+        """
+        Store the result of a poker game in Firebase.
+
+        Args:
+            game_id (str): Unique identifier for the game.
+            winner (str): The winning player (model name).
+            participants (dict): Dictionary mapping model names to roles (all "Player" for poker).
+            game_type (str, optional): Type of poker game played.
+            language (str, optional): Language used for the game.
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        try:
+            # Create game result data
+            game_data = {
+                "game_id": game_id,
+                "timestamp": int(time.time()),
+                "game_type": game_type,
+                "language": language,
+                "participant_count": len(participants),
+                "winner": winner,
+                "participants": participants,
+            }
+
+            # Store in Firebase
+            self.db.collection("poker_games").document(game_id).set(game_data)
+            return True
+        except Exception as e:
+            print(f"Error storing poker game result: {e}")
+            return False
+
+    def store_poker_game_log(
+        self,
+        game_id,
+        hands,
+        participants,
+        game_type="Texas Hold'em",
+        language=config.LANGUAGE,
+    ):
+        """
+        Store the log of a poker game in Firebase.
+
+        Args:
+            game_id (str): Unique identifier for the game.
+            hands (list): List of hand data.
+            participants (dict): Dictionary mapping model names to roles.
+            game_type (str, optional): Type of poker game played.
+            language (str, optional): Language used for the game.
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        if not self.initialized:
+            print("Firebase not initialized. Cannot store poker game log.")
+            return False
+
+        try:
+            # Create game log data
+            log_data = {
+                "game_id": game_id,
+                "timestamp": int(time.time()),
+                "game_type": game_type,
+                "language": language,
+                "participant_count": len(participants),
+                "hands": hands,
+            }
+
+            # Store in Firebase
+            self.db.collection("poker_game_logs").document(game_id).set(log_data)
+            return True
+        except Exception as e:
+            print(f"Error storing poker game log: {e}")
+            return False
+
+    def get_poker_game_results(self, limit=100):
+        """
+        Get the results of poker games from Firebase.
+
+        Args:
+            limit (int, optional): Maximum number of results to retrieve.
+
+        Returns:
+            list: List of poker game results.
+        """
+        if not self.initialized:
+            print("Firebase not initialized. Cannot get poker game results.")
+            return []
+
+        try:
+            # Query Firestore for game results, ordered by timestamp
+            results = (
+                self.db.collection("poker_games")
+                .order_by("timestamp", direction=firestore.Query.DESCENDING)
+                .limit(limit)
+                .stream()
+            )
+
+            # Convert to list
+            return [doc.to_dict() for doc in results]
+        except Exception as e:
+            print(f"Error getting poker game results: {e}")
+            return []
+
+    def get_poker_model_stats(self):
+        """
+        Get statistics for each model from poker games in Firebase.
+
+        Returns:
+            dict: Dictionary mapping model names to statistics.
+        """
+        if not self.initialized:
+            print("Firebase not initialized. Cannot get poker model stats.")
+            return {}
+
+        try:
+            # Get all game results
+            results = self.get_poker_game_results(limit=1000)
+
+            # Initialize stats
+            stats = {}
+
+            # Process each game
+            for game in results:
+                winner = game.get("winner")
+                participants = game.get("participants", {})
+
+                for model in participants.keys():
+                    # Initialize model stats if not exists
+                    if model not in stats:
+                        stats[model] = {
+                            "games_played": 0,
+                            "games_won": 0,
+                        }
+
+                    # Update games played
+                    stats[model]["games_played"] += 1
+
+                    # Update wins
+                    if model == winner:
+                        stats[model]["games_won"] += 1
+
+            # Calculate win rates
+            for model in stats:
+                stats[model]["win_rate"] = (
+                    stats[model]["games_won"] / stats[model]["games_played"]
+                    if stats[model]["games_played"] > 0
+                    else 0
+                )
+
+            return stats
+        except Exception as e:
+            print(f"Error getting poker model stats: {e}")
+            return {}
