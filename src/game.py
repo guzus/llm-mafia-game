@@ -294,8 +294,20 @@ class MafiaGame:
         # Get action from Doctor
         protected_player = None
         if self.doctor_player and self.doctor_player.alive:
-            # Generate prompt
-            game_state = f"{self.get_game_state()} It's night time (Round {self.round_number}). Choose a player to protect."
+            # Generate prompt with language-specific instructions
+            night_instructions = {
+                "English": f"It's night time (Round {self.round_number}). As the Doctor, you MUST choose exactly one player to protect from the Mafia tonight. You cannot skip this action. End your response with ACTION: Protect [player].",
+                "Spanish": f"Es hora de noche (Ronda {self.round_number}). Como Doctor, DEBES elegir exactamente a un jugador para proteger de la Mafia esta noche. No puedes omitir esta acción. Termina tu respuesta con ACCIÓN: Proteger [jugador].",
+                "French": f"C'est la nuit (Tour {self.round_number}). En tant que Docteur, vous DEVEZ choisir exactement un joueur à protéger de la Mafia ce soir. Vous ne pouvez pas ignorer cette action. Terminez votre réponse par ACTION: Protéger [joueur].",
+                "Korean": f"밤 시간입니다 (라운드 {self.round_number}). 의사로서, 당신은 오늘 밤 마피아로부터 보호할 플레이어를 정확히 한 명 선택해야 합니다. 이 행동을 건너뛸 수 없습니다. 응답 끝에 행동: 보호하기 [플레이어]를 포함하세요.",
+            }
+
+            # Get the appropriate instruction based on the doctor's language
+            instruction = night_instructions.get(
+                self.doctor_player.language, night_instructions["English"]
+            )
+
+            game_state = f"{self.get_game_state()} {instruction}"
             prompt = self.doctor_player.generate_prompt(
                 game_state,
                 self.get_alive_players(),
@@ -564,6 +576,20 @@ class MafiaGame:
         for player in alive_players:
             # Generate prompt
             game_state = f"{self.get_game_state()} {instruction}"
+
+            # Add special instruction for doctor during day phase
+            if player.role == Role.DOCTOR:
+                day_warnings = {
+                    "English": " IMPORTANT: This is the DAY phase. Do NOT use your protection ability now. Only use ACTION: Protect during night phase.",
+                    "Spanish": " IMPORTANTE: Esta es la fase DIURNA. NO uses tu habilidad de protección ahora. Solo usa ACCIÓN: Proteger durante la fase nocturna.",
+                    "French": " IMPORTANT: C'est la phase de JOUR. N'utilisez PAS votre capacité de protection maintenant. Utilisez ACTION: Protéger uniquement pendant la phase de nuit.",
+                    "Korean": " 중요: 지금은 낮 단계입니다. 지금은 보호 능력을 사용하지 마세요. 행동: 보호하기는 밤 단계에서만 사용하세요.",
+                }
+
+                # Get the appropriate warning based on the doctor's language
+                warning = day_warnings.get(player.language, day_warnings["English"])
+                game_state += warning
+
             prompt = player.generate_prompt(
                 game_state,
                 alive_players,

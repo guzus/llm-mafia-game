@@ -109,8 +109,12 @@ Current game state: {game_state}
 
 {thinking_tag}
 
-During night phase, you can protect one player. Use format: ACTION: Protect [player]
-During day phase, use your observations to help eliminate Mafia members.
+IMPORTANT INSTRUCTIONS:
+- During NIGHT phase ONLY: You MUST protect exactly one player from being killed by the Mafia.
+- You MUST end your night message with: ACTION: Protect [player]
+- During DAY phase: Do NOT use the "Protect" action. Instead, discuss and vote like other villagers.
+- During DAY phase: End your message with your vote using format: VOTE: [player]
+
 Previous discussion: {discussion_history}
 
 Your response:
@@ -160,8 +164,12 @@ Estado actual del juego: {game_state}
 
 {thinking_tag}
 
-Durante la fase nocturna, puedes proteger a un jugador. Usa el formato: ACCIÓN: Proteger [jugador]
-Durante la fase diurna, usa tus observaciones para ayudar a eliminar a los miembros de la Mafia.
+INSTRUCCIONES IMPORTANTES:
+- SOLO durante la fase NOCTURNA: DEBES proteger exactamente a un jugador de ser asesinado por la Mafia.
+- DEBES terminar tu mensaje nocturno con: ACCIÓN: Proteger [jugador]
+- Durante la fase DIURNA: NO uses la acción "Proteger". En su lugar, discute y vota como los demás aldeanos.
+- Durante la fase DIURNA: Termina tu mensaje con tu voto usando el formato: VOTO: [jugador]
+
 Discusión previa: {discussion_history}
 
 Tu respuesta:
@@ -211,8 +219,12 @@ Tous les joueurs: {player_names}
 
 {thinking_tag}
 
-Pendant la phase de nuit, vous pouvez protéger un joueur. Utilisez le format: ACTION: Protéger [joueur]
-Pendant la phase de jour, utilisez vos observations pour aider à éliminer les membres de la Mafia.
+INSTRUCTIONS IMPORTANTES:
+- UNIQUEMENT pendant la phase de NUIT: Vous DEVEZ protéger exactement un joueur d'être tué par la Mafia.
+- Vous DEVEZ terminer votre message de nuit par: ACTION: Protéger [joueur]
+- Pendant la phase de JOUR: N'utilisez PAS l'action "Protéger". À la place, discutez et votez comme les autres villageois.
+- Pendant la phase de JOUR: Terminez votre message par votre vote en utilisant le format: VOTE: [joueur]
+
 Discussion précédente: {discussion_history}
 
 Votre réponse:
@@ -262,8 +274,12 @@ Votre réponse:
 
 {thinking_tag}
 
-밤 단계에서는 한 플레이어를 보호할 수 있습니다. 형식: 행동: 보호하기 [플레이어]
-낮 단계에서는 당신의 관찰을 사용하여 마피아 멤버를 제거하는 데 도움을 주세요.
+중요 지침:
+- 오직 밤 단계에서만: 당신은 반드시 마피아에게 살해당할 수 있는 한 명의 플레이어를 보호해야 합니다.
+- 밤 메시지 끝에 반드시 다음 형식을 사용하세요: 행동: 보호하기 [플레이어]
+- 낮 단계에서는: "보호하기" 행동을 사용하지 마세요. 대신, 다른 마을 사람들처럼 토론하고 투표하세요.
+- 낮 단계에서는: 메시지 끝에 다음 형식으로 투표하세요: 투표: [플레이어]
+
 이전 토론: {discussion_history}
 
 당신의 응답:
