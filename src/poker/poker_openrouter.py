@@ -6,8 +6,13 @@ This module handles all interactions with the OpenRouter API.
 import json
 import requests
 import os
-from src.poker import poker_config as config
-from src.poker.mock_llm import get_mock_response
+from poker_config import (
+    OPENROUTER_API_KEY,
+    OPENROUTER_API_URL,
+    MAX_OUTPUT_TOKENS,
+    API_TIMEOUT,
+)
+from mock_llm import get_mock_response
 
 # Flag to use mock responses instead of real API calls
 USE_MOCK = os.getenv("USE_MOCK", "true").lower() == "true"
@@ -30,22 +35,22 @@ def get_llm_response(model_name, prompt):
 
     # Use real API for production
     headers = {
-        "Authorization": f"Bearer {config.OPENROUTER_API_KEY}",
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json",
     }
 
     data = {
         "model": model_name,
         "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": config.MAX_OUTPUT_TOKENS,
+        "max_tokens": MAX_OUTPUT_TOKENS,
     }
 
     try:
         response = requests.post(
-            config.OPENROUTER_API_URL,
+            OPENROUTER_API_URL,
             headers=headers,
             data=json.dumps(data),
-            timeout=config.API_TIMEOUT,
+            timeout=API_TIMEOUT,
         )
         response.raise_for_status()
 

@@ -3,8 +3,8 @@ Player class for the LLM Poker Game.
 """
 
 import re
-from src.poker.poker_openrouter import get_llm_response
-from src.poker.poker_templates import (
+from poker_openrouter import get_llm_response
+from poker_templates import (
     PokerAction,
     PROMPT_TEMPLATES,
     THINKING_TAGS,

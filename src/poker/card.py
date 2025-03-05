@@ -3,7 +3,7 @@ Card and Deck classes for the LLM Poker Game.
 """
 
 import random
-from src.poker.poker_templates import SUITS, VALUES
+from poker_templates import SUITS, VALUES
 
 
 class Card:

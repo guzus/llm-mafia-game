@@ -4,11 +4,15 @@ Script to simulate poker games between LLMs.
 
 import os
 import sys
+
+# Add the project root to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
 import json
 import argparse
 from datetime import datetime
-from src.poker.poker_game import PokerGame
-import src.poker.poker_config as config
+from poker_game import PokerGame
+import poker_config as config
 from src.logger import GameLogger, Color
 
 

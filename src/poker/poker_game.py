@@ -4,10 +4,16 @@ Game logic for the LLM Poker Game.
 
 import random
 import uuid
-from src.poker.poker_player import PokerPlayer
-from src.poker.card import Card, Deck, HandEvaluator
-from src.poker.poker_templates import PokerAction
-import src.poker.poker_config as config
+import os
+import sys
+
+# Add the project root to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
+from poker_player import PokerPlayer
+from card import Deck, HandEvaluator
+from poker_templates import PokerAction
+import poker_config as config
 from src.logger import GameLogger, Color
 
 
