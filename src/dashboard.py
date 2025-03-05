@@ -159,7 +159,7 @@ def get_cached_game_results(limit):
 @app.route("/api/game/<game_id>")
 def get_game(game_id):
     """Get game data from Firebase."""
-    game_data = firebase.get_game_log(game_id)
+    game_data = get_cached_game_log(game_id)
 
     if not game_data:
         return jsonify({"error": "Game not found"}), 404
@@ -167,9 +167,22 @@ def get_game(game_id):
     # Set cache control headers for better performance
     response = make_response(jsonify(game_data))
     response.headers["Content-Type"] = "application/json"
-    response.headers["Cache-Control"] = "max-age=60"  # Cache for 60 seconds
+    response.headers["Cache-Control"] = "max-age=120"  # Cache for 120 seconds
 
     return response
+
+
+@cache.memoize(timeout=120)
+def get_cached_game_log(game_id):
+    """Get cached game log data from Firebase.
+
+    Args:
+        game_id (str): The ID of the game to retrieve.
+
+    Returns:
+        dict: Game log data or None if not found.
+    """
+    return firebase.get_game_log(game_id)
 
 
 @app.route("/api/chart/win_rates")
