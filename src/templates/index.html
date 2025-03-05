@@ -16,6 +16,24 @@
             height: 80px;
             margin-right: 20px;
         }
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            margin-left: auto;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: #0066cc;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        .nav-links a.active {
+            background-color: #e9ecef;
+        }
+        .nav-links a:hover {
+            background-color: #f8f9fa;
+        }
     </style>
 {% endblock %}
 
@@ -24,6 +42,10 @@
         <div class="header">
             <img src="/static/images/logo.webp" alt="LLM Mafia Game Logo" class="logo">
             <h1>LLM Mafia Game Competition</h1>
+            <div class="nav-links">
+                <a href="/" class="active">Mafia Games</a>
+                <a href="/poker">Poker Games</a>
+            </div>
         </div>
         
         <!--

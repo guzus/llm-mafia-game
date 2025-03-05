@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Poker Games - LLM Mafia Game Competition{% endblock %}
+
+{% block head %}
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            margin: 0;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #0066cc;
+            font-weight: bold;
+        }
+        
+        .games-container {
+            margin-top: 30px;
+        }
+        
+        .games-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .games-table th, .games-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .games-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        
+        .games-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .game-link {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        
+        .game-link:hover {
+            text-decoration: underline;
+        }
+        
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #0066cc;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            color: #dc3545;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #dc3545;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="header">
+            <h1>Poker Games</h1>
+            <div class="nav-links">
+                <a href="/">Mafia Games</a>
+                <a href="/poker" class="active">Poker Games</a>
+            </div>
+        </div>
+        
+        <div class="games-container">
+            <h2>Recent Poker Games</h2>
+            <div id="gamesTable" class="games-table-container">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <div>Loading poker games...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        // Fetch poker games data
+        fetch('/api/poker/games')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(games => {
+                displayGames(games);
+            })
+            .catch(error => {
+                console.error('Error fetching poker games:', error);
+                document.getElementById('gamesTable').innerHTML = `
+                    <div class="error">
+                        Error loading poker games: ${error.message}
+                    </div>`;
+            });
+        
+        // Function to display games
+        function displayGames(games) {
+            const gamesTableElement = document.getElementById('gamesTable');
+            
+            if (!games || games.length === 0) {
+                gamesTableElement.innerHTML = '<div class="error">No poker games found</div>';
+                return;
+            }
+            
+            // Create table
+            let tableHtml = `
+                <table class="games-table">
+                    <thead>
+                        <tr>
+                            <th>Game ID</th>
+                            <th>Date</th>
+                            <th>Winner</th>
+                            <th>Players</th>
+                            <th>Game Type</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+            
+            // Add rows for each game
+            games.forEach(game => {
+                const timestamp = new Date(game.timestamp * 1000).toLocaleString();
+                const playerCount = game.participant_count || Object.keys(game.participants || {}).length;
+                
+                tableHtml += `
+                    <tr>
+                        <td><a href="/poker/game/${game.game_id}" class="game-link">${game.game_id}</a></td>
+                        <td>${timestamp}</td>
+                        <td>${game.winner}</td>
+                        <td>${playerCount}</td>
+                        <td>${game.game_type || 'Texas Hold\'em'}</td>
+                    </tr>`;
+            });
+            
+            tableHtml += `
+                    </tbody>
+                </table>`;
+            
+            gamesTableElement.innerHTML = tableHtml;
+        }
+    </script>
+{% endblock %} 

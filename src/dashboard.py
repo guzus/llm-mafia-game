@@ -775,6 +775,70 @@ def create_templates():
         return make_response(f"Error creating templates: {str(e)}", 500)
 
 
+@app.route("/poker")
+def poker_index():
+    """Render the poker games dashboard page."""
+    return render_template("poker_index.html")
+
+
+@app.route("/poker/game/<game_id>")
+def poker_game_detail(game_id):
+    """Render the poker game detail page."""
+    # Get game data to pass to the template
+    game_data = firebase.get_poker_game_log(game_id)
+
+    # If game data not found, return 404
+    if not game_data:
+        return render_template("404.html", message="Poker game not found"), 404
+
+    return render_template(
+        "poker_game_detail.html", game_id=game_id, game_data=game_data
+    )
+
+
+@app.route("/api/poker/games")
+def get_poker_games():
+    """Get poker game results from Firebase."""
+    limit = request.args.get("limit", default=100, type=int)
+    games = firebase.get_poker_game_results(limit=limit)
+
+    # Set cache control headers for better performance
+    response = make_response(jsonify(games))
+    response.headers["Content-Type"] = "application/json"
+    response.headers["Cache-Control"] = "max-age=60"  # Cache for 60 seconds
+
+    return response
+
+
+@app.route("/api/poker/game/<game_id>")
+def get_poker_game(game_id):
+    """Get poker game data from Firebase."""
+    game_data = firebase.get_poker_game_log(game_id)
+
+    if not game_data:
+        return jsonify({"error": "Poker game not found"}), 404
+
+    # Set cache control headers for better performance
+    response = make_response(jsonify(game_data))
+    response.headers["Content-Type"] = "application/json"
+    response.headers["Cache-Control"] = "max-age=60"  # Cache for 60 seconds
+
+    return response
+
+
+@app.route("/api/poker/stats")
+def get_poker_stats():
+    """Get poker model statistics from Firebase."""
+    stats = firebase.get_poker_model_stats()
+
+    # Set cache control headers for better performance
+    response = make_response(jsonify(stats))
+    response.headers["Content-Type"] = "application/json"
+    response.headers["Cache-Control"] = "max-age=60"  # Cache for 60 seconds
+
+    return response
+
+
 if __name__ == "__main__":
     try:
         # Parse command line arguments

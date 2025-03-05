@@ -433,3 +433,41 @@ class FirebaseManager:
         except Exception as e:
             print(f"Error getting poker model stats: {e}")
             return {}
+
+    def get_poker_game_log(self, game_id):
+        """
+        Retrieve the log of a poker game from Firebase.
+
+        Args:
+            game_id (str): Unique identifier for the game.
+
+        Returns:
+            dict: Game log data or None if not found.
+        """
+        if not self.initialized:
+            print("Firebase not initialized. Cannot retrieve poker game log.")
+            return None
+
+        try:
+            # Get game result
+            result_doc = self.db.collection("poker_games").document(game_id).get()
+            if not result_doc.exists:
+                print(f"Poker game result {game_id} not found.")
+                return None
+
+            result_data = result_doc.to_dict()
+
+            # Get game log
+            log_doc = self.db.collection("poker_game_logs").document(game_id).get()
+            if not log_doc.exists:
+                print(f"Poker game log {game_id} not found.")
+                return None
+
+            log_data = log_doc.to_dict()
+
+            # Combine result and log data
+            combined_data = {**result_data, **log_data}
+            return combined_data
+        except Exception as e:
+            print(f"Error retrieving poker game log: {e}")
+            return None

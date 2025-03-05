@@ -1,0 +1,509 @@
+{% extends "base.html" %}
+
+{% block title %}Poker Game Details - LLM Mafia Game Competition{% endblock %}
+
+{% block head %}
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #0066cc;
+            text-decoration: none;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .game-info {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .game-info h2 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .participants-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .participant {
+            background-color: #e9ecef;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .tab-container {
+            margin-bottom: 30px;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .tab.active {
+            border-bottom: 2px solid #0066cc;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .hand {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .hand-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 10px;
+        }
+        
+        .hand-winner {
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+        
+        .hand-pot {
+            margin-bottom: 10px;
+        }
+        
+        .community-cards {
+            margin: 15px 0;
+        }
+        
+        .player-actions {
+            margin-top: 20px;
+        }
+        
+        .player-action {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 4px;
+            border-left: 3px solid #0066cc;
+        }
+        
+        .player-hand {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 4px;
+        }
+        
+        .card {
+            display: inline-block;
+            width: 40px;
+            height: 60px;
+            margin-right: 5px;
+            background-color: #fff;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            text-align: center;
+            line-height: 60px;
+            font-weight: bold;
+        }
+        
+        .card.hearts, .card.diamonds {
+            color: #dc3545;
+        }
+        
+        .card.clubs, .card.spades {
+            color: #212529;
+        }
+        
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #0066cc;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            color: #dc3545;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #dc3545;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        
+        .player-chips {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .chip-bar {
+            height: 20px;
+            background-color: #28a745;
+            margin-top: 5px;
+            border-radius: 4px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <a href="/poker" class="back-link">← Back to Poker Games</a>
+        <h1>Poker Game Details</h1>
+        
+        <div id="gameInfo" class="game-info">
+            <div class="loading">
+                <div class="spinner"></div>
+                <div>Loading game information...</div>
+            </div>
+        </div>
+        
+        <div class="tab-container">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('gameDetails')">Game Details</div>
+                <div class="tab" onclick="switchTab('handHistory')">Hand History</div>
+            </div>
+            
+            <div id="gameDetails" class="tab-content active">
+                <h2>Game Results</h2>
+                <div id="gameResults">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <div>Loading game results...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="handHistory" class="tab-content">
+                <h2>Hand History</h2>
+                <div id="handHistoryContent">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <div>Loading hand history...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        // Get game ID from URL
+        const gameId = window.location.pathname.split('/').pop();
+        let gameData = null;
+        
+        // Fetch game data
+        fetch(`/api/poker/game/${gameId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Game data received:', data);
+                gameData = data;
+                displayGameInfo(data);
+                displayGameResults(data);
+                displayHandHistory(data);
+            })
+            .catch(error => {
+                console.error('Error fetching game data:', error);
+                document.getElementById('gameInfo').innerHTML = `
+                    <div class="error">
+                        Error loading game information: ${error.message}
+                    </div>`;
+                document.getElementById('gameResults').innerHTML = `
+                    <div class="error">
+                        Error loading game results: ${error.message}
+                    </div>`;
+                document.getElementById('handHistoryContent').innerHTML = `
+                    <div class="error">
+                        Error loading hand history: ${error.message}
+                    </div>`;
+            });
+        
+        // Function to switch tabs
+        function switchTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Deactivate all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Activate selected tab and content
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`.tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
+        }
+        
+        // Function to display game information
+        function displayGameInfo(data) {
+            const gameInfoElement = document.getElementById('gameInfo');
+            
+            // Display game info
+            const timestamp = new Date(data.timestamp * 1000).toLocaleString();
+            const participants = data.participants || {};
+            
+            // Create participant elements
+            const participantsHtml = Object.entries(participants)
+                .map(([model, role]) => {
+                    const modelName = model.split('/').pop();
+                    return `<div class="participant">${modelName}</div>`;
+                })
+                .join('');
+            
+            gameInfoElement.innerHTML = `
+                <h2>Game: ${data.game_id}</h2>
+                <p><strong>Winner:</strong> ${data.winner}</p>
+                <p><strong>Game Type:</strong> ${data.game_type || 'Texas Hold\'em'}</p>
+                <p><strong>Language:</strong> ${data.language || 'English'}</p>
+                <p><strong>Time:</strong> ${timestamp}</p>
+                <h3>Players:</h3>
+                <div class="participants-container">
+                    ${participantsHtml}
+                </div>
+            `;
+            
+            // Update page title
+            document.title = `Poker Game ${data.game_id} - LLM Mafia Game Competition`;
+        }
+        
+        // Function to display game results
+        function displayGameResults(data) {
+            const gameResultsElement = document.getElementById('gameResults');
+            
+            if (!data.player_chips) {
+                gameResultsElement.innerHTML = '<div class="error">No game results available</div>';
+                return;
+            }
+            
+            // Find the maximum chips to normalize the bars
+            const maxChips = Math.max(...Object.values(data.player_chips));
+            
+            // Create HTML for player chips
+            let chipsHtml = '<div class="player-chips">';
+            
+            Object.entries(data.player_chips).forEach(([player, chips]) => {
+                const playerName = player.split('/').pop();
+                const percentage = (chips / maxChips) * 100;
+                const isWinner = player === data.overall_winner;
+                
+                chipsHtml += `
+                    <div class="player-chip-info">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>${playerName} ${isWinner ? '(Winner)' : ''}</span>
+                            <span>${chips} chips</span>
+                        </div>
+                        <div class="chip-bar" style="width: ${percentage}%;"></div>
+                    </div>
+                `;
+            });
+            
+            chipsHtml += '</div>';
+            
+            // Add game statistics if available
+            let statsHtml = '';
+            if (data.game_stats) {
+                statsHtml = `
+                    <h3>Game Statistics</h3>
+                    <div class="game-stats">
+                        <p><strong>Total Hands:</strong> ${data.game_stats.total_hands || data.hands.length}</p>
+                        <p><strong>Total Bets:</strong> ${data.game_stats.total_bets || 'N/A'}</p>
+                        <p><strong>Largest Pot:</strong> ${data.game_stats.largest_pot || 'N/A'}</p>
+                    </div>
+                `;
+            }
+            
+            gameResultsElement.innerHTML = `
+                <h3>Final Chip Count</h3>
+                ${chipsHtml}
+                ${statsHtml}
+            `;
+        }
+        
+        // Function to display hand history
+        function displayHandHistory(data) {
+            const handHistoryElement = document.getElementById('handHistoryContent');
+            
+            if (!data.hands || data.hands.length === 0) {
+                handHistoryElement.innerHTML = '<div class="error">No hand history available</div>';
+                return;
+            }
+            
+            let handsHtml = '';
+            
+            // Process each hand
+            data.hands.forEach((hand, index) => {
+                // Format community cards if available
+                let communityCardsHtml = '';
+                if (hand.community_cards && hand.community_cards.length > 0) {
+                    communityCardsHtml = `
+                        <div class="community-cards">
+                            <strong>Community Cards:</strong> 
+                            ${formatCards(hand.community_cards)}
+                        </div>
+                    `;
+                }
+                
+                // Format player hands and actions
+                let playerHandsHtml = '';
+                let playerActionsHtml = '';
+                
+                if (hand.player_hands) {
+                    Object.entries(hand.player_hands).forEach(([player, cards]) => {
+                        const playerName = player.split('/').pop();
+                        playerHandsHtml += `
+                            <div class="player-hand">
+                                <strong>${playerName}:</strong> 
+                                ${formatCards(cards)}
+                            </div>
+                        `;
+                    });
+                }
+                
+                if (hand.actions) {
+                    Object.entries(hand.actions).forEach(([player, actions]) => {
+                        const playerName = player.split('/').pop();
+                        
+                        // Handle both string and array actions
+                        let actionsText = '';
+                        if (typeof actions === 'string') {
+                            actionsText = actions;
+                        } else if (Array.isArray(actions)) {
+                            actionsText = actions.join(', ');
+                        }
+                        
+                        playerActionsHtml += `
+                            <div class="player-action">
+                                <strong>${playerName}:</strong> ${actionsText}
+                            </div>
+                        `;
+                    });
+                }
+                
+                handsHtml += `
+                    <div class="hand">
+                        <div class="hand-title">Hand ${index + 1}</div>
+                        ${hand.winner ? `<div class="hand-winner">Winner: ${hand.winner.split('/').pop()}</div>` : ''}
+                        ${hand.pot ? `<div class="hand-pot">Pot: ${hand.pot} chips</div>` : ''}
+                        ${communityCardsHtml}
+                        <div class="player-hands">
+                            <h4>Player Hands:</h4>
+                            ${playerHandsHtml || '<p>No player hand information available</p>'}
+                        </div>
+                        <div class="player-actions">
+                            <h4>Actions:</h4>
+                            ${playerActionsHtml || '<p>No action information available</p>'}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            handHistoryElement.innerHTML = handsHtml;
+        }
+        
+        // Helper function to format cards
+        function formatCards(cards) {
+            if (!cards || cards.length === 0) {
+                return 'No cards';
+            }
+            
+            return cards.map(card => {
+                // Extract value and suit
+                let value = card.charAt(0);
+                let suit = card.charAt(1);
+                
+                // Convert suit to symbol
+                let suitClass = '';
+                switch (suit) {
+                    case 'h':
+                        suit = '♥';
+                        suitClass = 'hearts';
+                        break;
+                    case 'd':
+                        suit = '♦';
+                        suitClass = 'diamonds';
+                        break;
+                    case 'c':
+                        suit = '♣';
+                        suitClass = 'clubs';
+                        break;
+                    case 's':
+                        suit = '♠';
+                        suitClass = 'spades';
+                        break;
+                }
+                
+                // Convert value to readable format
+                if (value === 'T') value = '10';
+                
+                return `<span class="card ${suitClass}">${value}${suit}</span>`;
+            }).join(' ');
+        }
+    </script>
+{% endblock %} 
