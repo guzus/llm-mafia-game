@@ -28,7 +28,7 @@ MODELS = [
     "meta-llama/llama-3.3-70b-instruct",
     "google/gemini-2.0-flash-lite-001",
     "meta-llama/llama-3.1-70b-instruct",
-    "deepseek/deepseek-r1",
+    # "deepseek/deepseek-r1", # takes too long to respond
     "gryphe/mythomax-l2-13b",
     "microsoft/wizardlm-2-8x22b",
     "mistralai/mistral-small-24b-instruct-2501",
