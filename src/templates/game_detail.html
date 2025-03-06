@@ -1157,17 +1157,18 @@
                     <div class="critic-header">
                         <div class="critic-avatar">
                             <img src="/static/images/claude_avatar.webp" alt="Claude" onerror="this.src='/static/images/default_avatar.avif'">
-                        </div>
-                        <div class="critic-info">
-                            <div class="critic-name">Mr. Claude</div>
-                            <div class="critic-title">AI Game Critic</div>
-                        </div>
+                            </div>
+                            <div class="critic-info">
+                                <div class="critic-name">Mr. Claude 3.7 Sonnet</div>
+                                <div class="critic-title">AI Game Critic</div>
+                            </div>
                     </div>
                     <div class="critic-content">
                         <h3 class="review-title">${review.title}</h3>
                         <div class="review-body">
                             ${review.content.replace(/\n/g, '<br>')}
                         </div>
+                        ${review.one_liner ? `<div class="critic-one-liner">"${review.one_liner}"</div>` : ''}
                     </div>
                 </div>
             `;

@@ -775,7 +775,7 @@ class MafiaGame:
             winner (str): The winning team ("Mafia" or "Villagers").
 
         Returns:
-            dict: A dictionary containing the critic review with title and content.
+            dict: A dictionary containing the critic review with title, content, and one-sentence summary.
         """
         # Get the game summary information
         game_summary = {
@@ -815,9 +815,10 @@ Write a short, entertaining critic review of this game. Include:
    - Interesting strategic moves or blunders
    - The performance of the winning team
    - Any particularly noteworthy moments
+3. A one-sentence intense summary that captures the essence of the game in a dramatic way (max 100 characters)
 
 Your tone should be professional but entertaining, like a game critic. Be specific about this particular game.
-Format your response as a JSON object with 'title' and 'content' fields.
+Format your response as a JSON object with 'title', 'content', and 'one_liner' fields.
 """
 
         try:
@@ -828,6 +829,7 @@ Format your response as a JSON object with 'title' and 'content' fields.
                 return {
                     "title": "Game Review Unavailable",
                     "content": "The critic was unable to review this game due to API issues.",
+                    "one_liner": "Technical difficulties prevented our critic from witnessing this showdown.",
                 }
 
             # Look for JSON in the response
@@ -836,6 +838,11 @@ Format your response as a JSON object with 'title' and 'content' fields.
             if json_match:
                 try:
                     review_json = json.loads(json_match.group(1))
+                    # Ensure one_liner exists
+                    if "one_liner" not in review_json:
+                        review_json["one_liner"] = (
+                            "A game that defies simple description!"
+                        )
                     return review_json
                 except json.JSONDecodeError:
                     # Fallback if JSON parsing fails
@@ -844,12 +851,14 @@ Format your response as a JSON object with 'title' and 'content' fields.
                         "content": response_content[
                             :300
                         ],  # Truncate to reasonable length
+                        "one_liner": "A game that left our critic speechless!",
                     }
             else:
                 # If no JSON found, create a simple structure
                 return {
                     "title": "AI Mafia Game Review",
                     "content": response_content[:300],  # Truncate to reasonable length
+                    "one_liner": "A game that defies conventional criticism!",
                 }
 
         except Exception as e:
@@ -857,4 +866,5 @@ Format your response as a JSON object with 'title' and 'content' fields.
             return {
                 "title": "Game Review Unavailable",
                 "content": "The critic was unable to review this game due to technical difficulties.",
+                "one_liner": "Technical issues prevented our critic from delivering judgment.",
             }
