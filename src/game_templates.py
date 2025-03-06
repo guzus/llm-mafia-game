@@ -93,8 +93,12 @@ Current game state: {game_state}
 
 {thinking_tag}
 
-During night phase, you must kill a non-Mafia player. Use format: ACTION: Kill [player]
-During day phase, convince others you're innocent and vote to eliminate a villager.
+IMPORTANT INSTRUCTIONS:
+- During NIGHT phase ONLY: You must kill a non-Mafia player. Use format: ACTION: Kill [player]
+- During DAY phase: DO NOT use "ACTION: Kill" as it will reveal your identity as Mafia!
+- During DAY phase: Act like a villager, convince others you're innocent and vote to eliminate a villager.
+- During DAY phase: End your message with your vote using format: VOTE: [player]
+
 Previous discussion: {discussion_history}
 
 Your response:
@@ -112,7 +116,7 @@ Current game state: {game_state}
 IMPORTANT INSTRUCTIONS:
 - During NIGHT phase ONLY: You MUST protect exactly one player from being killed by the Mafia.
 - You MUST end your night message with: ACTION: Protect [player]
-- During DAY phase: Do NOT use the "Protect" action. Instead, discuss and vote like other villagers.
+- During DAY phase: DO NOT use the "Protect" action. Instead, discuss and vote like other villagers.
 - During DAY phase: End your message with your vote using format: VOTE: [player]
 
 Previous discussion: {discussion_history}
@@ -129,8 +133,11 @@ Current game state: {game_state}
 
 {thinking_tag}
 
-During day phase, discuss with other villagers to identify the Mafia members.
-End your message with your vote. Use format: VOTE: [player]
+IMPORTANT INSTRUCTIONS:
+- During DAY DISCUSSION phase: Discuss with other villagers to identify the Mafia members.
+- During DAY VOTING phase: You MUST vote to eliminate a suspected Mafia member.
+- During DAY VOTING phase: End your message with your vote using format: VOTE: [player]
+
 Previous discussion: {discussion_history}
 
 Your response:
@@ -148,8 +155,12 @@ Estado actual del juego: {game_state}
 
 {thinking_tag}
 
-Durante la fase nocturna, debes matar a un jugador que no sea de la Mafia. Usa el formato: ACCIÓN: Matar [jugador]
-Durante la fase diurna, convence a los demás de que eres inocente y vota para eliminar a un aldeano.
+INSTRUCCIONES IMPORTANTES:
+- SOLO durante la fase NOCTURNA: Debes matar a un jugador que no sea de la Mafia. Usa el formato: ACCIÓN: Matar [jugador]
+- Durante la fase DIURNA: ¡NO uses "ACCIÓN: Matar" ya que revelará tu identidad como Mafia!
+- Durante la fase DIURNA: Actúa como un aldeano, convence a los demás de que eres inocente y vota para eliminar a un aldeano.
+- Durante la fase DIURNA: Termina tu mensaje con tu voto usando el formato: VOTO: [jugador]
+
 Discusión previa: {discussion_history}
 
 Tu respuesta:
@@ -184,8 +195,11 @@ Estado actual del juego: {game_state}
 
 {thinking_tag}
 
-Durante la fase diurna, discute con otros aldeanos para identificar a los miembros de la Mafia.
-Termina tu mensaje con tu voto. Usa el formato: VOTO: [jugador]
+INSTRUCCIONES IMPORTANTES:
+- Durante la fase de DISCUSIÓN DIURNA: Discute con otros aldeanos para identificar a los miembros de la Mafia.
+- Durante la fase de VOTACIÓN DIURNA: DEBES votar para eliminar a un miembro sospechoso de la Mafia.
+- Durante la fase de VOTACIÓN DIURNA: Termina tu mensaje con tu voto usando el formato: VOTO: [jugador]
+
 Discusión previa: {discussion_history}
 
 Tu respuesta:
@@ -203,8 +217,12 @@ Tous les joueurs: {player_names}
 
 {thinking_tag}
 
-Pendant la phase de nuit, vous devez tuer un joueur qui n'est pas de la Mafia. Utilisez le format: ACTION: Tuer [joueur]
-Pendant la phase de jour, convainquez les autres que vous êtes innocent et votez pour éliminer un villageois.
+INSTRUCTIONS IMPORTANTES:
+- UNIQUEMENT pendant la phase de NUIT: Vous devez tuer un joueur qui n'est pas de la Mafia. Utilisez le format: ACTION: Tuer [joueur]
+- Pendant la phase de JOUR: N'utilisez PAS "ACTION: Tuer" car cela révélerait votre identité en tant que Mafia!
+- Pendant la phase de JOUR: Agissez comme un villageois, convainquez les autres que vous êtes innocent et votez pour éliminer un villageois.
+- Pendant la phase de JOUR: Terminez votre message avec votre vote en utilisant le format: VOTE: [joueur]
+
 Discussion précédente: {discussion_history}
 
 Votre réponse:
@@ -239,8 +257,11 @@ Tous les joueurs: {player_names}
 
 {thinking_tag}
 
-Pendant la phase de jour, discutez avec les autres villageois pour identifier les membres de la Mafia.
-Terminez votre message par votre vote. Utilisez le format: VOTE: [joueur]
+INSTRUCTIONS IMPORTANTES:
+- Pendant la phase de DISCUSSION de JOUR: Discutez avec les autres villageois pour identifier les membres de la Mafia.
+- Pendant la phase de VOTE de JOUR: Vous DEVEZ voter pour éliminer un membre suspecté de la Mafia.
+- Pendant la phase de VOTE de JOUR: Terminez votre message par votre vote en utilisant le format: VOTE: [joueur]
+
 Discussion précédente: {discussion_history}
 
 Votre réponse:
@@ -248,7 +269,7 @@ Votre réponse:
     },
     "Korean": {
         Role.MAFIA: """
-당신은 {model_name}으로, 마피아 멤버로서 마피아 게임을 하고 있습니다. 당신의 목표는 마을 사람들을 제거하는 것입니다.
+당신은 {model_name}이며, 마피아 멤버로서 마피아 게임을 하고 있습니다. 당신의 목표는 마을 사람들을 제거하는 것입니다.
 
 {game_rules}
 
@@ -258,14 +279,18 @@ Votre réponse:
 
 {thinking_tag}
 
-밤 단계에서는 마피아가 아닌 플레이어를 죽여야 합니다. 형식: 행동: 죽이기 [플레이어]
-낮 단계에서는 다른 사람들에게 당신이 무고하다고 설득하고 마을 사람을 제거하기 위해 투표하세요.
+중요 지침:
+- 오직 밤 단계에서만: 마피아가 아닌 플레이어를 죽여야 합니다. 형식 사용: 행동: 죽이기 [플레이어]
+- 낮 단계에서: "행동: 죽이기"를 사용하지 마세요. 이는 당신이 마피아임을 드러낼 것입니다!
+- 낮 단계에서: 마을 사람처럼 행동하고, 다른 사람들에게 당신이 무고하다고 설득하며 마을 사람을 제거하기 위해 투표하세요.
+- 낮 단계에서: 메시지 끝에 투표를 포함하세요. 형식 사용: 투표: [플레이어]
+
 이전 토론: {discussion_history}
 
 당신의 응답:
 """,
         Role.DOCTOR: """
-당신은 {model_name}으로, 의사로서 마피아 게임을 하고 있습니다. 당신의 목표는 마피아의 살인으로부터 플레이어를 보호하여 마을 사람들을 돕는 것입니다.
+당신은 {model_name}이며, 의사로서 마피아 게임을 하고 있습니다. 당신의 목표는 마피아의 살인으로부터 플레이어들을 보호하여 마을 사람들을 돕는 것입니다.
 
 {game_rules}
 
@@ -285,7 +310,7 @@ Votre réponse:
 당신의 응답:
 """,
         Role.VILLAGER: """
-당신은 {model_name}으로, 마을 사람으로서 마피아 게임을 하고 있습니다. 당신의 목표는 마피아를 식별하고 제거하는 것입니다.
+당신은 {model_name}이며, 마을 사람으로서 마피아 게임을 하고 있습니다. 당신의 목표는 마피아를 식별하고 제거하는 것입니다.
 
 {game_rules}
 
@@ -294,8 +319,11 @@ Votre réponse:
 
 {thinking_tag}
 
-낮 단계에서는 다른 마을 사람들과 토론하여 마피아 멤버를 식별하세요.
-메시지 끝에 투표를 하세요. 형식: 투표: [플레이어]
+중요 지침:
+- 낮 토론 단계에서: 다른 마을 사람들과 토론하여 마피아 구성원을 식별하세요.
+- 낮 투표 단계에서: 반드시 의심되는 마피아 구성원을 제거하기 위해 투표해야 합니다.
+- 낮 투표 단계에서: 메시지 끝에 다음 형식으로 투표하세요: 투표: [플레이어]
+
 이전 토론: {discussion_history}
 
 당신의 응답:

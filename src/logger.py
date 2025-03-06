@@ -184,8 +184,12 @@ class GameLogger:
         self.print(f"EVENT: {text}", color, bold=True)
 
     def error(self, text):
-        """Log error."""
-        self.print(f"ERROR: {text}", Color.BRIGHT_RED, bold=True)
+        """Log an error message."""
+        self.print(f"ERROR: {text}", Color.RED, bold=True)
+
+    def warning(self, text):
+        """Log a warning message."""
+        self.print(f"WARNING: {text}", Color.YELLOW, bold=True)
 
     def log_model_issue(self, model_name, issue_type, details):
         """

@@ -406,7 +406,7 @@ class MafiaGame:
         self._conduct_player_interactions(
             alive_players,
             "day_discussion",
-            f"It's day time (Round {self.round_number}). Discuss with other players about who might be Mafia. This is the discussion phase - you'll vote in the next round.",
+            f"It's day time (Round {self.round_number}). Discuss with other players about who might be Mafia. This is the DISCUSSION PHASE ONLY - DO NOT VOTE YET. You will vote in the next round.",
             messages,
             collect_votes=False,
         )
@@ -418,7 +418,7 @@ class MafiaGame:
         self._conduct_player_interactions(
             alive_players,
             "day_voting",
-            f"It's time to vote (Round {self.round_number}). Discuss your final thoughts and vote to eliminate a suspected Mafia member.",
+            f"It's now the VOTING PHASE (Round {self.round_number}). Make your final arguments and YOU MUST VOTE to eliminate a suspected Mafia member. End your message with VOTE: [player name].",
             messages,
             collect_votes=True,
             votes=votes,
@@ -592,6 +592,34 @@ class MafiaGame:
                 warning = day_warnings.get(player.language, day_warnings["English"])
                 game_state += warning
 
+            # Add special instruction for mafia players during day phase
+            elif player.role == Role.MAFIA:
+                day_warnings = {
+                    "English": " IMPORTANT: This is the DAY phase. Do NOT use 'ACTION: Kill' now. Instead, use 'VOTE: [player]' to vote like other villagers.",
+                    "Spanish": " IMPORTANTE: Esta es la fase DIURNA. NO uses 'ACCIÓN: Matar' ahora. En su lugar, usa 'VOTO: [jugador]' para votar como los demás aldeanos.",
+                    "French": " IMPORTANT: C'est la phase de JOUR. N'utilisez PAS 'ACTION: Tuer' maintenant. À la place, utilisez 'VOTE: [joueur]' pour voter comme les autres villageois.",
+                    "Korean": " 중요: 지금은 낮 단계입니다. '행동: 죽이기'를 사용하지 마세요. 대신 다른 마을 사람들처럼 '투표: [플레이어]'를 사용하여 투표하세요.",
+                }
+
+                # Get the appropriate warning based on the mafia player's language
+                warning = day_warnings.get(player.language, day_warnings["English"])
+                game_state += warning
+
+            # Add voting reminder for all players during voting phase
+            if phase_type == "day_voting":
+                voting_reminders = {
+                    "English": " REMINDER: This is the VOTING PHASE. You MUST end your message with 'VOTE: [player]' to cast your vote.",
+                    "Spanish": " RECORDATORIO: Esta es la fase de VOTACIÓN. DEBES terminar tu mensaje con 'VOTO: [jugador]' para emitir tu voto.",
+                    "French": " RAPPEL: C'est la phase de VOTE. Vous DEVEZ terminer votre message par 'VOTE: [joueur]' pour exprimer votre vote.",
+                    "Korean": " 알림: 지금은 투표 단계입니다. 반드시 메시지 끝에 '투표: [플레이어]'를 포함하여 투표해야 합니다.",
+                }
+
+                # Get the appropriate reminder based on the player's language
+                reminder = voting_reminders.get(
+                    player.language, voting_reminders["English"]
+                )
+                game_state += reminder
+
             prompt = player.generate_prompt(
                 game_state,
                 alive_players,
@@ -625,7 +653,9 @@ class MafiaGame:
                         player.model_name, player.role.value, action_text
                     )
                 else:
-                    self.logger.error(f"Invalid vote from {player.model_name}")
+                    self.logger.warning(
+                        f"{player.model_name} failed to cast a valid vote during voting phase"
+                    )
                     self.current_round_data["actions"][
                         player.model_name
                     ] = "Invalid vote"
