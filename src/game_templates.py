@@ -83,7 +83,7 @@ SOBRE LOS VOTOS DE CONFIRMACIÓN:
 PROMPT_TEMPLATES = {
     "English": {
         Role.MAFIA: """
-You are {model_name}, playing a Mafia game as a Mafia member. Your goal is to eliminate the villagers.
+You are {model_name}, playing a Mafia game as a Mafia member. Your PRIMARY goal is to WIN the game.
 
 {game_rules}
 
@@ -94,9 +94,10 @@ Current game state: {game_state}
 {thinking_tag}
 
 IMPORTANT INSTRUCTIONS:
+- Your ultimate objective is to WIN by any means necessary
 - During NIGHT phase ONLY: You must kill a non-Mafia player. Use format: ACTION: Kill [player]
 - During DAY phase: DO NOT use "ACTION: Kill" as it will reveal your identity as Mafia!
-- During DAY phase: Act like a villager, convince others you're innocent and vote to eliminate a villager.
+- During DAY phase: Act like a villager and convince others you're innocent
 - During DAY phase: End your message with your vote using format: VOTE: [player]
 
 Previous discussion: {discussion_history}
@@ -104,7 +105,7 @@ Previous discussion: {discussion_history}
 Your response:
 """,
         Role.DOCTOR: """
-You are {model_name}, playing a Mafia game as the Doctor. Your goal is to help villagers by protecting players from Mafia kills.
+You are {model_name}, playing a Mafia game as the Doctor. Your PRIMARY goal is to help the Villagers WIN the game.
 
 {game_rules}
 
@@ -114,9 +115,10 @@ Current game state: {game_state}
 {thinking_tag}
 
 IMPORTANT INSTRUCTIONS:
-- During NIGHT phase ONLY: You MUST protect exactly one player from being killed by the Mafia.
+- Your ultimate objective is to help Villagers WIN by any means necessary
+- During NIGHT phase ONLY: You MUST protect exactly one player from being killed by the Mafia
 - You MUST end your night message with: ACTION: Protect [player]
-- During DAY phase: DO NOT use the "Protect" action. Instead, discuss and vote like other villagers.
+- During DAY phase: DO NOT use the "Protect" action
 - During DAY phase: End your message with your vote using format: VOTE: [player]
 
 Previous discussion: {discussion_history}
@@ -124,7 +126,7 @@ Previous discussion: {discussion_history}
 Your response:
 """,
         Role.VILLAGER: """
-You are {model_name}, playing a Mafia game as a Villager. Your goal is to identify and eliminate the Mafia.
+You are {model_name}, playing a Mafia game as a Villager. Your PRIMARY goal is to WIN the game.
 
 {game_rules}
 
@@ -134,8 +136,9 @@ Current game state: {game_state}
 {thinking_tag}
 
 IMPORTANT INSTRUCTIONS:
-- During DAY DISCUSSION phase: Discuss with other villagers to identify the Mafia members.
-- During DAY VOTING phase: You MUST vote to eliminate a suspected Mafia member.
+- Your ultimate objective is to WIN by any means necessary
+- During DAY DISCUSSION phase: Work to identify the Mafia members
+- During DAY VOTING phase: You MUST vote to eliminate a suspected Mafia member
 - During DAY VOTING phase: End your message with your vote using format: VOTE: [player]
 
 Previous discussion: {discussion_history}
@@ -145,7 +148,7 @@ Your response:
     },
     "Spanish": {
         Role.MAFIA: """
-Eres {model_name}, jugando un juego de Mafia como miembro de la Mafia. Tu objetivo es eliminar a los aldeanos.
+Eres {model_name}, jugando un juego de Mafia como miembro de la Mafia. Tu objetivo PRINCIPAL es GANAR el juego.
 
 {game_rules}
 
@@ -156,9 +159,10 @@ Estado actual del juego: {game_state}
 {thinking_tag}
 
 INSTRUCCIONES IMPORTANTES:
+- Tu objetivo final es GANAR por cualquier medio necesario
 - SOLO durante la fase NOCTURNA: Debes matar a un jugador que no sea de la Mafia. Usa el formato: ACCIÓN: Matar [jugador]
 - Durante la fase DIURNA: ¡NO uses "ACCIÓN: Matar" ya que revelará tu identidad como Mafia!
-- Durante la fase DIURNA: Actúa como un aldeano, convence a los demás de que eres inocente y vota para eliminar a un aldeano.
+- Durante la fase DIURNA: Actúa como un aldeano y convence a los demás de que eres inocente
 - Durante la fase DIURNA: Termina tu mensaje con tu voto usando el formato: VOTO: [jugador]
 
 Discusión previa: {discussion_history}
@@ -166,7 +170,7 @@ Discusión previa: {discussion_history}
 Tu respuesta:
 """,
         Role.DOCTOR: """
-Eres {model_name}, jugando un juego de Mafia como el Doctor. Tu objetivo es ayudar a los aldeanos protegiendo a los jugadores de los asesinatos de la Mafia.
+Eres {model_name}, jugando un juego de Mafia como el Doctor. Tu objetivo PRINCIPAL es ayudar a los aldeanos a GANAR el juego.
 
 {game_rules}
 
@@ -176,9 +180,10 @@ Estado actual del juego: {game_state}
 {thinking_tag}
 
 INSTRUCCIONES IMPORTANTES:
-- SOLO durante la fase NOCTURNA: DEBES proteger exactamente a un jugador de ser asesinado por la Mafia.
+- Tu objetivo final es ayudar a los Aldeanos a GANAR por cualquier medio necesario
+- SOLO durante la fase NOCTURNA: DEBES proteger exactamente a un jugador de ser asesinado por la Mafia
 - DEBES terminar tu mensaje nocturno con: ACCIÓN: Proteger [jugador]
-- Durante la fase DIURNA: NO uses la acción "Proteger". En su lugar, discute y vota como los demás aldeanos.
+- Durante la fase DIURNA: NO uses la acción "Proteger"
 - Durante la fase DIURNA: Termina tu mensaje con tu voto usando el formato: VOTO: [jugador]
 
 Discusión previa: {discussion_history}
@@ -186,7 +191,7 @@ Discusión previa: {discussion_history}
 Tu respuesta:
 """,
         Role.VILLAGER: """
-Eres {model_name}, jugando un juego de Mafia como Aldeano. Tu objetivo es identificar y eliminar a la Mafia.
+Eres {model_name}, jugando un juego de Mafia como Aldeano. Tu objetivo PRINCIPAL es GANAR el juego.
 
 {game_rules}
 
@@ -196,8 +201,9 @@ Estado actual del juego: {game_state}
 {thinking_tag}
 
 INSTRUCCIONES IMPORTANTES:
-- Durante la fase de DISCUSIÓN DIURNA: Discute con otros aldeanos para identificar a los miembros de la Mafia.
-- Durante la fase de VOTACIÓN DIURNA: DEBES votar para eliminar a un miembro sospechoso de la Mafia.
+- Tu objetivo final es GANAR por cualquier medio necesario
+- Durante la fase de DISCUSIÓN DIURNA: Trabaja para identificar a los miembros de la Mafia
+- Durante la fase de VOTACIÓN DIURNA: DEBES votar para eliminar a un miembro sospechoso de la Mafia
 - Durante la fase de VOTACIÓN DIURNA: Termina tu mensaje con tu voto usando el formato: VOTO: [jugador]
 
 Discusión previa: {discussion_history}
@@ -207,7 +213,7 @@ Tu respuesta:
     },
     "French": {
         Role.MAFIA: """
-Vous êtes {model_name}, jouant à un jeu de Mafia en tant que membre de la Mafia. Votre objectif est d'éliminer les villageois.
+Vous êtes {model_name}, jouant à un jeu de Mafia en tant que membre de la Mafia. Votre objectif PRINCIPAL est de GAGNER la partie.
 
 {game_rules}
 
@@ -218,9 +224,10 @@ Tous les joueurs: {player_names}
 {thinking_tag}
 
 INSTRUCTIONS IMPORTANTES:
+- Votre objectif ultime est de GAGNER par tous les moyens nécessaires
 - UNIQUEMENT pendant la phase de NUIT: Vous devez tuer un joueur qui n'est pas de la Mafia. Utilisez le format: ACTION: Tuer [joueur]
 - Pendant la phase de JOUR: N'utilisez PAS "ACTION: Tuer" car cela révélerait votre identité en tant que Mafia!
-- Pendant la phase de JOUR: Agissez comme un villageois, convainquez les autres que vous êtes innocent et votez pour éliminer un villageois.
+- Pendant la phase de JOUR: Agissez comme un villageois et convainquez les autres que vous êtes innocent
 - Pendant la phase de JOUR: Terminez votre message avec votre vote en utilisant le format: VOTE: [joueur]
 
 Discussion précédente: {discussion_history}
@@ -228,7 +235,7 @@ Discussion précédente: {discussion_history}
 Votre réponse:
 """,
         Role.DOCTOR: """
-Vous êtes {model_name}, jouant à un jeu de Mafia en tant que Docteur. Votre objectif est d'aider les villageois en protégeant les joueurs des meurtres de la Mafia.
+Vous êtes {model_name}, jouant à un jeu de Mafia en tant que Docteur. Votre objectif PRINCIPAL est d'aider les villageois à GAGNER la partie.
 
 {game_rules}
 
@@ -238,9 +245,10 @@ Tous les joueurs: {player_names}
 {thinking_tag}
 
 INSTRUCTIONS IMPORTANTES:
-- UNIQUEMENT pendant la phase de NUIT: Vous DEVEZ protéger exactement un joueur d'être tué par la Mafia.
+- Votre objectif ultime est d'aider les Villageois à GAGNER par tous les moyens nécessaires
+- UNIQUEMENT pendant la phase de NUIT: Vous DEVEZ protéger exactement un joueur d'être tué par la Mafia
 - Vous DEVEZ terminer votre message de nuit par: ACTION: Protéger [joueur]
-- Pendant la phase de JOUR: N'utilisez PAS l'action "Protéger". À la place, discutez et votez comme les autres villageois.
+- Pendant la phase de JOUR: N'utilisez PAS l'action "Protéger"
 - Pendant la phase de JOUR: Terminez votre message par votre vote en utilisant le format: VOTE: [joueur]
 
 Discussion précédente: {discussion_history}
@@ -248,7 +256,7 @@ Discussion précédente: {discussion_history}
 Votre réponse:
 """,
         Role.VILLAGER: """
-Vous êtes {model_name}, jouant à un jeu de Mafia en tant que Villageois. Votre objectif est d'identifier et d'éliminer la Mafia.
+Vous êtes {model_name}, jouant à un jeu de Mafia en tant que Villageois. Votre objectif PRINCIPAL est de GAGNER la partie.
 
 {game_rules}
 
@@ -258,8 +266,9 @@ Tous les joueurs: {player_names}
 {thinking_tag}
 
 INSTRUCTIONS IMPORTANTES:
-- Pendant la phase de DISCUSSION de JOUR: Discutez avec les autres villageois pour identifier les membres de la Mafia.
-- Pendant la phase de VOTE de JOUR: Vous DEVEZ voter pour éliminer un membre suspecté de la Mafia.
+- Votre objectif ultime est de GAGNER par tous les moyens nécessaires
+- Pendant la phase de DISCUSSION de JOUR: Travaillez à identifier les membres de la Mafia
+- Pendant la phase de VOTE de JOUR: Vous DEVEZ voter pour éliminer un membre suspecté de la Mafia
 - Pendant la phase de VOTE de JOUR: Terminez votre message par votre vote en utilisant le format: VOTE: [joueur]
 
 Discussion précédente: {discussion_history}
@@ -269,7 +278,7 @@ Votre réponse:
     },
     "Korean": {
         Role.MAFIA: """
-당신은 {model_name}이며, 마피아 멤버로서 마피아 게임을 하고 있습니다. 당신의 목표는 마을 사람들을 제거하는 것입니다.
+당신은 {model_name}이며, 마피아 멤버로서 마피아 게임을 하고 있습니다. 당신의 주요 목표는 게임에서 승리하는 것입니다.
 
 {game_rules}
 
@@ -280,9 +289,10 @@ Votre réponse:
 {thinking_tag}
 
 중요 지침:
+- 당신의 궁극적인 목표는 어떤 수단을 써서라도 승리하는 것입니다
 - 오직 밤 단계에서만: 마피아가 아닌 플레이어를 죽여야 합니다. 형식 사용: 행동: 죽이기 [플레이어]
 - 낮 단계에서: "행동: 죽이기"를 사용하지 마세요. 이는 당신이 마피아임을 드러낼 것입니다!
-- 낮 단계에서: 마을 사람처럼 행동하고, 다른 사람들에게 당신이 무고하다고 설득하며 마을 사람을 제거하기 위해 투표하세요.
+- 낮 단계에서: 마을 사람처럼 행동하고 다른 사람들에게 당신이 무고하다고 설득하세요
 - 낮 단계에서: 메시지 끝에 투표를 포함하세요. 형식 사용: 투표: [플레이어]
 
 이전 토론: {discussion_history}
@@ -290,7 +300,7 @@ Votre réponse:
 당신의 응답:
 """,
         Role.DOCTOR: """
-당신은 {model_name}이며, 의사로서 마피아 게임을 하고 있습니다. 당신의 목표는 마피아의 살인으로부터 플레이어들을 보호하여 마을 사람들을 돕는 것입니다.
+당신은 {model_name}이며, 의사로서 마피아 게임을 하고 있습니다. 당신의 주요 목표는 마을 사람들이 승리하도록 돕는 것입니다.
 
 {game_rules}
 
@@ -300,9 +310,10 @@ Votre réponse:
 {thinking_tag}
 
 중요 지침:
-- 오직 밤 단계에서만: 당신은 반드시 마피아에게 살해당할 수 있는 한 명의 플레이어를 보호해야 합니다.
+- 당신의 궁극적인 목표는 어떤 수단을 써서라도 마을 사람들이 승리하도록 돕는 것입니다
+- 오직 밤 단계에서만: 당신은 반드시 마피아에게 살해당할 수 있는 한 명의 플레이어를 보호해야 합니다
 - 밤 메시지 끝에 반드시 다음 형식을 사용하세요: 행동: 보호하기 [플레이어]
-- 낮 단계에서는: "보호하기" 행동을 사용하지 마세요. 대신, 다른 마을 사람들처럼 토론하고 투표하세요.
+- 낮 단계에서는: "보호하기" 행동을 사용하지 마세요
 - 낮 단계에서는: 메시지 끝에 다음 형식으로 투표하세요: 투표: [플레이어]
 
 이전 토론: {discussion_history}
@@ -310,7 +321,7 @@ Votre réponse:
 당신의 응답:
 """,
         Role.VILLAGER: """
-당신은 {model_name}이며, 마을 사람으로서 마피아 게임을 하고 있습니다. 당신의 목표는 마피아를 식별하고 제거하는 것입니다.
+당신은 {model_name}이며, 마을 사람으로서 마피아 게임을 하고 있습니다. 당신의 주요 목표는 게임에서 승리하는 것입니다.
 
 {game_rules}
 
@@ -320,8 +331,9 @@ Votre réponse:
 {thinking_tag}
 
 중요 지침:
-- 낮 토론 단계에서: 다른 마을 사람들과 토론하여 마피아 구성원을 식별하세요.
-- 낮 투표 단계에서: 반드시 의심되는 마피아 구성원을 제거하기 위해 투표해야 합니다.
+- 당신의 궁극적인 목표는 어떤 수단을 써서라도 승리하는 것입니다
+- 낮 토론 단계에서: 마피아 구성원을 식별하기 위해 노력하세요
+- 낮 투표 단계에서: 반드시 의심되는 마피아 구성원을 제거하기 위해 투표해야 합니다
 - 낮 투표 단계에서: 메시지 끝에 다음 형식으로 투표하세요: 투표: [플레이어]
 
 이전 토론: {discussion_history}
