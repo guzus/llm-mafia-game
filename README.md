@@ -13,6 +13,22 @@ This project allows multiple Large Language Models (LLMs) to compete against eac
 - Provides a **Flask-based dashboard** with graphical representation of model performance using **Matplotlib**.
 - Supports **multiple languages** for game prompts and interactions.
 
+## Dashboard
+
+The dashboard displays:
+
+1. **Win Rates Chart** - Bar chart showing win rates by model and role
+2. **Games Played Chart** - Stacked bar chart showing games played by model and role
+3. **Model Statistics Table** - Detailed statistics for each model
+4. **Recent Games Table** - List of recent games with results
+
+## Future Improvements
+
+- Human vs LLMs 3D Mafia Game
+- Extend to other games (Poker!) beyond Mafia.
+- Create a real-time viewer for ongoing games.
+- Add more complex roles like Detective, Jester, Sheriff, etc.
+
 ## Mafia Game Rules
 
 ### Roles
@@ -93,119 +109,6 @@ LLMs must respond in a structured format:
    - Eliminate player with most votes
    - If win condition met, end game
 
-## Technologies Used
-
-- **Python** for scripting the Mafia game simulation and dashboard.
-- **OpenRouter API** to access LLMs.
-- **Firebase** for storing game results.
-- **Flask & Matplotlib** for a web-based leaderboard.
-
-## Database Structure
-
-The project uses **Firebase Realtime Database** to store game results and logs of interactions between LLMs. The database contains two main collections:
-
-### 1. **Game Results Table (`mafia_games`)**
-
-- Stores individual game outcomes.
-- Fields:
-  - `game_id`: Unique identifier for each game.
-  - `timestamp`: Timestamp when the game was completed.
-  - `game_type`: Type of Mafia game played (e.g., "Classic Mafia", "Advanced Mafia").
-  - `participant_count`: The number of LLMs that participated in the game.
-  - `winner`: The winning team ("Mafia" or "Villagers").
-  - `participants`: A dictionary containing each LLM that participated and its assigned role:
-    ```json
-    {
-      "openai/gpt-4-turbo": "Mafia",
-      "anthropic/claude-3-opus": "Villager",
-      "google/gemini-pro": "Doctor"
-    }
-    ```
-
-### 2. **Game Logs Table (`game_logs`)**
-
-- Stores full conversation logs between LLMs and their actions.
-- Fields:
-  - `game_id`: The associated game.
-  - `timestamp`: Timestamp when the game was completed.
-  - `game_type`: Type of Mafia game played (e.g., "Classic Mafia", "Advanced Mafia").
-  - `participant_count`: The number of LLMs that participated in the game.
-  - `rounds`: List of interactions per round, each containing:
-    - `round_number`: The round index.
-    - `messages`: A list of dialogue exchanges between LLMs, structured as:
-      ```json
-      [
-        {
-          "speaker": "openai/gpt-4-turbo",
-          "content": "I suspect mistral is the Mafia."
-        },
-        {
-          "speaker": "mistralai/mistral-large",
-          "content": "I think gemini is lying!"
-        }
-      ]
-      ```
-    - `actions`: A record of decisions made by each LLM in that round (e.g., attack, protect, vote):
-      ```json
-      {
-        "openai/gpt-4-turbo": "Vote mistral",
-        "mistralai/mistral-large": "Kill claude-3",
-        "google/gemini-pro": "Protect claude-3"
-      }
-      ```
-    - `eliminations`: List of LLMs eliminated that round:
-      ```json
-      ["anthropic/claude-3-opus"]
-      ```
-    - `outcome`: Summary of that round's results, including eliminations and any detected deception.
-
-## Prompt Engineering
-
-To ensure consistent behavior, each LLM receives a role-specific prompt:
-
-### Mafia Prompt Template
-
-```
-You are playing a Mafia game as a Mafia member. Your goal is to eliminate the villagers.
-Other Mafia members: {mafia_members}
-All players: {all_players}
-Current game state: {game_state}
-
-During night phase, you must kill a non-Mafia player. Use format: ACTION: Kill [player]
-During day phase, convince others you're innocent and vote to eliminate a villager.
-Previous discussion: {discussion_history}
-
-Your response:
-```
-
-### Doctor Prompt Template
-
-```
-You are playing a Mafia game as the Doctor. Your goal is to help villagers by protecting players from Mafia kills.
-All players: {all_players}
-Current game state: {game_state}
-
-During night phase, you can protect one player. Use format: ACTION: Protect [player]
-During day phase, use your observations to help eliminate Mafia members.
-Previous discussion: {discussion_history}
-
-Your response:
-```
-
-### Villager Prompt Template
-
-```
-You are playing a Mafia game as a Villager. Your goal is to identify and eliminate the Mafia.
-All players: {all_players}
-Current game state: {game_state}
-
-During day phase, discuss with other villagers to identify the Mafia members.
-End your message with your vote. Use format: VOTE: [player]
-Previous discussion: {discussion_history}
-
-Your response:
-```
-
 ## Installation
 
 ### 1. Clone the Repository
@@ -218,14 +121,13 @@ cd llm-mafia-game
 ### 2. Install Dependencies
 
 ```
-pip install -r requirements.txt
+uv sync
 ```
 
 ### 3. Set Up Firebase
 
-- Create a Firebase project and enable the Realtime Database.
+- Create a Firebase project and enable the Cloud Firestore.
 - Download your `firebase_credentials.json` and place it in the project directory.
-- Update `FIREBASE_DATABASE_URL` in `config.py` to match your Firebase URL.
 
 ### 4. Set Up OpenRouter API
 
@@ -251,7 +153,7 @@ Edit `config.py` to customize:
 ### 1. Run the Mafia Game Simulation
 
 ```
-uv run simulate.py
+uv run src/simulate.py
 ```
 
 This will:
@@ -263,26 +165,10 @@ This will:
 ### 2. Start the Dashboard
 
 ```
-uv run dashboard.py
+uv run src/dashboard.py
 ```
 
 - Open `http://127.0.0.1:5000/` in your browser to view the leaderboard.
-
-## Dashboard Features
-
-The dashboard displays:
-
-1. **Win Rates Chart** - Bar chart showing win rates by model and role
-2. **Games Played Chart** - Stacked bar chart showing games played by model and role
-3. **Model Statistics Table** - Detailed statistics for each model
-4. **Recent Games Table** - List of recent games with results
-
-## Future Improvements
-
-- Human vs LLMs 3D Mafia Game
-- Extend to other games (Poker!) beyond Mafia.
-- Create a real-time viewer for ongoing games.
-- Add more complex roles like Detective, Jester, Sheriff, etc.
 
 ## Development
 
