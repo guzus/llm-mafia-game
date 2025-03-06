@@ -157,7 +157,15 @@
                 .map(([model, role]) => {
                     const modelName = model.split('/').pop();
                     const roleClass = role.toLowerCase();
-                    return `<div class="participant ${roleClass}">${modelName} (${role})</div>`;
+                    
+                    // Add crown icon for winners based on the winner team
+                    const isWinner = 
+                        (data.winner.toLowerCase().includes('mafia') && role === 'Mafia') || 
+                        (data.winner.toLowerCase().includes('villager') && (role === 'Villager' || role === 'Doctor'));
+                    
+                    const crownIcon = isWinner ? '<span class="winner-crown" title="Winner">👑</span> ' : '';
+                    
+                    return `<div class="participant ${roleClass}">${crownIcon}${modelName} (${role})</div>`;
                 })
                 .join('');
             
