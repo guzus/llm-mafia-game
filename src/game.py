@@ -9,6 +9,8 @@ from game_templates import Role
 import config
 from logger import GameLogger, Color
 import re
+import json
+from openrouter import get_llm_response
 
 
 class MafiaGame:
@@ -757,7 +759,102 @@ class MafiaGame:
         for player in self.players:
             participants[player.model_name] = player.role.value
 
+        # Generate game critic review
+        critic_review = self.generate_critic_review(winner)
+
         # Log game end
         self.logger.game_end(1, winner, self.round_number)
 
-        return winner, self.rounds_data, participants, self.language
+        return winner, self.rounds_data, participants, self.language, critic_review
+
+    def generate_critic_review(self, winner):
+        """
+        Generate a game critic review using Claude via OpenRouter.
+
+        Args:
+            winner (str): The winning team ("Mafia" or "Villagers").
+
+        Returns:
+            dict: A dictionary containing the critic review with title and content.
+        """
+        # Get the game summary information
+        game_summary = {
+            "winner": winner,
+            "rounds": self.round_number,
+            "participants": {
+                player.model_name: player.role.value for player in self.players
+            },
+            "eliminations": [],
+        }
+
+        # Collect eliminations by round
+        for round_data in self.rounds_data:
+            if "eliminations" in round_data and round_data["eliminations"]:
+                for player in round_data["eliminations"]:
+                    game_summary["eliminations"].append(
+                        {
+                            "player": player,
+                            "round": round_data["round_number"],
+                            "phase": round_data.get("phase", "unknown"),
+                        }
+                    )
+
+        # Create a prompt for Claude to generate a critic review
+        prompt = f"""You are a professional game critic reviewing a Mafia game played by AI language models. 
+        
+Game summary:
+- Winner: {winner}
+- Number of rounds: {self.round_number}
+- Players and roles: {game_summary['participants']}
+- Eliminations: {game_summary['eliminations']}
+
+Write a short, entertaining critic review of this game. Include:
+1. A catchy title for your review (max 50 characters)
+2. A concise review (max 200 words) that analyzes:
+   - The game's pacing and length
+   - Interesting strategic moves or blunders
+   - The performance of the winning team
+   - Any particularly noteworthy moments
+
+Your tone should be professional but entertaining, like a game critic. Be specific about this particular game.
+Format your response as a JSON object with 'title' and 'content' fields.
+"""
+
+        try:
+            model_name = config.CLAUDE_3_7_SONNET
+            response_content = get_llm_response(model_name, prompt)
+
+            if response_content == "ERROR: Could not get response":
+                return {
+                    "title": "Game Review Unavailable",
+                    "content": "The critic was unable to review this game due to API issues.",
+                }
+
+            # Look for JSON in the response
+            json_match = re.search(r"({.*})", response_content, re.DOTALL)
+
+            if json_match:
+                try:
+                    review_json = json.loads(json_match.group(1))
+                    return review_json
+                except json.JSONDecodeError:
+                    # Fallback if JSON parsing fails
+                    return {
+                        "title": "AI Mafia Game Review",
+                        "content": response_content[
+                            :300
+                        ],  # Truncate to reasonable length
+                    }
+            else:
+                # If no JSON found, create a simple structure
+                return {
+                    "title": "AI Mafia Game Review",
+                    "content": response_content[:300],  # Truncate to reasonable length
+                }
+
+        except Exception as e:
+            print(f"Error generating critic review: {e}")
+            return {
+                "title": "Game Review Unavailable",
+                "content": "The critic was unable to review this game due to technical difficulties.",
+            }

@@ -84,6 +84,7 @@ class FirebaseManager:
         participants,
         game_type=config.GAME_TYPE,
         language=config.LANGUAGE,
+        critic_review=None,
     ):
         """
         Store the log of a game in Firebase.
@@ -94,6 +95,7 @@ class FirebaseManager:
             participants (dict): Dictionary mapping model names to roles.
             game_type (str, optional): Type of Mafia game played.
             language (str, optional): Language used for the game.
+            critic_review (dict, optional): Game critic review with title and content.
 
         Returns:
             bool: True if successful, False otherwise.
@@ -112,6 +114,10 @@ class FirebaseManager:
                 "participant_count": len(participants),
                 "rounds": rounds,
             }
+
+            # Add critic review if available
+            if critic_review:
+                log_data["critic_review"] = critic_review
 
             # Store in Firebase
             self.db.collection("game_logs").document(game_id).set(log_data)

@@ -22,6 +22,7 @@
         <div class="tab-container">
             <div class="tabs">
                 <div class="tab active" onclick="switchTab('dialogue')">Full Dialogue</div>
+                <div id="criticTab" class="tab" onclick="switchTab('critic')" style="display: none;">Game Critic</div>
                 <div class="tab" onclick="switchTab('summary')">Game Summary</div>
                 <div class="tab" onclick="switchTab('visualization')">Game Visualization</div>
             </div>
@@ -69,6 +70,16 @@
                     </div>
                 </div>
             </div>
+            
+            <div id="critic" class="tab-content">
+                <h2>Game Critic Review</h2>
+                <div id="gameCritic" class="critic-review">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <div>Loading critic review...</div>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <div id="gameResult" class="game-result">
@@ -101,6 +112,15 @@
                 displayDialogue(data);
                 displayGameResult(data);
                 initializeVisualization(data);
+                
+                // Only show critic tab and display critic review if it exists
+                if (data.critic_review) {
+                    document.getElementById('criticTab').style.display = 'block';
+                    displayCriticReview(data);
+                } else {
+                    // Hide the critic tab content completely
+                    document.getElementById('critic').style.display = 'none';
+                }
             })
             .catch(error => {
                 console.error('Error fetching game data:', error);
@@ -121,6 +141,7 @@
                         Error loading game result: ${error.message}
                     </div>`;
                 document.getElementById('gameVisualization').innerHTML = '<div class="error">Error loading game visualization</div>';
+                document.getElementById('gameCritic').innerHTML = '<div class="error">Error loading critic review</div>';
             });
         
         // Function to display game information
@@ -1117,6 +1138,41 @@
             
             summaryHtml += `</div></div>`;
             return summaryHtml;
+        }
+        
+        // Function to display critic review
+        function displayCriticReview(data) {
+            const criticElement = document.getElementById('gameCritic');
+            
+            if (!data.critic_review) {
+                criticElement.innerHTML = '<div class="no-data">No critic review available for this game.</div>';
+                return;
+            }
+            
+            const review = data.critic_review;
+            
+            // Create the critic review HTML
+            let criticHtml = `
+                <div class="critic-container">
+                    <div class="critic-header">
+                        <div class="critic-avatar">
+                            <img src="/static/images/claude_avatar.webp" alt="Claude" onerror="this.src='/static/images/default_avatar.avif'">
+                        </div>
+                        <div class="critic-info">
+                            <div class="critic-name">Mr. Claude</div>
+                            <div class="critic-title">AI Game Critic</div>
+                        </div>
+                    </div>
+                    <div class="critic-content">
+                        <h3 class="review-title">${review.title}</h3>
+                        <div class="review-body">
+                            ${review.content.replace(/\n/g, '<br>')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            criticElement.innerHTML = criticHtml;
         }
     </script>
 {% endblock %}

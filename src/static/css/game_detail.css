@@ -4,14 +4,19 @@ body {
     padding: 0;
     background-color: #f5f5f5;
 }
+
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
 }
-h1, h2, h3 {
+
+h1,
+h2,
+h3 {
     color: #333;
 }
+
 .back-link {
     display: inline-block;
     margin-bottom: 20px;
@@ -19,9 +24,11 @@ h1, h2, h3 {
     text-decoration: none;
     font-weight: bold;
 }
+
 .back-link:hover {
     text-decoration: underline;
 }
+
 .game-info {
     margin-bottom: 20px;
     padding: 20px;
@@ -29,6 +36,7 @@ h1, h2, h3 {
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+
 .participant {
     display: inline-block;
     margin-right: 10px;
@@ -37,24 +45,29 @@ h1, h2, h3 {
     margin-bottom: 5px;
     font-weight: bold;
 }
+
 .mafia {
     color: #d9534f;
     background-color: #ffeeee;
     border-left: 3px solid #d9534f;
 }
+
 .villager {
     color: #5cb85c;
     background-color: #eeffee;
     border-left: 3px solid #5cb85c;
 }
+
 .doctor {
     color: #5bc0de;
     background-color: #eef9ff;
     border-left: 3px solid #5bc0de;
 }
+
 .game-log {
     margin-top: 20px;
 }
+
 .round {
     margin-bottom: 30px;
     padding: 20px;
@@ -62,6 +75,7 @@ h1, h2, h3 {
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+
 .round-title {
     font-size: 1.2em;
     font-weight: bold;
@@ -69,6 +83,7 @@ h1, h2, h3 {
     padding-bottom: 10px;
     border-bottom: 1px solid #eee;
 }
+
 .round-section {
     font-weight: bold;
     margin-top: 20px;
@@ -76,6 +91,7 @@ h1, h2, h3 {
     padding-bottom: 5px;
     border-bottom: 1px dashed #ddd;
 }
+
 .elimination {
     margin: 10px 0;
     padding: 10px;
@@ -85,6 +101,7 @@ h1, h2, h3 {
     color: #e83e8c;
     border-left: 5px solid #e83e8c;
 }
+
 .action {
     margin: 10px 0;
     padding: 15px;
@@ -94,34 +111,43 @@ h1, h2, h3 {
     white-space: pre-wrap;
     word-break: break-word;
 }
+
 .action.mafia {
     border-left-color: #d9534f;
 }
+
 .action.villager {
     border-left-color: #5cb85c;
 }
+
 .action.doctor {
     border-left-color: #5bc0de;
 }
+
 .action-header {
     font-weight: bold;
     margin-bottom: 5px;
 }
+
 .action-header.mafia {
     color: #d9534f;
 }
+
 .action-header.villager {
     color: #5cb85c;
 }
+
 .action-header.doctor {
     color: #5bc0de;
 }
+
 .loading {
     text-align: center;
     padding: 40px;
     font-style: italic;
     color: #666;
 }
+
 .spinner {
     display: inline-block;
     width: 50px;
@@ -132,9 +158,13 @@ h1, h2, h3 {
     animation: spin 1s ease-in-out infinite;
     margin-bottom: 20px;
 }
+
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
+
 .error {
     color: #d9534f;
     padding: 20px;
@@ -144,6 +174,7 @@ h1, h2, h3 {
     font-weight: bold;
     margin: 20px 0;
 }
+
 /* Styles for dialogue and game result */
 .dialogue {
     margin: 15px 0;
@@ -152,6 +183,7 @@ h1, h2, h3 {
     background-color: #f9f9f9;
     border: 1px solid #eee;
 }
+
 .dialogue-message {
     margin-bottom: 15px;
     padding: 12px;
@@ -159,40 +191,49 @@ h1, h2, h3 {
     background-color: white;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
+
 .dialogue-speaker {
     font-weight: bold;
     margin-bottom: 5px;
 }
+
 .dialogue-content {
     white-space: pre-wrap;
     word-break: break-word;
 }
+
 /* Styles for game phases */
 .night-phase {
     background-color: #e6f2ff !important;
     border-left: 5px solid #0066cc !important;
 }
+
 .day-phase {
     background-color: #fff9e6 !important;
     border-left: 5px solid #ffcc00 !important;
 }
+
 .phase-header {
     font-weight: bold;
     color: #333;
     margin-bottom: 10px;
 }
+
 .phase-outcome {
     margin-top: 10px;
     padding: 8px;
     background-color: rgba(255, 255, 255, 0.5);
     border-radius: 5px;
 }
+
 .action-list {
     margin: 10px 0;
 }
+
 .action-item {
     margin: 5px 0;
 }
+
 .game-result {
     margin-top: 30px;
     padding: 20px;
@@ -201,12 +242,14 @@ h1, h2, h3 {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     text-align: center;
 }
+
 .result-title {
     font-size: 1.5em;
     font-weight: bold;
     margin-bottom: 15px;
     color: #333;
 }
+
 .winner {
     font-size: 1.8em;
     font-weight: bold;
@@ -214,22 +257,27 @@ h1, h2, h3 {
     padding: 10px;
     border-radius: 8px;
 }
+
 .winner.mafia {
     color: white;
     background-color: #d9534f;
 }
+
 .winner.villager {
     color: white;
     background-color: #5cb85c;
 }
+
 .tab-container {
     margin-top: 20px;
 }
+
 .tabs {
     display: flex;
     border-bottom: 1px solid #ddd;
     margin-bottom: 20px;
 }
+
 .tab {
     padding: 10px 20px;
     cursor: pointer;
@@ -239,18 +287,22 @@ h1, h2, h3 {
     margin-right: 5px;
     border-radius: 5px 5px 0 0;
 }
+
 .tab.active {
     background-color: white;
     border-bottom: 1px solid white;
     margin-bottom: -1px;
     font-weight: bold;
 }
+
 .tab-content {
     display: none;
 }
+
 .tab-content.active {
     display: block;
 }
+
 .phase-tag {
     font-weight: bold;
     display: inline-block;
@@ -259,14 +311,17 @@ h1, h2, h3 {
     font-size: 0.8em;
     margin-left: 8px;
 }
+
 .phase-tag.night {
     background-color: #0066cc;
     color: white;
 }
+
 .phase-tag.day {
     background-color: #ffcc00;
     color: #333;
 }
+
 .phase-tag.last-words {
     background-color: #d9534f;
     color: white;
@@ -275,6 +330,7 @@ h1, h2, h3 {
     font-size: 0.8em;
     margin-left: 5px;
 }
+
 /* Confirmation vote styles */
 .confirmation-vote {
     margin: 10px 0;
@@ -283,52 +339,63 @@ h1, h2, h3 {
     border-radius: 5px;
     border-left: 5px solid #5bc0de;
 }
+
 .vote-summary {
     font-weight: bold;
     margin-bottom: 10px;
 }
+
 .vote-result {
     margin-bottom: 10px;
 }
+
 .agree-votes {
     color: #5cb85c;
     font-weight: bold;
 }
+
 .disagree-votes {
     color: #d9534f;
     font-weight: bold;
 }
+
 .vote-details {
     font-size: 0.9em;
     padding: 8px;
     background-color: rgba(255, 255, 255, 0.5);
     border-radius: 4px;
 }
+
 .agree-voters {
     margin-bottom: 5px;
 }
+
 .disagree-voters {
     color: #d9534f;
 }
+
 .vote-item {
     margin: 8px 0;
     padding: 10px;
-    background-color: rgba(255,255,255,0.7);
+    background-color: rgba(255, 255, 255, 0.7);
     border-radius: 6px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     transition: transform 0.2s, box-shadow 0.2s;
 }
+
 .vote-target {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 5px;
 }
+
 .vote-name {
     font-weight: bold;
     color: #333;
     font-size: 1.05em;
 }
+
 .vote-count {
     background-color: #5bc0de;
     color: white;
@@ -337,11 +404,13 @@ h1, h2, h3 {
     font-size: 0.85em;
     font-weight: bold;
 }
+
 .vote-voters {
     font-size: 0.9em;
     color: #666;
     margin-top: 3px;
-} 
+}
+
 .night-phase {
     background-color: #f0f8ff;
     border-left: 5px solid #0066cc;
@@ -393,8 +462,8 @@ h1, h2, h3 {
 }
 
 .player.targeted.protected {
-    box-shadow: 0 0 10px 3px rgba(220, 53, 69, 0.7), 
-                0 0 15px 5px rgba(40, 167, 69, 0.7);
+    box-shadow: 0 0 10px 3px rgba(220, 53, 69, 0.7),
+        0 0 15px 5px rgba(40, 167, 69, 0.7);
 }
 
 .mafia-target {
@@ -450,4 +519,89 @@ h1, h2, h3 {
 .player-status-role {
     font-size: 0.85em;
     opacity: 0.9;
+}
+
+/* Critic Review Styles */
+.critic-review {
+    margin: 20px 0;
+    padding: 0;
+}
+
+.critic-container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.critic-header {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #f0f4f8;
+    border-bottom: 1px solid #e0e4e8;
+}
+
+.critic-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 15px;
+    background-color: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.critic-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.critic-info {
+    flex: 1;
+}
+
+.critic-name {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+}
+
+.critic-title {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.critic-content {
+    padding: 20px;
+}
+
+.review-title {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #333;
+    border-bottom: 2px solid #f0f4f8;
+    padding-bottom: 10px;
+}
+
+.review-body {
+    font-size: 1.1em;
+    line-height: 1.6;
+    color: #444;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.no-data {
+    padding: 30px;
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border: 1px dashed #ddd;
 }

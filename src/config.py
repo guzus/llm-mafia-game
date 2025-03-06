@@ -19,7 +19,7 @@ FIREBASE_CREDENTIALS_PATH = (
 
 # Game settings
 
-# MODELS = FREE_MODELS
+CLAUDE_3_7_SONNET = "anthropic/claude-3.7-sonnet"
 MODELS = [
     "google/gemini-2.0-flash-001",
     "google/gemini-flash-1.5",
@@ -39,8 +39,8 @@ MODELS = [
     "openai/gpt-4o",
     "anthropic/claude-3.5-sonnet",
     "deepseek/deepseek-r1-distill-llama-70b",
-    "anthropic/claude-3.7-sonnet",
-    "anthropic/claude-3.7-sonnet:thinking",
+    CLAUDE_3_7_SONNET,
+    CLAUDE_3_7_SONNET + ":thinking",
 ]
 
 FREE_MODELS = [

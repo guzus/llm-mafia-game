@@ -21,11 +21,19 @@ def run_single_game(game_number, language=None):
         language (str, optional): Language for game prompts and interactions. Defaults to config.LANGUAGE.
 
     Returns:
-        tuple: (game_number, winner, rounds_data, participants, game_id, language)
+        tuple: (game_number, winner, rounds_data, participants, game_id, language, critic_review)
     """
     game = MafiaGame(language=language)
-    winner, rounds_data, participants, language = game.run_game()
-    return game_number, winner, rounds_data, participants, game.game_id, language
+    winner, rounds_data, participants, language, critic_review = game.run_game()
+    return (
+        game_number,
+        winner,
+        rounds_data,
+        participants,
+        game.game_id,
+        language,
+        critic_review,
+    )
 
 
 def run_simulation(
@@ -95,6 +103,7 @@ def run_simulation(
                         participants,
                         game_id,
                         language,
+                        critic_review,
                     ) = future.result()
 
                     # Store results in Firebase
@@ -103,7 +112,11 @@ def run_simulation(
                             game_id, winner, participants, language=language
                         )
                         firebase.store_game_log(
-                            game_id, rounds_data, participants, language=language
+                            game_id,
+                            rounds_data,
+                            participants,
+                            language=language,
+                            critic_review=critic_review,
                         )
 
                     # Update statistics
@@ -147,9 +160,15 @@ def run_simulation(
         for i in range(1, num_games + 1):
             game_number = i  # Define game_number at the start of each iteration
             try:
-                game_number, winner, rounds_data, participants, game_id, language = (
-                    run_single_game(i, game_language)
-                )
+                (
+                    game_number,
+                    winner,
+                    rounds_data,
+                    participants,
+                    game_id,
+                    language,
+                    critic_review,
+                ) = run_single_game(i, game_language)
 
                 # Store results in Firebase
                 if firebase.initialized:
@@ -157,7 +176,11 @@ def run_simulation(
                         game_id, winner, participants, language=language
                     )
                     firebase.store_game_log(
-                        game_id, rounds_data, participants, language=language
+                        game_id,
+                        rounds_data,
+                        participants,
+                        language=language,
+                        critic_review=critic_review,
                     )
 
                 # Update statistics
