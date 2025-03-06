@@ -226,7 +226,7 @@ class MafiaGame:
         for player in self.mafia_players:
             if player.alive:
                 # Generate prompt
-                game_state = f"{self.get_game_state()} It's night time (Round {self.round_number}). Choose a player to kill."
+                game_state = f"{self.get_game_state()} It's night time (Round {self.round_number}). As the Mafia, you MUST choose exactly one player to kill tonight. You cannot skip this action. End your response with ACTION: Kill [player]."
                 prompt = player.generate_prompt(
                     game_state,
                     self.get_alive_players(),
