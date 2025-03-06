@@ -24,6 +24,22 @@ if [ -n "$PEM_KEY_PATH" ]; then
     SSH_OPTS="-i $PEM_KEY_PATH"
 fi
 
+# Parse command line arguments
+SERVICE=""
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --simulation|-s) SERVICE="simulation" ;;
+        --dashboard|-d) SERVICE="dashboard" ;;
+        *) echo "Unknown parameter: $1"; exit 1 ;;
+    esac
+    shift
+done
+
 # SSH into the remote machine and run docker-compose logs -f
 echo "Connecting to $SSH_USER@$SSH_HOST..."
-ssh $SSH_OPTS $SSH_USER@$SSH_HOST "cd $COMPOSE_DIR && docker-compose logs -f" 
+if [ -n "$SERVICE" ]; then
+    echo "Showing $SERVICE logs only..."
+    ssh $SSH_OPTS $SSH_USER@$SSH_HOST "cd $COMPOSE_DIR && docker-compose logs -f $SERVICE"
+else
+    ssh $SSH_OPTS $SSH_USER@$SSH_HOST "cd $COMPOSE_DIR && docker-compose logs -f"
+fi 
