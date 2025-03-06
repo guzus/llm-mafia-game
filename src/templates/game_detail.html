@@ -402,6 +402,25 @@
                         }
                     }
                     
+                    // Find the first day_discussion message index
+                    let firstDayDiscussionIndex = -1;
+                    for (let i = 0; i < round.messages.length; i++) {
+                        if (round.messages[i].phase === 'day_discussion') {
+                            firstDayDiscussionIndex = i;
+                            break;
+                        }
+                    }
+                    
+                    // Find the transition from day_discussion to day_voting
+                    let discussionToVotingTransitionIndex = -1;
+                    for (let i = 0; i < round.messages.length - 1; i++) {
+                        if (round.messages[i].phase === 'day_discussion' && 
+                            round.messages[i+1].phase === 'day_voting') {
+                            discussionToVotingTransitionIndex = i+1;
+                            break;
+                        }
+                    }
+                    
                     // Display all messages in chronological order
                     round.messages.forEach((message, msgIndex) => {
                         const model = message.speaker || 'System';
@@ -418,10 +437,32 @@
                             ? '<span class="phase-tag last-words">Last Words</span>' 
                             : '';
                         
+                        // Insert Discussion Phase Begins message before the first day_discussion message
+                        if (msgIndex === firstDayDiscussionIndex) {
+                            dialogueHtml += `<div class="dialogue-message" style="margin-left: 20px; background-color: #f8f8f8; border-left: 5px solid #333; margin-top: 15px; margin-bottom: 15px;">
+                                <div class="dialogue-speaker phase-header"><strong>Discussion Phase Begins</strong></div>
+                                <div class="dialogue-content">
+                                    <p>The day has arrived. Players will now discuss and try to identify the Mafia members among them.</p>
+                                </div>
+                            </div>`;
+                        }
+                        
+                        // Insert Voting Phase Begins message at the transition point
+                        if (msgIndex === discussionToVotingTransitionIndex) {
+                            dialogueHtml += `<div class="dialogue-message" style="margin-left: 20px; background-color: #f8f8f8; border-left: 5px solid #333; margin-top: 15px; margin-bottom: 15px;">
+                                <div class="dialogue-speaker phase-header"><strong>Voting Phase Begins</strong></div>
+                                <div class="dialogue-content">
+                                    <p>The discussion phase has ended. Players will now make their final arguments and vote to eliminate a suspected Mafia member.</p>
+                                </div>
+                            </div>`;
+                        }
+                        
                         dialogueHtml += `<div class="dialogue-message ${roleClass}" style="margin-left: 20px; ${borderStyle}">
                             <div class="dialogue-speaker ${roleClass}">
                                 ${modelName} (${participants[model] || 'System'})
                                 ${message.phase === 'night' ? '<span class="phase-tag night">Night</span>' : '<span class="phase-tag day">Day</span>'}
+                                ${message.phase === 'day_discussion' ? '<span class="phase-tag discussion">Discussion</span>' : ''}
+                                ${message.phase === 'day_voting' ? '<span class="phase-tag voting">Voting</span>' : ''}
                                 ${lastWordsTag}
                                 <span style="float: right; font-size: 0.8em; color: #666;">Message #${msgIndex + 1}</span>
                             </div>
