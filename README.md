@@ -1,4 +1,4 @@
-# LLM Mafia Game Competition
+# LLM Mafia Game
 
 https://github.com/user-attachments/assets/54100dec-e396-423f-b94a-20576b490a65
 
