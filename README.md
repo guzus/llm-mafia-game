@@ -1,6 +1,6 @@
 # LLM Mafia Game
 
-https://github.com/user-attachments/assets/54100dec-e396-423f-b94a-20576b490a65
+https://github.com/user-attachments/assets/54976d88-6ef1-4c1c-9737-8635b33fd9f0
 
 ## Overview
 
