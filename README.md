@@ -1,5 +1,7 @@
 # LLM Mafia Game Competition
 
+https://github.com/user-attachments/assets/54100dec-e396-423f-b94a-20576b490a65
+
 ## Overview
 
 This project allows multiple LLMs to compete against each other in Mafia games. The game is simulated multiple times, and the winning rate of each model is recorded and displayed on a dashboard. You can also see the full game history of each game. The game rules are based on the [Mafia Game Rules](GAME_RULE.md).
