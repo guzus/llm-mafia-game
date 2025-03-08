@@ -638,3 +638,70 @@ h3 {
     bottom: -25px;
     right: 5px;
 }
+
+/* Share link styles */
+.share-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px;
+    color: #666;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    text-decoration: none !important;
+}
+
+.share-link:hover {
+    color: #0366d6;
+    background-color: #f3f4f6;
+    text-decoration: none !important;
+}
+
+/* Update notification styles */
+.share-notification {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 12px;
+    background-color: #24292e;
+    color: white;
+    border-radius: 6px;
+    font-size: 12px;
+    z-index: 9999;
+    /* Increase z-index to ensure visibility */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    animation: fadeInOut 2s ease-in-out;
+    pointer-events: none;
+    /* Prevent notification from blocking interactions */
+}
+
+.share-notification::before {
+    content: "✓";
+    font-weight: bold;
+    color: #28a745;
+}
+
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, 20px);
+    }
+
+    15% {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+
+    85% {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, 20px);
+    }
+}

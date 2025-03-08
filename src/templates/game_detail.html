@@ -96,6 +96,69 @@
         // Get game ID from URL
         const gameId = window.location.pathname.split('/').pop();
         
+        // Function to share a specific message
+        function shareMessage(messageId) {
+            // Create the share URL with message ID as hash
+            const shareUrl = `${window.location.origin}/game/${gameId}#${messageId}`;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(shareUrl)
+                .then(() => {
+                    // Show success notification
+                    const notification = document.createElement('div');
+                    notification.className = 'share-notification';
+                    notification.textContent = 'Copied link';
+                    document.body.appendChild(notification);
+                    
+                    // Update the share link icon temporarily
+                    const shareLink = document.querySelector(`[data-message-id="${messageId}"]`);
+                    if (shareLink) {
+                        const originalContent = shareLink.innerHTML;
+                        shareLink.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+                                <path fill="#28a745" d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z"/>
+                            </svg>
+                        `;
+                        
+                        // Restore original content after 2 seconds
+                        setTimeout(() => {
+                            shareLink.innerHTML = originalContent;
+                        }, 2000);
+                    }
+                    
+                    // Remove notification after animation
+                    setTimeout(() => {
+                        document.body.removeChild(notification);
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Could not copy text: ', err);
+                    alert('Failed to copy link to clipboard');
+                });
+        }
+        
+        // Function to scroll to a shared message when the page loads
+        function scrollToSharedMessage() {
+            if (window.location.hash) {
+                const messageId = window.location.hash.substring(1);
+                const element = document.getElementById('msg-' + messageId);
+                if (element) {
+                    // Wait a bit for the page to fully load
+                    setTimeout(() => {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Highlight the shared message
+                        element.style.boxShadow = '0 0 15px rgba(255, 215, 0, 0.7)';
+                        element.style.transition = 'box-shadow 0.5s ease-in-out';
+                        
+                        // Remove highlight after 3 seconds
+                        setTimeout(() => {
+                            element.style.boxShadow = 'none';
+                        }, 3000);
+                    }, 750);
+                }
+            }
+        }
+        
         // Fetch game data
         fetch(`/api/game/${gameId}`)
             .then(response => {
@@ -457,14 +520,22 @@
                             </div>`;
                         }
                         
-                        dialogueHtml += `<div class="dialogue-message ${roleClass}" style="margin-left: 20px; ${borderStyle}">
+                        dialogueHtml += `<div id="msg-r${index+1}-m${msgIndex+1}" class="dialogue-message ${roleClass}" style="margin-left: 20px; ${borderStyle}">
                             <div class="dialogue-speaker ${roleClass}">
                                 ${modelName} (${participants[model] || 'System'})
                                 ${message.phase === 'night' ? '<span class="phase-tag night">Night</span>' : '<span class="phase-tag day">Day</span>'}
                                 ${message.phase === 'day_discussion' ? '<span class="phase-tag discussion">Discussion</span>' : ''}
                                 ${message.phase === 'day_voting' ? '<span class="phase-tag voting">Voting</span>' : ''}
                                 ${lastWordsTag}
-                                <span style="float: right; font-size: 0.8em; color: #666;">Message #${msgIndex + 1}</span>
+                                <span style="float: right; font-size: 0.8em; color: #666;">
+                                    Message #${msgIndex + 1}
+                                    <a href="#" class="share-link" 
+                                       data-message-id="r${index+1}-m${msgIndex+1}"
+                                       onclick="shareMessage('r${index+1}-m${msgIndex+1}'); return false;" 
+                                       title="Copy link to message">
+                                        📎
+                                    </a>
+                                </span>
                             </div>
                             <div class="dialogue-content">${message.content}</div>
                         </div>`;
@@ -1224,5 +1295,8 @@
             
             criticElement.innerHTML = criticHtml;
         }
+        
+        // Add event listener for when the page is fully loaded
+        window.addEventListener('load', scrollToSharedMessage);
     </script>
 {% endblock %}
