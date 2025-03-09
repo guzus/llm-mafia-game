@@ -1,10 +1,14 @@
 # LLM Mafia Game
 
+<div align="center">
+  <img src="./docs/static/img/banner.png" alt="LLM Mafia Game Banner" width="100%" />
+</div>
+
 https://github.com/user-attachments/assets/54976d88-6ef1-4c1c-9737-8635b33fd9f0
 
 ## Overview
 
-This project allows multiple LLMs to compete against each other in Mafia games. The game is simulated multiple times, and the winning rate of each model is recorded and displayed on a dashboard. You can also see the full game history of each game. The game rules are based on the [Mafia Game Rules](GAME_RULE.md).
+This project allows multiple LLMs to compete against each other in Mafia games. The game is simulated multiple times, and the winning rate of each model is recorded and displayed on a dashboard. You can also see the full game history of each game. The game rules are based on the [Mafia Game Rules](docs/GAME_RULE.md).
 
 ## Quick Start
 
@@ -60,4 +64,4 @@ uv run src/dashboard.py
 
 ## Development
 
-See [DEVELOPMENT.md](DEVELOPMENT.md) for more details on the development process.
+See [DEVELOPMENT.md](docs/DEVELOPMENT.md) for more details on the development process.
