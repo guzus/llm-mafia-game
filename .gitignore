@@ -50,3 +50,5 @@ games_played.png
 win_rates.png
 
 scripts/remote-config.sh
+
+*/node_modules

@@ -1,0 +1,22 @@
+{
+  "name": "llm-mafia-client",
+  "version": "1.0.0",
+  "description": "A Three.js game where you can play Mafia with LLMs",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": ["three.js", "mafia", "llm", "game"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "three": "^0.160.0",
+    "@types/three": "^0.160.0",
+    "typescript": "^5.2.2"
+  },
+  "devDependencies": {
+    "vite": "^5.0.8"
+  }
+} 
