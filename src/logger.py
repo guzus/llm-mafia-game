@@ -156,10 +156,19 @@ class GameLogger:
         color = self.phase_colors.get(phase.lower(), Color.WHITE)
         self.header(f"{phase_name} PHASE - ROUND {round_number}", color)
 
-    def player_setup(self, player_name, role):
-        """Log player setup."""
+    def player_setup(self, player_name, role, player_display_name=None):
+        """
+        Log player setup.
+
+        Args:
+            player_name (str): The model name of the player.
+            role (str): The role of the player.
+            player_display_name (str, optional): The display name of the player.
+        """
         role_color = self.role_colors.get(role, Color.WHITE)
         self.print(f"Player: {player_name}", Color.BRIGHT_WHITE, bold=True)
+        if player_display_name and player_display_name != player_name:
+            self.print(f"Name: {player_display_name}", Color.BRIGHT_CYAN, bold=True)
         self.print(f"Role: {role}", role_color, bold=True)
         self.print("-" * 40, Color.BRIGHT_BLACK)
 

@@ -119,7 +119,9 @@ class MafiaGame:
                 self.villager_players.append(player)
 
             # Log player setup
-            self.logger.player_setup(player.model_name, player.role.value)
+            self.logger.player_setup(
+                player.model_name, player.role.value, player.player_name
+            )
 
         # Set phase to night
         self.phase = "night"
