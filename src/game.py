@@ -45,6 +45,8 @@ class MafiaGame:
             "outcome": "",
         }
 
+        self.unique_models = config.UNIQUE_MODELS
+
         # Use provided models or default from config
         self.models = models if models else config.MODELS
 
@@ -63,7 +65,7 @@ class MafiaGame:
             bool: True if setup successful, False otherwise.
         """
         # Check if we have enough models
-        if len(self.models) < config.PLAYERS_PER_GAME:
+        if len(self.models) < config.PLAYERS_PER_GAME and self.unique_models:
             self.logger.error(
                 f"Not enough models. Need {config.PLAYERS_PER_GAME}, but only have {len(self.models)}."
             )
@@ -73,7 +75,10 @@ class MafiaGame:
         self.logger.game_start(1, self.game_id, self.language)
 
         # Randomly select models for this game
-        selected_models = random.sample(self.models, config.PLAYERS_PER_GAME)
+        if self.unique_models:
+            selected_models = random.sample(self.models, config.PLAYERS_PER_GAME)
+        else:
+            selected_models = random.choices(self.models, k=config.PLAYERS_PER_GAME)
 
         # Assign roles
         roles = []
@@ -100,47 +105,6 @@ class MafiaGame:
         self.logger.header("PLAYER SETUP", Color.CYAN)
         for i, model_name in enumerate(selected_models):
             # Generate a random player name instead of using model name
-            player_names = [
-                "Alex",
-                "Bailey",
-                "Casey",
-                "Dana",
-                "Ellis",
-                "Finley",
-                "Gray",
-                "Harper",
-                "Indigo",
-                "Jordan",
-                "Kennedy",
-                "Logan",
-                "Morgan",
-                "Nico",
-                "Parker",
-                "Quinn",
-                "Riley",
-                "Sage",
-                "Taylor",
-                "Avery",
-                "Blake",
-                "Cameron",
-                "Drew",
-                "Emerson",
-                "Frankie",
-                "Hayden",
-                "Jamie",
-                "Kai",
-                "Leighton",
-                "Marley",
-                "Noel",
-                "Oakley",
-                "Peyton",
-                "Reese",
-                "Skyler",
-                "Tatum",
-                "Val",
-                "Winter",
-                "Zion",
-            ]
             # Make sure we don't reuse names
             used_names = [p.player_name for p in self.players]
             available_names = [name for name in player_names if name not in used_names]
@@ -987,3 +951,46 @@ Format your response as a JSON object with 'title', 'content', and 'one_liner' f
                 "content": "The critic was unable to review this game due to technical difficulties.",
                 "one_liner": "Technical issues prevented our critic from delivering judgment.",
             }
+
+
+player_names = [
+    "Alex",
+    "Bailey",
+    "Casey",
+    "Dana",
+    "Ellis",
+    "Finley",
+    "Gray",
+    "Harper",
+    "Indigo",
+    "Jordan",
+    "Kennedy",
+    "Logan",
+    "Morgan",
+    "Nico",
+    "Parker",
+    "Quinn",
+    "Riley",
+    "Sage",
+    "Taylor",
+    "Avery",
+    "Blake",
+    "Cameron",
+    "Drew",
+    "Emerson",
+    "Frankie",
+    "Hayden",
+    "Jamie",
+    "Kai",
+    "Leighton",
+    "Marley",
+    "Noel",
+    "Oakley",
+    "Peyton",
+    "Reese",
+    "Skyler",
+    "Tatum",
+    "Val",
+    "Winter",
+    "Zion",
+]

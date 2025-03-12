@@ -105,3 +105,5 @@ MODEL_CONFIGS = {
 RANDOM_SEED = os.getenv("RANDOM_SEED")
 if RANDOM_SEED is not None:
     RANDOM_SEED = int(RANDOM_SEED)
+
+UNIQUE_MODELS = os.getenv("UNIQUE_MODELS", "true") == "true"
