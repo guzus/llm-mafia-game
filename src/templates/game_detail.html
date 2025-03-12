@@ -1455,7 +1455,9 @@
             // Show doctor protection
             if (prevRound.protected_by_doctor && prevRound.protected_by_doctor.length > 0) {
                 const protectedModel = prevRound.protected_by_doctor[0];
-                const protectedName = modelInfo[protectedModel] || protectedModel.split('/').pop();
+                // Fix: Ensure we get the player name properly from the modelInfo mapping
+                const protectedInfo = modelInfo[protectedModel] || { playerName: protectedModel.split('/').pop() };
+                const protectedName = protectedInfo.playerName;
                 const wasTargeted = prevRound.targeted_by_mafia && 
                                    prevRound.targeted_by_mafia.includes(prevRound.protected_by_doctor[0]);
                 
@@ -1498,7 +1500,10 @@
             
             if (nightEliminations.length > 0) {
                 const eliminatedNames = nightEliminations.map(model => {
-                    return modelInfo[model] || model.split('/').pop();
+                    // Fix: Properly extract player name from modelInfo
+                    const modelInfo = createModelInfoMapping(participants);
+                    const playerInfo = modelInfo[model] || { playerName: model.split('/').pop() };
+                    return playerInfo.playerName;
                 });
                 
                 summaryHtml += `<div class="night-eliminations" style="color: #d9534f; font-weight: bold; margin-top: 10px;">
