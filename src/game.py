@@ -99,7 +99,15 @@ class MafiaGame:
         # Create players
         self.logger.header("PLAYER SETUP", Color.CYAN)
         for i, model_name in enumerate(selected_models):
-            player = Player(model_name, roles[i], language=self.language)
+            # Generate a player name if not using model name
+            # For now, we'll use the model name as the player name
+            # This can be enhanced to use more creative names
+            player_name = model_name.split("/")[
+                -1
+            ]  # Use the last part of the model name
+
+            # Create player with both model_name and player_name
+            player = Player(model_name, player_name, roles[i], language=self.language)
             self.players.append(player)
 
             # Add to role-specific lists
@@ -784,10 +792,13 @@ class MafiaGame:
         if self.current_round_data["round_number"] > 0:
             self.rounds_data.append(self.current_round_data)
 
-        # Create participants dictionary
+        # Create participants dictionary with both model_name and player_name
         participants = {}
         for player in self.players:
-            participants[player.model_name] = player.role.value
+            participants[player.model_name] = {
+                "role": player.role.value,
+                "player_name": player.player_name,
+            }
 
         # Generate game critic review
         critic_review = self.generate_critic_review(winner)

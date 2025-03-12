@@ -127,8 +127,16 @@ def run_simulation(
                         stats["villager_wins"] += 1
 
                     # Update model statistics
-                    for model, role in participants.items():
+                    for model, role_data in participants.items():
                         stats["model_stats"][model]["games"] += 1
+
+                        # Handle both old and new format
+                        if isinstance(role_data, dict):
+                            role = role_data.get("role")
+                        else:
+                            # Legacy format where role_data is just the role string
+                            role = role_data
+
                         if role == "Mafia":
                             stats["model_stats"][model]["mafia_games"] += 1
                             if winner == "Mafia":
@@ -191,8 +199,16 @@ def run_simulation(
                     stats["villager_wins"] += 1
 
                 # Update model statistics
-                for model, role in participants.items():
+                for model, role_data in participants.items():
                     stats["model_stats"][model]["games"] += 1
+
+                    # Handle both old and new format
+                    if isinstance(role_data, dict):
+                        role = role_data.get("role")
+                    else:
+                        # Legacy format where role_data is just the role string
+                        role = role_data
+
                     if role == "Mafia":
                         stats["model_stats"][model]["mafia_games"] += 1
                         if winner == "Mafia":
