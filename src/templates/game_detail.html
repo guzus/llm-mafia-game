@@ -9,6 +9,15 @@
 
 {% block content %}
     <div class="container">
+        <!-- Add sticky banner right after container -->
+        <div id="stickyBanner" class="sticky-banner">
+            <div class="sticky-banner-content">
+                <div class="sticky-players-list">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+        
         <a href="/" class="back-link">← Back to Dashboard</a>
         <h1>Game Details</h1>
         
@@ -326,6 +335,52 @@
             
             // Update page title
             document.title = `Game ${data.game_id} - LLM Mafia Game Competition`;
+            
+            // Add this at the end of the displayGameInfo function
+            initializeStickyBanner(data.participants);
+        }
+
+        function initializeStickyBanner(participants) {
+            const stickyBanner = document.getElementById('stickyBanner');
+            const playersList = stickyBanner.querySelector('.sticky-players-list');
+            
+            // Create player items for the sticky banner
+            Object.entries(participants).forEach(([model, roleData]) => {
+                const { playerName, role, roleClass } = getPlayerInfo(model, roleData);
+                const modelName = model.split('/').pop();
+                
+                const playerItem = document.createElement('div');
+                playerItem.className = `sticky-player-item ${roleClass}`;
+                playerItem.innerHTML = `
+                    <span class="sticky-player-name">${playerName}</span>
+                    <span class="sticky-player-role">(${role})</span>
+                    <span class="sticky-player-model">[${modelName}]</span>
+                `;
+                
+                playersList.appendChild(playerItem);
+            });
+            
+            // Add scroll event listener
+            let gameInfoRect = document.querySelector('.game-info').getBoundingClientRect();
+            let bannerVisible = false;
+            
+            window.addEventListener('scroll', () => {
+                const scrollPosition = window.scrollY;
+                
+                // Show banner when scrolling past game info section
+                if (scrollPosition > gameInfoRect.bottom && !bannerVisible) {
+                    stickyBanner.classList.add('visible');
+                    bannerVisible = true;
+                } else if (scrollPosition <= gameInfoRect.bottom && bannerVisible) {
+                    stickyBanner.classList.remove('visible');
+                    bannerVisible = false;
+                }
+            });
+            
+            // Update gameInfoRect on window resize
+            window.addEventListener('resize', () => {
+                gameInfoRect = document.querySelector('.game-info').getBoundingClientRect();
+            });
         }
         
         // Function to display game log
