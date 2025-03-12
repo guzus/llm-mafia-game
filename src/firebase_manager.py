@@ -47,7 +47,7 @@ class FirebaseManager:
         Args:
             game_id (str): Unique identifier for the game.
             winner (str): The winning team ("Mafia" or "Villagers").
-            participants (dict): Dictionary mapping model names to roles.
+            participants (dict): Dictionary mapping model names to role and player_name.
             game_type (str, optional): Type of Mafia game played.
             language (str, optional): Language used for the game.
 
@@ -92,7 +92,7 @@ class FirebaseManager:
         Args:
             game_id (str): Unique identifier for the game.
             rounds (list): List of round data.
-            participants (dict): Dictionary mapping model names to roles.
+            participants (dict): Dictionary mapping model names to role and player_name.
             game_type (str, optional): Type of Mafia game played.
             language (str, optional): Language used for the game.
             critic_review (dict, optional): Game critic review with title and content.
@@ -178,7 +178,14 @@ class FirebaseManager:
                 winner = game.get("winner")
                 participants = game.get("participants", {})
 
-                for model, role in participants.items():
+                for model, data in participants.items():
+                    # Handle both old and new format
+                    if isinstance(data, dict):
+                        role = data.get("role")
+                    else:
+                        # Legacy format where data is just the role string
+                        role = data
+
                     # Initialize model stats if not exists
                     if model not in stats:
                         stats[model] = {

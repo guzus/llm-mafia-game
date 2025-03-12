@@ -217,7 +217,18 @@
             
             // Create participant elements with appropriate colors
             const participantsHtml = Object.entries(participants)
-                .map(([model, role]) => {
+                .map(([model, roleData]) => {
+                    // Handle both old and new format
+                    let role, playerName;
+                    if (typeof roleData === 'object') {
+                        role = roleData.role;
+                        playerName = roleData.player_name || model.split('/').pop();
+                    } else {
+                        // Legacy format where roleData is just the role string
+                        role = roleData;
+                        playerName = model.split('/').pop();
+                    }
+                    
                     const modelName = model.split('/').pop();
                     const roleClass = role.toLowerCase();
                     
@@ -228,7 +239,7 @@
                     
                     const crownIcon = isWinner ? '<span class="winner-crown" title="Winner">👑</span> ' : '';
                     
-                    return `<div class="participant ${roleClass}">${crownIcon}${modelName} (${role})</div>`;
+                    return `<div class="participant ${roleClass}">${crownIcon}${playerName} (${role}) <span class="model-name">[Model: ${modelName}]</span></div>`;
                 })
                 .join('');
             
@@ -404,11 +415,25 @@
                 return;
             }
             
-            // Create a mapping of model names to their roles for coloring
-            const modelRoles = {};
+            // Create a mapping of model names to their roles and player names for coloring
+            const modelInfo = {};
             const participants = data.participants || {};
-            Object.entries(participants).forEach(([model, role]) => {
-                modelRoles[model] = role.toLowerCase();
+            Object.entries(participants).forEach(([model, roleData]) => {
+                // Handle both old and new format
+                let role, playerName;
+                if (typeof roleData === 'object') {
+                    role = roleData.role;
+                    playerName = roleData.player_name || model.split('/').pop();
+                } else {
+                    // Legacy format where roleData is just the role string
+                    role = roleData;
+                    playerName = model.split('/').pop();
+                }
+                
+                modelInfo[model] = {
+                    role: role.toLowerCase(),
+                    playerName: playerName
+                };
             });
             
             let dialogueHtml = '';
@@ -435,7 +460,10 @@
                 
                 // Show eliminations if any
                 if (round.eliminations && round.eliminations.length > 0) {
-                    const eliminatedNames = round.eliminations.map(name => `💀 ${name.split('/').pop()}`);
+                    const eliminatedNames = round.eliminations.map(model => {
+                        const info = modelInfo[model] || { playerName: model.split('/').pop() };
+                        return `💀 ${info.playerName}`;
+                    });
                     dialogueHtml += `<div class="elimination" style="display: inline-block; margin: 5px;">
                         <strong>Eliminated:</strong> ${eliminatedNames.join(' • ')}
                     </div>`;
@@ -487,8 +515,11 @@
                     // Display all messages in chronological order
                     round.messages.forEach((message, msgIndex) => {
                         const model = message.speaker || 'System';
-                        const modelName = model.split('/').pop();
-                        const roleClass = modelRoles[model] || '';
+                        const info = modelInfo[model] || { 
+                            playerName: model.split('/').pop(),
+                            role: ''
+                        };
+                        const roleClass = info.role;
                         
                         // Set border color based on phase
                         const borderStyle = message.phase === 'night' 
@@ -520,9 +551,21 @@
                             </div>`;
                         }
                         
+                        // Get role from participants or from message
+                        let role = '';
+                        if (participants[model]) {
+                            if (typeof participants[model] === 'object') {
+                                role = participants[model].role;
+                            } else {
+                                role = participants[model];
+                            }
+                        } else if (message.role) {
+                            role = message.role;
+                        }
+                        
                         dialogueHtml += `<div id="msg-r${index+1}-m${msgIndex+1}" class="dialogue-message ${roleClass}" style="margin-left: 20px; ${borderStyle}">
                             <div class="dialogue-speaker ${roleClass}">
-                                ${modelName} (${participants[model] || 'System'})
+                                ${info.playerName} (${role}) <span class="model-name">[Model: ${model.split('/').pop()}]</span>
                                 ${message.phase === 'night' ? '<span class="phase-tag night">Night</span>' : '<span class="phase-tag day">Day</span>'}
                                 ${message.phase === 'day_discussion' ? '<span class="phase-tag discussion">Discussion</span>' : ''}
                                 ${message.phase === 'day_voting' ? '<span class="phase-tag voting">Voting</span>' : ''}
@@ -558,13 +601,16 @@
                         if (round.vote_counts && round.vote_details) {
                             // Display each player eliminated by vote with detailed vote information
                             round.eliminated_by_vote.forEach(eliminated => {
-                                const modelName = eliminated.split('/').pop();
+                                const info = modelInfo[eliminated] || { playerName: eliminated.split('/').pop() };
                                 const votes = round.vote_counts[eliminated] || 0;
                                 const voters = round.vote_details[eliminated] || [];
-                                const voterNames = voters.map(voter => voter.split('/').pop());
+                                const voterNames = voters.map(voter => {
+                                    const voterInfo = modelInfo[voter] || { playerName: voter.split('/').pop() };
+                                    return voterInfo.playerName;
+                                });
                                 
                                 dialogueHtml += `<div class="elimination" style="display: block; margin: 10px 0;">
-                                    <strong>💀 ${modelName} was eliminated by the town</strong>
+                                    <strong>💀 ${info.playerName} was eliminated by the town</strong>
                                 </div>`;
                             });
                             
@@ -574,13 +620,16 @@
                             </div>`;
                             
                             Object.entries(round.vote_counts).forEach(([target, count]) => {
-                                const targetName = target.split('/').pop();
+                                const targetInfo = modelInfo[target] || { playerName: target.split('/').pop() };
                                 const voters = round.vote_details[target] || [];
-                                const voterNames = voters.map(voter => voter.split('/').pop());
+                                const voterNames = voters.map(voter => {
+                                    const voterInfo = modelInfo[voter] || { playerName: voter.split('/').pop() };
+                                    return voterInfo.playerName;
+                                });
                                 
                                 dialogueHtml += `<div class="vote-item">
                                     <div class="vote-target">
-                                        <span class="vote-name">To Kill: ${targetName}</span>
+                                        <span class="vote-name">To Kill: ${targetInfo.playerName}</span>
                                         <span class="vote-count">${count} vote${count > 1 ? 's' : ''}</span>
                                     </div>
                                     <div class="vote-voters">From: ${voterNames.join(', ')}</div>
@@ -593,26 +642,43 @@
                             // Get the player who was up for elimination
                             let playerToEliminate = '';
                             if (round.eliminated_by_vote && round.eliminated_by_vote.length > 0) {
-                                playerToEliminate = round.eliminated_by_vote[0].split('/').pop();
+                                const eliminatedModel = round.eliminated_by_vote[0];
+                                const info = modelInfo[eliminatedModel] || { playerName: eliminatedModel.split('/').pop() };
+                                playerToEliminate = info.playerName;
                             } else if (round.vote_counts) {
                                 // Find the player with the most votes
                                 let maxVotes = 0;
+                                let maxVotedModel = '';
                                 Object.entries(round.vote_counts).forEach(([player, count]) => {
                                     if (count > maxVotes) {
                                         maxVotes = count;
-                                        playerToEliminate = player.split('/').pop();
+                                        maxVotedModel = player;
                                     }
                                 });
+                                if (maxVotedModel) {
+                                    const info = modelInfo[maxVotedModel] || { playerName: maxVotedModel.split('/').pop() };
+                                    playerToEliminate = info.playerName;
+                                }
                             }
                             
                             // Display confirmation vote results
                             const agreeVotes = round.confirmation_votes.agree || [];
                             const disagreeVotes = round.confirmation_votes.disagree || [];
                             
+                            const agreeVoterNames = agreeVotes.map(voter => {
+                                const info = modelInfo[voter] || { playerName: voter.split('/').pop() };
+                                return info.playerName;
+                            });
+                            
+                            const disagreeVoterNames = disagreeVotes.map(voter => {
+                                const info = modelInfo[voter] || { playerName: voter.split('/').pop() };
+                                return info.playerName;
+                            });
+                            
                             dialogueHtml += `<div style="margin-top: 20px; padding: 10px; background-color: #f5f8ff; border-radius: 4px; border-left: 4px solid #4a6da7;">
                                 <strong>Confirmation Vote for ${playerToEliminate}:</strong><br>
-                                <span style="color: green; display: block; margin-top: 5px;">✓ Agree: ${agreeVotes.length} (${agreeVotes.map(v => v.split('/').pop()).join(', ') || 'None'})</span>
-                                <span style="color: red; display: block; margin-top: 5px;">✗ Disagree: ${disagreeVotes.length} (${disagreeVotes.map(v => v.split('/').pop()).join(', ') || 'None'})</span>
+                                <span style="color: green; display: block; margin-top: 5px;">✓ Agree: ${agreeVotes.length} (${agreeVoterNames.join(', ') || 'None'})</span>
+                                <span style="color: red; display: block; margin-top: 5px;">✗ Disagree: ${disagreeVotes.length} (${disagreeVoterNames.join(', ') || 'None'})</span>
                             </div>`;
                         }
                         
@@ -628,13 +694,16 @@
                                 </div>`;
                         
                         Object.entries(round.vote_counts).forEach(([target, count]) => {
-                            const targetName = target.split('/').pop();
+                            const targetInfo = modelInfo[target] || { playerName: target.split('/').pop() };
                             const voters = round.vote_details[target] || [];
-                            const voterNames = voters.map(voter => voter.split('/').pop());
+                            const voterNames = voters.map(voter => {
+                                const voterInfo = modelInfo[voter] || { playerName: voter.split('/').pop() };
+                                return voterInfo.playerName;
+                            });
                             
                             dialogueHtml += `<div class="vote-item">
                                 <div class="vote-target">
-                                    <span class="vote-name">To Kill: ${targetName}</span>
+                                    <span class="vote-name">To Kill: ${targetInfo.playerName}</span>
                                     <span class="vote-count">${count} vote${count > 1 ? 's' : ''}</span>
                                 </div>
                                 <div class="vote-voters">From: ${voterNames.join(', ')}</div>
@@ -648,22 +717,37 @@
                             if (round.vote_counts) {
                                 // Find the player with the most votes
                                 let maxVotes = 0;
+                                let maxVotedModel = '';
                                 Object.entries(round.vote_counts).forEach(([player, count]) => {
                                     if (count > maxVotes) {
                                         maxVotes = count;
-                                        playerToEliminate = player.split('/').pop();
+                                        maxVotedModel = player;
                                     }
                                 });
+                                if (maxVotedModel) {
+                                    const info = modelInfo[maxVotedModel] || { playerName: maxVotedModel.split('/').pop() };
+                                    playerToEliminate = info.playerName;
+                                }
                             }
                             
                             // Display confirmation vote results
                             const agreeVotes = round.confirmation_votes.agree || [];
                             const disagreeVotes = round.confirmation_votes.disagree || [];
                             
+                            const agreeVoterNames = agreeVotes.map(voter => {
+                                const info = modelInfo[voter] || { playerName: voter.split('/').pop() };
+                                return info.playerName;
+                            });
+                            
+                            const disagreeVoterNames = disagreeVotes.map(voter => {
+                                const info = modelInfo[voter] || { playerName: voter.split('/').pop() };
+                                return info.playerName;
+                            });
+                            
                             dialogueHtml += `<div style="margin-top: 20px; padding: 10px; background-color: #f5f8ff; border-radius: 4px; border-left: 4px solid #4a6da7;">
                                 <strong>Confirmation Vote for ${playerToEliminate}:</strong><br>
-                                <span style="color: green; display: block; margin-top: 5px;">✓ Agree: ${agreeVotes.length} (${agreeVotes.map(v => v.split('/').pop()).join(', ') || 'None'})</span>
-                                <span style="color: red; display: block; margin-top: 5px;">✗ Disagree: ${disagreeVotes.length} (${disagreeVotes.map(v => v.split('/').pop()).join(', ') || 'None'})</span>
+                                <span style="color: green; display: block; margin-top: 5px;">✓ Agree: ${agreeVotes.length} (${agreeVoterNames.join(', ') || 'None'})</span>
+                                <span style="color: red; display: block; margin-top: 5px;">✗ Disagree: ${disagreeVotes.length} (${disagreeVoterNames.join(', ') || 'None'})</span>
                             </div>`;
                         }
                         
@@ -700,13 +784,23 @@
             let html = '';
             
             // Add each player with their role
-            Object.entries(participants).forEach(([model, role]) => {
+            Object.entries(participants).forEach(([model, roleData]) => {
                 const isEliminated = eliminatedPlayers.has(model);
                 if (!isEliminated) {
-                    const modelName = model.split('/').pop();
+                    // Handle both old and new format
+                    let role, playerName;
+                    if (typeof roleData === 'object') {
+                        role = roleData.role;
+                        playerName = roleData.player_name || model.split('/').pop();
+                    } else {
+                        // Legacy format where roleData is just the role string
+                        role = roleData;
+                        playerName = model.split('/').pop();
+                    }
+                    
                     const roleClass = role.toLowerCase();
                     html += `<div class="player-status-item ${roleClass}" style="padding: 8px 12px; border-radius: 4px; text-align: center;">
-                        <span style="font-weight: bold;">${modelName}</span>
+                        <span style="font-weight: bold;">${playerName}</span>
                         <span style="font-size: 0.85em;">${role}</span>
                     </div>`;
                 }
@@ -793,7 +887,7 @@
             const playerCount = participants.length;
             
             // Add players around the table
-            participants.forEach(([model, role], index) => {
+            participants.forEach(([model, roleData], index) => {
                 const angle = (index / playerCount) * 2 * Math.PI;
                 const centerX = 300; // Center of the table
                 const centerY = 300;
@@ -802,6 +896,17 @@
                 // Calculate position
                 const x = centerX + radius * Math.cos(angle) - 40; // 40 is half the player width
                 const y = centerY + radius * Math.sin(angle) - 40; // 40 is half the player height
+                
+                // Get role and player name
+                let role, playerName;
+                if (typeof roleData === 'object') {
+                    role = roleData.role;
+                    playerName = roleData.player_name || model.split('/').pop();
+                } else {
+                    // Legacy format where roleData is just the role string
+                    role = roleData;
+                    playerName = model.split('/').pop();
+                }
                 
                 // Create player element
                 const playerElement = document.createElement('div');
@@ -812,9 +917,9 @@
                 
                 // Create player avatar and info
                 const modelName = model.split('/').pop();
-                const shortName = modelName.length > 10 ? modelName.substring(0, 10) + '...' : modelName;
+                const shortName = playerName.length > 10 ? playerName.substring(0, 10) + '...' : playerName;
                 playerElement.innerHTML = `
-                    <div class="player-avatar">${modelName.charAt(0)}</div>
+                    <div class="player-avatar">${playerName.charAt(0)}</div>
                     <div class="player-name">${shortName}</div>
                     <div class="player-role">${role}</div>
                     <div class="speech-bubble"></div>
@@ -1079,6 +1184,21 @@
         }
         
         function updatePlayerStatus(data, roundIndex = 0) {
+            // Create a mapping of model names to player names
+            const modelInfo = {};
+            const participants = data.participants || {};
+            Object.entries(participants).forEach(([model, roleData]) => {
+                // Handle both old and new format
+                let playerName;
+                if (typeof roleData === 'object') {
+                    playerName = roleData.player_name || model.split('/').pop();
+                } else {
+                    // Legacy format where roleData is just the role string
+                    playerName = model.split('/').pop();
+                }
+                modelInfo[model] = playerName;
+            });
+            
             // Reset all players
             document.querySelectorAll('.player').forEach(player => {
                 player.classList.remove('dead');
@@ -1131,19 +1251,21 @@
             
             // Mark eliminated players as dead
             eliminatedPlayers.forEach(player => {
+                const playerName = modelInfo[player] || player.split('/').pop();
                 const playerElement = document.getElementById(`player-${player.split('/').pop()}`);
                 if (playerElement) {
                     playerElement.classList.add('dead');
                     
                     // Add elimination event if this is the current round
                     if (roundIndex === currentRoundIndex) {
-                        addEventLogItem(`${player.split('/').pop()} was eliminated!`, true);
+                        addEventLogItem(`${playerName} was eliminated!`, true);
                     }
                 }
             });
             
             // Mark targeted players for the current round
             targetedPlayers.forEach(player => {
+                const playerName = modelInfo[player] || player.split('/').pop();
                 const playerElement = document.getElementById(`player-${player.split('/').pop()}`);
                 if (playerElement && !playerElement.classList.contains('dead')) {
                     playerElement.classList.add('targeted');
@@ -1152,13 +1274,14 @@
             
             // Mark protected players for the current round
             protectedPlayers.forEach(player => {
+                const playerName = modelInfo[player] || player.split('/').pop();
                 const playerElement = document.getElementById(`player-${player.split('/').pop()}`);
                 if (playerElement) {
                     playerElement.classList.add('protected');
                     
                     // Add protection event if this is the current round
                     if (roundIndex === currentRoundIndex && targetedPlayers.has(player)) {
-                        addEventLogItem(`${player.split('/').pop()} was protected by the Doctor!`, true);
+                        addEventLogItem(`${playerName} was protected by the Doctor!`, true);
                     }
                 }
             });
@@ -1187,9 +1310,24 @@
                 <div class="dialogue-speaker phase-header"><strong>Midnight Activities - Results</strong></div>
                 <div class="dialogue-content">`;
             
+            // Create a mapping of model names to player names
+            const modelInfo = {};
+            Object.entries(participants).forEach(([model, roleData]) => {
+                // Handle both old and new format
+                let playerName;
+                if (typeof roleData === 'object') {
+                    playerName = roleData.player_name || model.split('/').pop();
+                } else {
+                    // Legacy format where roleData is just the role string
+                    playerName = model.split('/').pop();
+                }
+                modelInfo[model] = playerName;
+            });
+            
             // Show mafia targets
             if (prevRound.targeted_by_mafia && prevRound.targeted_by_mafia.length > 0) {
-                const targetName = prevRound.targeted_by_mafia[0].split('/').pop();
+                const targetModel = prevRound.targeted_by_mafia[0];
+                const targetName = modelInfo[targetModel] || targetModel.split('/').pop();
                 const wasProtected = prevRound.protected_by_doctor && 
                                     prevRound.protected_by_doctor.includes(prevRound.targeted_by_mafia[0]);
                 
@@ -1203,9 +1341,18 @@
             const mafiaActions = [];
             if (prevRound.actions) {
                 Object.entries(prevRound.actions).forEach(([model, action]) => {
-                    if (participants[model] === 'Mafia' && action.includes('Kill')) {
-                        const target = action.replace('Kill ', '');
-                        mafiaActions.push(`${model.split('/').pop()} voted to kill ${target}`);
+                    // Handle both old and new format for role check
+                    let role;
+                    if (typeof participants[model] === 'object') {
+                        role = participants[model].role;
+                    } else {
+                        role = participants[model];
+                    }
+                    
+                    if (role === 'Mafia' && action.includes('Kill')) {
+                        const voterName = modelInfo[model] || model.split('/').pop();
+                        const targetRaw = action.replace('Kill ', '');
+                        mafiaActions.push(`${voterName} voted to kill ${targetRaw}`);
                     }
                 });
             }
@@ -1218,7 +1365,8 @@
             
             // Show doctor protection
             if (prevRound.protected_by_doctor && prevRound.protected_by_doctor.length > 0) {
-                const protectedName = prevRound.protected_by_doctor[0].split('/').pop();
+                const protectedModel = prevRound.protected_by_doctor[0];
+                const protectedName = modelInfo[protectedModel] || protectedModel.split('/').pop();
                 const wasTargeted = prevRound.targeted_by_mafia && 
                                    prevRound.targeted_by_mafia.includes(prevRound.protected_by_doctor[0]);
                 
@@ -1231,9 +1379,18 @@
                 const doctorActions = [];
                 if (prevRound.actions) {
                     Object.entries(prevRound.actions).forEach(([model, action]) => {
-                        if (participants[model] === 'Doctor' && action.includes('Protect')) {
-                            const target = action.replace('Protect ', '');
-                            doctorActions.push(`${model.split('/').pop()} protected ${target}`);
+                        // Handle both old and new format for role check
+                        let role;
+                        if (typeof participants[model] === 'object') {
+                            role = participants[model].role;
+                        } else {
+                            role = participants[model];
+                        }
+                        
+                        if (role === 'Doctor' && action.includes('Protect')) {
+                            const doctorName = modelInfo[model] || model.split('/').pop();
+                            const targetRaw = action.replace('Protect ', '');
+                            doctorActions.push(`${doctorName} protected ${targetRaw}`);
                         }
                     });
                 }
@@ -1251,8 +1408,12 @@
             ) : [];
             
             if (nightEliminations.length > 0) {
+                const eliminatedNames = nightEliminations.map(model => {
+                    return modelInfo[model] || model.split('/').pop();
+                });
+                
                 summaryHtml += `<div class="night-eliminations" style="color: #d9534f; font-weight: bold; margin-top: 10px;">
-                    Players killed during the night: ${nightEliminations.map(p => p.split('/').pop()).join(', ')}
+                    Players killed during the night: ${eliminatedNames.join(', ')}
                 </div>`;
             }
             

@@ -21,16 +21,18 @@ from game_templates import (
 class Player:
     """Represents an LLM player in the Mafia game."""
 
-    def __init__(self, model_name, role, language=None):
+    def __init__(self, model_name, player_name, role, language=None):
         """
         Initialize a player.
 
         Args:
-            model_name (str): The name of the LLM model to use for this player.
+            model_name (str): The name of the LLM model to use for this player (hidden from other players).
+            player_name (str): The visible name of the player in the game.
             role (Role): The role of the player in the game.
             language (str, optional): The language for the player. Defaults to English.
         """
         self.model_name = model_name
+        self.player_name = player_name
         self.role = role
         self.alive = True
         self.protected = False  # Whether the player is protected by the doctor
@@ -38,7 +40,7 @@ class Player:
 
     def __str__(self):
         """Return a string representation of the player."""
-        return f"{self.model_name} ({self.role.value})"
+        return f"{self.player_name} ({self.role.value}) [Model: {self.model_name}]"
 
     def _find_target_player(self, target_name, all_players, exclude_mafia=False):
         """
@@ -59,7 +61,7 @@ class Player:
             if exclude_mafia and player.role == Role.MAFIA:
                 continue
 
-            if target_name.lower() in player.model_name.lower():
+            if target_name.lower() in player.player_name.lower():
                 return player
 
         return None
@@ -83,8 +85,8 @@ class Player:
         if discussion_history is None:
             discussion_history = ""
 
-        # Get list of player names
-        player_names = [p.model_name for p in all_players if p.alive]
+        # Get list of player names (using visible player names)
+        player_names = [p.player_name for p in all_players if p.alive]
 
         # Get the appropriate language, defaulting to English if not supported
         language = self.language if self.language in GAME_RULES else "English"
@@ -93,8 +95,10 @@ class Player:
         game_rules = GAME_RULES[language]
 
         if self.role == Role.MAFIA:
-            # For Mafia members
-            mafia_names = [p.model_name for p in mafia_members if p != self and p.alive]
+            # For Mafia members (using visible player names)
+            mafia_names = [
+                p.player_name for p in mafia_members if p != self and p.alive
+            ]
             mafia_list = f"{', '.join(mafia_names) if mafia_names else 'None (you are the only Mafia left)'}"
             if language == "Spanish":
                 mafia_list = f"{', '.join(mafia_names) if mafia_names else 'Ninguno (eres el único miembro de la Mafia que queda)'}"
@@ -104,7 +108,7 @@ class Player:
                 mafia_list = f"{', '.join(mafia_names) if mafia_names else '없음 (당신이 유일하게 남은 마피아입니다)'}"
 
             prompt = PROMPT_TEMPLATES[language][Role.MAFIA].format(
-                model_name=self.model_name,
+                model_name=self.player_name,  # Use player_name in prompts
                 game_rules=game_rules,
                 mafia_members=mafia_list,
                 player_names=", ".join(player_names),
@@ -115,7 +119,7 @@ class Player:
         elif self.role == Role.DOCTOR:
             # For Doctor
             prompt = PROMPT_TEMPLATES[language][Role.DOCTOR].format(
-                model_name=self.model_name,
+                model_name=self.player_name,  # Use player_name in prompts
                 game_rules=game_rules,
                 player_names=", ".join(player_names),
                 game_state=game_state,
@@ -125,7 +129,7 @@ class Player:
         else:  # Role.VILLAGER
             # For Villagers
             prompt = PROMPT_TEMPLATES[language][Role.VILLAGER].format(
-                model_name=self.model_name,
+                model_name=self.player_name,  # Use player_name in prompts
                 game_rules=game_rules,
                 player_names=", ".join(player_names),
                 game_state=game_state,
@@ -250,7 +254,7 @@ class Player:
 
         # Generate prompt based on language
         prompt = CONFIRMATION_VOTE_TEMPLATES[language].format(
-            model_name=self.model_name,
+            model_name=self.player_name,  # Use player_name in prompts
             player_to_eliminate=player_to_eliminate,
             confirmation_explanation=confirmation_explanation,
             game_state_str=game_state_str,

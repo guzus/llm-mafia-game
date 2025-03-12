@@ -191,7 +191,20 @@
                     
                     // Format participants
                     const participants = Object.entries(game.participants)
-                        .map(([model, role]) => `${model.split('/').pop()} (${role})`)
+                        .map(([model, roleData]) => {
+                            // Handle both old and new format
+                            let role, playerName;
+                            if (typeof roleData === 'object') {
+                                role = roleData.role;
+                                playerName = roleData.player_name || model.split('/').pop();
+                            } else {
+                                // Legacy format where roleData is just the role string
+                                role = roleData;
+                                playerName = model.split('/').pop();
+                            }
+                            
+                            return `${playerName} (${role})`;
+                        })
                         .join(', ');
                     
                     row.innerHTML = `
