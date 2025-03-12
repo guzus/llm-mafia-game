@@ -159,6 +159,80 @@
             }
         }
         
+        // Function to get player name and role from participant data
+        function getPlayerInfo(model, roleData) {
+            let playerName = model.split('/').pop();
+            let role = roleData;
+            
+            if (typeof roleData === 'object') {
+                if (roleData.player_name) {
+                    playerName = roleData.player_name;
+                }
+                if (roleData.role) {
+                    role = roleData.role;
+                }
+            }
+            
+            // Ensure role is a string before using it
+            const roleClass = typeof role === 'string' ? role.toLowerCase() : '';
+            
+            return { playerName, role, roleClass };
+        }
+        
+        // Function to create model info mapping
+        function createModelInfoMapping(participants) {
+            const modelInfo = {};
+            Object.entries(participants || {}).forEach(([model, roleData]) => {
+                const { playerName, role, roleClass } = getPlayerInfo(model, roleData);
+                modelInfo[model] = {
+                    playerName,
+                    role,
+                    roleClass
+                };
+            });
+            return modelInfo;
+        }
+        
+        // Function to sanitize participant data
+        function sanitizeRoles(participants) {
+            if (!participants) return participants;
+            
+            const sanitized = {};
+            Object.entries(participants).forEach(([model, roleData]) => {
+                if (typeof roleData === 'object') {
+                    // Make sure role is a string
+                    if (roleData.role && typeof roleData.role !== 'string') {
+                        roleData.role = String(roleData.role);
+                    }
+                    sanitized[model] = roleData;
+                } else {
+                    // Convert non-string roles to strings
+                    sanitized[model] = typeof roleData === 'string' ? roleData : String(roleData);
+                }
+            });
+            return sanitized;
+        }
+        
+        // Function to get eliminated players up to a specific round
+        function getEliminatedPlayers(data, roundIndex, includeCurrentRound = false) {
+            const eliminatedPlayers = new Set();
+            
+            // Determine which players are eliminated up to this point
+            for (let i = 0; i < roundIndex; i++) {
+                const round = data.rounds[i];
+                if (round.eliminations) {
+                    round.eliminations.forEach(player => eliminatedPlayers.add(player));
+                }
+            }
+            
+            // For end of round, also include eliminations from the current round
+            if (includeCurrentRound && data.rounds[roundIndex].eliminations) {
+                data.rounds[roundIndex].eliminations.forEach(player => eliminatedPlayers.add(player));
+            }
+            
+            return eliminatedPlayers;
+        }
+        
         // Fetch game data
         fetch(`/api/game/${gameId}`)
             .then(response => {
@@ -169,26 +243,6 @@
             })
             .then(data => {
                 console.log('Game data received:', data);
-                
-                // Helper function to ensure all roles are properly formatted
-                function sanitizeRoles(participants) {
-                    if (!participants) return participants;
-                    
-                    const sanitized = {};
-                    Object.entries(participants).forEach(([model, roleData]) => {
-                        if (typeof roleData === 'object') {
-                            // Make sure role is a string
-                            if (roleData.role && typeof roleData.role !== 'string') {
-                                roleData.role = String(roleData.role);
-                            }
-                            sanitized[model] = roleData;
-                        } else {
-                            // Convert non-string roles to strings
-                            sanitized[model] = typeof roleData === 'string' ? roleData : String(roleData);
-                        }
-                    });
-                    return sanitized;
-                }
                 
                 // Sanitize participant data to prevent toLowerCase errors
                 if (data.participants) {
@@ -244,21 +298,8 @@
             // Create participant elements with appropriate colors
             const participantsHtml = Object.entries(participants)
                 .map(([model, roleData]) => {
-                    // Get player name and role from roleData
-                    let playerName = model.split('/').pop();
-                    let role = roleData;
-                    if (typeof roleData === 'object') {
-                        if (roleData.player_name) {
-                            playerName = roleData.player_name;
-                        }
-                        if (roleData.role) {
-                            role = roleData.role;
-                        }
-                    }
-                    
+                    const { playerName, role, roleClass } = getPlayerInfo(model, roleData);
                     const modelName = model.split('/').pop();
-                    // Ensure role is a string before calling toLowerCase()
-                    const roleClass = typeof role === 'string' ? role.toLowerCase() : '';
                     
                     // Add crown icon for winners based on the winner team
                     const isWinner = 
@@ -405,20 +446,7 @@
         // Function to create player status section showing alive players and their roles
         function createPlayerStatusSection(data, roundIndex, position) {
             const participants = data.participants || {};
-            const eliminatedPlayers = new Set();
-            
-            // Determine which players are eliminated up to this point
-            for (let i = 0; i < roundIndex; i++) {
-                const round = data.rounds[i];
-                if (round.eliminations) {
-                    round.eliminations.forEach(player => eliminatedPlayers.add(player));
-                }
-            }
-            
-            // For end of round, also include eliminations from the current round
-            if (position === 'end' && data.rounds[roundIndex].eliminations) {
-                data.rounds[roundIndex].eliminations.forEach(player => eliminatedPlayers.add(player));
-            }
+            const eliminatedPlayers = getEliminatedPlayers(data, roundIndex, position === 'end');
             
             // Create the player status section
             let html = `<div class="player-status-section ${position}-of-round">
@@ -429,22 +457,8 @@
             Object.entries(participants).forEach(([model, roleData]) => {
                 const isEliminated = eliminatedPlayers.has(model);
                 if (!isEliminated) {
-                    // Get player name and role from roleData
+                    const { playerName, role, roleClass } = getPlayerInfo(model, roleData);
                     const modelName = model.split('/').pop();
-                    let playerName = modelName;
-                    let role = roleData;
-                    
-                    if (typeof roleData === 'object') {
-                        if (roleData.player_name) {
-                            playerName = roleData.player_name;
-                        }
-                        if (roleData.role) {
-                            role = roleData.role;
-                        }
-                    }
-                    
-                    // Ensure role is a string before calling toLowerCase()
-                    const roleClass = typeof role === 'string' ? role.toLowerCase() : '';
                     
                     html += `<div class="player-status-item ${roleClass}">
                         <span class="player-status-name">${playerName}</span>
@@ -468,25 +482,7 @@
             }
             
             // Create a mapping of model names to their roles and player names for coloring
-            const modelInfo = {};
-            const participants = data.participants || {};
-            Object.entries(participants).forEach(([model, roleData]) => {
-                // Handle both old and new format
-                let role, playerName;
-                if (typeof roleData === 'object') {
-                    role = roleData.role;
-                    playerName = roleData.player_name || model.split('/').pop();
-                } else {
-                    // Legacy format where roleData is just the role string
-                    role = roleData;
-                    playerName = model.split('/').pop();
-                }
-                
-                modelInfo[model] = {
-                    role: typeof role === 'string' ? role.toLowerCase() : '',
-                    playerName: playerName
-                };
-            });
+            const modelInfo = createModelInfoMapping(data.participants);
             
             let dialogueHtml = '';
             
@@ -569,9 +565,10 @@
                         const model = message.speaker || 'System';
                         const info = modelInfo[model] || { 
                             playerName: model.split('/').pop(),
-                            role: ''
+                            role: '',
+                            roleClass: ''
                         };
-                        const roleClass = info.role;
+                        const roleClass = info.roleClass;
                         
                         // Set border color based on phase
                         const borderStyle = message.phase === 'night' 
@@ -603,13 +600,13 @@
                             </div>`;
                         }
                         
-                        // Get role from participants or from message
+                        // Get role from data.participants or from message
                         let role = '';
-                        if (participants[model]) {
-                            if (typeof participants[model] === 'object') {
-                                role = participants[model].role;
+                        if (data.participants[model]) {
+                            if (typeof data.participants[model] === 'object') {
+                                role = data.participants[model].role;
                             } else {
-                                role = participants[model];
+                                role = data.participants[model];
                             }
                         } else if (message.role) {
                             role = message.role;
@@ -638,7 +635,7 @@
                         // Insert night phase summary after the last night message
                         if (msgIndex === lastNightMessageIndex && message.phase === 'night') {
                             // Create a section for Night Phase Results
-                            dialogueHtml += createNightPhaseSummary(index, data.rounds[index], participants);
+                            dialogueHtml += createNightPhaseSummary(index, data.rounds[index], data.participants);
                         }
                     });
                     
@@ -818,20 +815,7 @@
         // Helper function to create player status list HTML for dialogue view
         function createPlayerStatusListHTML(data, roundIndex, position) {
             const participants = data.participants || {};
-            const eliminatedPlayers = new Set();
-            
-            // Determine which players are eliminated up to this point
-            for (let i = 0; i < roundIndex; i++) {
-                const round = data.rounds[i];
-                if (round.eliminations) {
-                    round.eliminations.forEach(player => eliminatedPlayers.add(player));
-                }
-            }
-            
-            // For end of round, also include eliminations from the current round
-            if (position === 'end' && data.rounds[roundIndex].eliminations) {
-                data.rounds[roundIndex].eliminations.forEach(player => eliminatedPlayers.add(player));
-            }
+            const eliminatedPlayers = getEliminatedPlayers(data, roundIndex, position === 'end');
             
             let html = '';
             
@@ -839,22 +823,8 @@
             Object.entries(participants).forEach(([model, roleData]) => {
                 const isEliminated = eliminatedPlayers.has(model);
                 if (!isEliminated) {
-                    // Get player name and role from roleData
+                    const { playerName, role, roleClass } = getPlayerInfo(model, roleData);
                     const modelName = model.split('/').pop();
-                    let playerName = modelName;
-                    let role = roleData;
-                    
-                    if (typeof roleData === 'object') {
-                        if (roleData.player_name) {
-                            playerName = roleData.player_name;
-                        }
-                        if (roleData.role) {
-                            role = roleData.role;
-                        }
-                    }
-                    
-                    // Ensure role is a string before calling toLowerCase()
-                    const roleClass = typeof role === 'string' ? role.toLowerCase() : '';
                     
                     html += `<div class="player-status-item ${roleClass}">
                         <span class="player-status-name">${playerName}</span>
@@ -1243,19 +1213,7 @@
         
         function updatePlayerStatus(data, roundIndex = 0) {
             // Create a mapping of model names to player names
-            const modelInfo = {};
-            const participants = data.participants || {};
-            Object.entries(participants).forEach(([model, roleData]) => {
-                // Handle both old and new format
-                let playerName;
-                if (typeof roleData === 'object') {
-                    playerName = roleData.player_name || model.split('/').pop();
-                } else {
-                    // Legacy format where roleData is just the role string
-                    playerName = model.split('/').pop();
-                }
-                modelInfo[model] = playerName;
-            });
+            const modelInfo = createModelInfoMapping(data.participants);
             
             // Reset all players
             document.querySelectorAll('.player').forEach(player => {
@@ -1265,18 +1223,15 @@
             });
             
             // Mark eliminated players
-            const eliminatedPlayers = new Set();
+            const eliminatedPlayers = getEliminatedPlayers(data, roundIndex, true);
+            
+            // Mark targeted players for the current round
             const targetedPlayers = new Set();
             const protectedPlayers = new Set();
             
             // Process all rounds up to the current one
             for (let i = 0; i <= roundIndex; i++) {
                 const round = data.rounds[i];
-                
-                // Add players eliminated by vote
-                if (round.eliminated_by_vote) {
-                    round.eliminated_by_vote.forEach(player => eliminatedPlayers.add(player));
-                }
                 
                 // Add players targeted by mafia
                 if (round.targeted_by_mafia) {
@@ -1360,7 +1315,7 @@
             }
         }
         
-        // Add this function before the displayGameResult function
+        // Function to create night phase summary
         function createNightPhaseSummary(roundIndex, prevRound, participants) {
             if (!prevRound) return '';
             
@@ -1368,29 +1323,18 @@
                 <div class="dialogue-speaker phase-header"><strong>Midnight Activities - Results</strong></div>
                 <div class="dialogue-content">`;
             
-            // Create a mapping of model names to player names
-            const modelInfo = {};
-            Object.entries(participants).forEach(([model, roleData]) => {
-                // Handle both old and new format
-                let playerName;
-                if (typeof roleData === 'object') {
-                    playerName = roleData.player_name || model.split('/').pop();
-                } else {
-                    // Legacy format where roleData is just the role string
-                    playerName = model.split('/').pop();
-                }
-                modelInfo[model] = playerName;
-            });
+            // Create a mapping of model names to player names using our helper function
+            const modelInfo = createModelInfoMapping(participants);
             
             // Show mafia targets
             if (prevRound.targeted_by_mafia && prevRound.targeted_by_mafia.length > 0) {
                 const targetModel = prevRound.targeted_by_mafia[0];
-                const targetName = modelInfo[targetModel] || targetModel.split('/').pop();
+                const targetInfo = modelInfo[targetModel] || { playerName: targetModel.split('/').pop() };
                 const wasProtected = prevRound.protected_by_doctor && 
                                     prevRound.protected_by_doctor.includes(prevRound.targeted_by_mafia[0]);
                 
                 summaryHtml += `<div class="action-list mafia-target" style="margin-bottom: 10px; ${wasProtected ? 'border-left: 3px solid #28a745;' : 'border-left: 3px solid #dc3545;'}">
-                    <strong>Mafia Target:</strong> ${targetName}
+                    <strong>Mafia Target:</strong> ${targetInfo.playerName}
                     ${wasProtected ? ' <span style="color: #28a745;">(Protected by Doctor)</span>' : ' <span style="color: #dc3545;">(Killed)</span>'}
                 </div>`;
             }
