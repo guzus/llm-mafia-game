@@ -244,15 +244,16 @@
             // Create participant elements with appropriate colors
             const participantsHtml = Object.entries(participants)
                 .map(([model, roleData]) => {
-                    // Handle both old and new format
-                    let role, playerName;
+                    // Get player name and role from roleData
+                    let playerName = model.split('/').pop();
+                    let role = roleData;
                     if (typeof roleData === 'object') {
-                        role = roleData.role;
-                        playerName = roleData.player_name || model.split('/').pop();
-                    } else {
-                        // Legacy format where roleData is just the role string
-                        role = roleData;
-                        playerName = model.split('/').pop();
+                        if (roleData.player_name) {
+                            playerName = roleData.player_name;
+                        }
+                        if (roleData.role) {
+                            role = roleData.role;
+                        }
                     }
                     
                     const modelName = model.split('/').pop();
@@ -425,14 +426,30 @@
                 <div class="player-status-list">`;
             
             // Add each player with their role
-            Object.entries(participants).forEach(([model, role]) => {
+            Object.entries(participants).forEach(([model, roleData]) => {
                 const isEliminated = eliminatedPlayers.has(model);
                 if (!isEliminated) {
+                    // Get player name and role from roleData
                     const modelName = model.split('/').pop();
+                    let playerName = modelName;
+                    let role = roleData;
+                    
+                    if (typeof roleData === 'object') {
+                        if (roleData.player_name) {
+                            playerName = roleData.player_name;
+                        }
+                        if (roleData.role) {
+                            role = roleData.role;
+                        }
+                    }
+                    
+                    // Ensure role is a string before calling toLowerCase()
                     const roleClass = typeof role === 'string' ? role.toLowerCase() : '';
+                    
                     html += `<div class="player-status-item ${roleClass}">
-                        <span class="player-status-name">${modelName}</span>
+                        <span class="player-status-name">${playerName}</span>
                         <span class="player-status-role">${role}</span>
+                        <span class="player-status-model">[Model: ${modelName}]</span>
                     </div>`;
                 }
             });
@@ -822,21 +839,27 @@
             Object.entries(participants).forEach(([model, roleData]) => {
                 const isEliminated = eliminatedPlayers.has(model);
                 if (!isEliminated) {
-                    // Handle both old and new format
-                    let role;
+                    // Get player name and role from roleData
+                    const modelName = model.split('/').pop();
+                    let playerName = modelName;
+                    let role = roleData;
+                    
                     if (typeof roleData === 'object') {
-                        role = roleData.role;
-                    } else {
-                        // Legacy format where roleData is just the role string
-                        role = roleData;
+                        if (roleData.player_name) {
+                            playerName = roleData.player_name;
+                        }
+                        if (roleData.role) {
+                            role = roleData.role;
+                        }
                     }
                     
-                    const modelName = model.split('/').pop();
                     // Ensure role is a string before calling toLowerCase()
                     const roleClass = typeof role === 'string' ? role.toLowerCase() : '';
+                    
                     html += `<div class="player-status-item ${roleClass}">
-                        <span class="player-status-name">${modelName}</span>
+                        <span class="player-status-name">${playerName}</span>
                         <span class="player-status-role">${role}</span>
+                        <span class="player-status-model">[Model: ${modelName}]</span>
                     </div>`;
                 }
             });
