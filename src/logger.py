@@ -172,21 +172,48 @@ class GameLogger:
         self.print(f"Role: {role}", role_color, bold=True)
         self.print("-" * 40, Color.BRIGHT_BLACK)
 
-    def player_response(self, player_name, role, response):
-        """Log player response."""
+    def player_response(self, model_name, role, response, player_name=None):
+        """
+        Log player response.
+
+        Args:
+            model_name (str): The model name of the player.
+            role (str): The role of the player.
+            response (str): The player's response.
+            player_name (str, optional): The display name of the player.
+        """
         role_color = self.role_colors.get(role, Color.WHITE)
 
         # Format the response with indentation
         formatted_response = response.replace("\n", "\n    ")
 
-        self.print(f"┌─ {player_name} ({role}) ", role_color, bold=True)
+        # Display both model name and player name if provided
+        display_name = model_name
+        if player_name and player_name != model_name:
+            display_name = f"{player_name} [{model_name}]"
+
+        self.print(f"┌─ {display_name} ({role}) ", role_color, bold=True)
         self.print(f"└─ {formatted_response}", Color.WHITE)
         self.print("")
 
-    def player_action(self, player_name, role, action):
-        """Log player action."""
+    def player_action(self, model_name, role, action, player_name=None):
+        """
+        Log player action.
+
+        Args:
+            model_name (str): The model name of the player.
+            role (str): The role of the player.
+            action (str): The action taken by the player.
+            player_name (str, optional): The display name of the player.
+        """
         role_color = self.role_colors.get(role, Color.WHITE)
-        self.print(f"ACTION: {player_name} ({role}) - {action}", role_color, bold=True)
+
+        # Display both model name and player name if provided
+        display_name = model_name
+        if player_name and player_name != model_name:
+            display_name = f"{player_name} [{model_name}]"
+
+        self.print(f"ACTION: {display_name} ({role}) - {action}", role_color, bold=True)
 
     def event(self, text, color=Color.YELLOW):
         """Log game event."""
