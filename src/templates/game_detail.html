@@ -169,6 +169,32 @@
             })
             .then(data => {
                 console.log('Game data received:', data);
+                
+                // Helper function to ensure all roles are properly formatted
+                function sanitizeRoles(participants) {
+                    if (!participants) return participants;
+                    
+                    const sanitized = {};
+                    Object.entries(participants).forEach(([model, roleData]) => {
+                        if (typeof roleData === 'object') {
+                            // Make sure role is a string
+                            if (roleData.role && typeof roleData.role !== 'string') {
+                                roleData.role = String(roleData.role);
+                            }
+                            sanitized[model] = roleData;
+                        } else {
+                            // Convert non-string roles to strings
+                            sanitized[model] = typeof roleData === 'string' ? roleData : String(roleData);
+                        }
+                    });
+                    return sanitized;
+                }
+                
+                // Sanitize participant data to prevent toLowerCase errors
+                if (data.participants) {
+                    data.participants = sanitizeRoles(data.participants);
+                }
+                
                 gameData = data;
                 displayGameInfo(data);
                 displayGameLog(data);
@@ -230,7 +256,8 @@
                     }
                     
                     const modelName = model.split('/').pop();
-                    const roleClass = role.toLowerCase();
+                    // Ensure role is a string before calling toLowerCase()
+                    const roleClass = typeof role === 'string' ? role.toLowerCase() : '';
                     
                     // Add crown icon for winners based on the winner team
                     const isWinner = 
@@ -272,8 +299,16 @@
             // Create a mapping of model names to their roles for coloring
             const modelRoles = {};
             const participants = data.participants || {};
-            Object.entries(participants).forEach(([model, role]) => {
-                modelRoles[model] = role.toLowerCase();
+            Object.entries(participants).forEach(([model, roleData]) => {
+                // Handle both old and new format
+                let role;
+                if (typeof roleData === 'object') {
+                    role = roleData.role;
+                } else {
+                    // Legacy format where roleData is just the role string
+                    role = roleData;
+                }
+                modelRoles[model] = typeof role === 'string' ? role.toLowerCase() : '';
             });
             
             let gameLogHtml = '';
@@ -394,7 +429,7 @@
                 const isEliminated = eliminatedPlayers.has(model);
                 if (!isEliminated) {
                     const modelName = model.split('/').pop();
-                    const roleClass = role.toLowerCase();
+                    const roleClass = typeof role === 'string' ? role.toLowerCase() : '';
                     html += `<div class="player-status-item ${roleClass}">
                         <span class="player-status-name">${modelName}</span>
                         <span class="player-status-role">${role}</span>
@@ -431,7 +466,7 @@
                 }
                 
                 modelInfo[model] = {
-                    role: role.toLowerCase(),
+                    role: typeof role === 'string' ? role.toLowerCase() : '',
                     playerName: playerName
                 };
             });
@@ -788,20 +823,20 @@
                 const isEliminated = eliminatedPlayers.has(model);
                 if (!isEliminated) {
                     // Handle both old and new format
-                    let role, playerName;
+                    let role;
                     if (typeof roleData === 'object') {
                         role = roleData.role;
-                        playerName = roleData.player_name || model.split('/').pop();
                     } else {
                         // Legacy format where roleData is just the role string
                         role = roleData;
-                        playerName = model.split('/').pop();
                     }
                     
-                    const roleClass = role.toLowerCase();
-                    html += `<div class="player-status-item ${roleClass}" style="padding: 8px 12px; border-radius: 4px; text-align: center;">
-                        <span style="font-weight: bold;">${playerName}</span>
-                        <span style="font-size: 0.85em;">${role}</span>
+                    const modelName = model.split('/').pop();
+                    // Ensure role is a string before calling toLowerCase()
+                    const roleClass = typeof role === 'string' ? role.toLowerCase() : '';
+                    html += `<div class="player-status-item ${roleClass}">
+                        <span class="player-status-name">${modelName}</span>
+                        <span class="player-status-role">${role}</span>
                     </div>`;
                 }
             });
@@ -1349,7 +1384,7 @@
                         role = participants[model];
                     }
                     
-                    if (role === 'Mafia' && action.includes('Kill')) {
+                    if (typeof role === 'string' && role === 'Mafia' && action.includes('Kill')) {
                         const voterName = modelInfo[model] || model.split('/').pop();
                         const targetRaw = action.replace('Kill ', '');
                         mafiaActions.push(`${voterName} voted to kill ${targetRaw}`);
@@ -1387,7 +1422,7 @@
                             role = participants[model];
                         }
                         
-                        if (role === 'Doctor' && action.includes('Protect')) {
+                        if (typeof role === 'string' && role === 'Doctor' && action.includes('Protect')) {
                             const doctorName = modelInfo[model] || model.split('/').pop();
                             const targetRaw = action.replace('Protect ', '');
                             doctorActions.push(`${doctorName} protected ${targetRaw}`);
