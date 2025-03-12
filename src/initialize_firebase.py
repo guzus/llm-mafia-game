@@ -22,13 +22,41 @@ def initialize_database():
             "winner": "Mafia",
             "language": "English",
             "participants": {
-                "openai/gpt-4-turbo": "Mafia",
-                "anthropic/claude-3-opus": "Villager",
-                "anthropic/claude-3-sonnet": "Villager",
-                "google/gemini-pro": "Villager",
-                "mistralai/mistral-large": "Doctor",
-                "meta-llama/llama-3-70b-instruct": "Villager",
-                "anthropic/claude-3-haiku": "Villager",
+                "Alex": {
+                    "role": "Mafia",
+                    "model_name": "openai/gpt-4-turbo",
+                    "player_name": "Alex",
+                },
+                "Bailey": {
+                    "role": "Villager",
+                    "model_name": "anthropic/claude-3-opus",
+                    "player_name": "Bailey",
+                },
+                "Casey": {
+                    "role": "Villager",
+                    "model_name": "anthropic/claude-3-sonnet",
+                    "player_name": "Casey",
+                },
+                "Dana": {
+                    "role": "Villager",
+                    "model_name": "google/gemini-pro",
+                    "player_name": "Dana",
+                },
+                "Ellis": {
+                    "role": "Doctor",
+                    "model_name": "mistralai/mistral-large",
+                    "player_name": "Ellis",
+                },
+                "Finley": {
+                    "role": "Villager",
+                    "model_name": "meta-llama/llama-3-70b-instruct",
+                    "player_name": "Finley",
+                },
+                "Gray": {
+                    "role": "Villager",
+                    "model_name": "anthropic/claude-3-haiku",
+                    "player_name": "Gray",
+                },
             },
         },
         {
@@ -36,13 +64,41 @@ def initialize_database():
             "winner": "Villagers",
             "language": "English",
             "participants": {
-                "openai/gpt-4-turbo": "Villager",
-                "anthropic/claude-3-opus": "Mafia",
-                "anthropic/claude-3-sonnet": "Doctor",
-                "google/gemini-pro": "Villager",
-                "mistralai/mistral-large": "Villager",
-                "meta-llama/llama-3-70b-instruct": "Mafia",
-                "anthropic/claude-3-haiku": "Villager",
+                "Harper": {
+                    "role": "Villager",
+                    "model_name": "openai/gpt-4-turbo",
+                    "player_name": "Harper",
+                },
+                "Indigo": {
+                    "role": "Mafia",
+                    "model_name": "anthropic/claude-3-opus",
+                    "player_name": "Indigo",
+                },
+                "Jordan": {
+                    "role": "Doctor",
+                    "model_name": "anthropic/claude-3-sonnet",
+                    "player_name": "Jordan",
+                },
+                "Kennedy": {
+                    "role": "Villager",
+                    "model_name": "google/gemini-pro",
+                    "player_name": "Kennedy",
+                },
+                "Logan": {
+                    "role": "Villager",
+                    "model_name": "mistralai/mistral-large",
+                    "player_name": "Logan",
+                },
+                "Morgan": {
+                    "role": "Mafia",
+                    "model_name": "meta-llama/llama-3-70b-instruct",
+                    "player_name": "Morgan",
+                },
+                "Nico": {
+                    "role": "Villager",
+                    "model_name": "anthropic/claude-3-haiku",
+                    "player_name": "Nico",
+                },
             },
         },
         {

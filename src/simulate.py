@@ -127,15 +127,19 @@ def run_simulation(
                         stats["villager_wins"] += 1
 
                     # Update model statistics
-                    for model, role_data in participants.items():
-                        stats["model_stats"][model]["games"] += 1
-
+                    for player_name, role_data in participants.items():
                         # Handle both old and new format
                         if isinstance(role_data, dict):
                             role = role_data.get("role")
+                            model = role_data.get(
+                                "model_name", player_name
+                            )  # Use player_name as fallback
                         else:
                             # Legacy format where role_data is just the role string
                             role = role_data
+                            model = player_name  # In legacy format, the key was the model name
+
+                        stats["model_stats"][model]["games"] += 1
 
                         if role == "Mafia":
                             stats["model_stats"][model]["mafia_games"] += 1
@@ -199,15 +203,21 @@ def run_simulation(
                     stats["villager_wins"] += 1
 
                 # Update model statistics
-                for model, role_data in participants.items():
-                    stats["model_stats"][model]["games"] += 1
-
+                for player_name, role_data in participants.items():
                     # Handle both old and new format
                     if isinstance(role_data, dict):
                         role = role_data.get("role")
+                        model = role_data.get(
+                            "model_name", player_name
+                        )  # Use player_name as fallback
                     else:
                         # Legacy format where role_data is just the role string
                         role = role_data
+                        model = (
+                            player_name  # In legacy format, the key was the model name
+                        )
+
+                    stats["model_stats"][model]["games"] += 1
 
                     if role == "Mafia":
                         stats["model_stats"][model]["mafia_games"] += 1

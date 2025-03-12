@@ -178,13 +178,19 @@ class FirebaseManager:
                 winner = game.get("winner")
                 participants = game.get("participants", {})
 
-                for model, data in participants.items():
+                for player_name, data in participants.items():
                     # Handle both old and new format
                     if isinstance(data, dict):
                         role = data.get("role")
+                        model = data.get(
+                            "model_name", player_name
+                        )  # Use player_name as fallback
                     else:
                         # Legacy format where data is just the role string
                         role = data
+                        model = (
+                            player_name  # In legacy format, the key was the model name
+                        )
 
                     # Initialize model stats if not exists
                     if model not in stats:

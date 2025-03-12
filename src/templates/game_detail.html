@@ -169,34 +169,48 @@
         }
         
         // Function to get player name and role from participant data
-        function getPlayerInfo(model, roleData) {
-            let playerName = model.split('/').pop();
+        function getPlayerInfo(playerName, roleData) {
             let role = roleData;
+            let modelName = playerName;  // Default to playerName if model_name not available
             
             if (typeof roleData === 'object') {
-                if (roleData.player_name) {
-                    playerName = roleData.player_name;
-                }
                 if (roleData.role) {
                     role = roleData.role;
+                }
+                if (roleData.model_name) {
+                    modelName = roleData.model_name.split('/').pop();
                 }
             }
             
             // Ensure role is a string before using it
             const roleClass = typeof role === 'string' ? role.toLowerCase() : '';
             
-            return { playerName, role, roleClass };
+            return { playerName, role, roleClass, modelName };
         }
         
         // Function to create model info mapping
         function createModelInfoMapping(participants) {
             const modelInfo = {};
-            Object.entries(participants || {}).forEach(([model, roleData]) => {
-                const { playerName, role, roleClass } = getPlayerInfo(model, roleData);
+            Object.entries(participants || {}).forEach(([playerName, roleData]) => {
+                const { role, roleClass, modelName } = getPlayerInfo(playerName, roleData);
+                
+                // Store by model name for backward compatibility
+                const model = roleData.model_name || playerName;
+                
                 modelInfo[model] = {
                     playerName,
                     role,
-                    roleClass
+                    roleClass,
+                    modelName
+                };
+                
+                // Also store by player name for new structure
+                modelInfo[playerName] = {
+                    playerName,
+                    role,
+                    roleClass,
+                    modelName,
+                    model
                 };
             });
             return modelInfo;
@@ -306,9 +320,8 @@
             
             // Create participant elements with appropriate colors
             const participantsHtml = Object.entries(participants)
-                .map(([model, roleData]) => {
-                    const { playerName, role, roleClass } = getPlayerInfo(model, roleData);
-                    const modelName = model.split('/').pop();
+                .map(([playerName, roleData]) => {
+                    const { role, roleClass, modelName } = getPlayerInfo(playerName, roleData);
                     
                     // Add crown icon for winners based on the winner team
                     const isWinner = 
@@ -345,9 +358,8 @@
             const playersList = stickyBanner.querySelector('.sticky-players-list');
             
             // Create player items for the sticky banner
-            Object.entries(participants).forEach(([model, roleData]) => {
-                const { playerName, role, roleClass } = getPlayerInfo(model, roleData);
-                const modelName = model.split('/').pop();
+            Object.entries(participants).forEach(([playerName, roleData]) => {
+                const { role, roleClass, modelName } = getPlayerInfo(playerName, roleData);
                 
                 const playerItem = document.createElement('div');
                 playerItem.className = `sticky-player-item ${roleClass}`;
@@ -389,7 +401,7 @@
                 gameInfoRect = document.querySelector('.game-info').getBoundingClientRect();
                 
                 // Hide banner if screen becomes too small
-                if (!isScreenHeightSufficient() && bannerVisible) {
+                if (!isScreenWidthSufficient() && bannerVisible) {
                     stickyBanner.classList.remove('visible');
                     bannerVisible = false;
                 }
@@ -409,16 +421,21 @@
             // Create a mapping of model names to their roles for coloring
             const modelRoles = {};
             const participants = data.participants || {};
-            Object.entries(participants).forEach(([model, roleData]) => {
+            Object.entries(participants).forEach(([playerName, roleData]) => {
                 // Handle both old and new format
                 let role;
+                let modelName = roleData.model_name || playerName;
+                
                 if (typeof roleData === 'object') {
                     role = roleData.role;
                 } else {
                     // Legacy format where roleData is just the role string
                     role = roleData;
                 }
-                modelRoles[model] = typeof role === 'string' ? role.toLowerCase() : '';
+                
+                modelRoles[modelName] = typeof role === 'string' ? role.toLowerCase() : '';
+                // Also store by player name for new structure
+                modelRoles[playerName] = typeof role === 'string' ? role.toLowerCase() : '';
             });
             
             let gameLogHtml = '';
@@ -888,16 +905,18 @@
             let html = '';
             
             // Add each player with their role
-            Object.entries(participants).forEach(([model, roleData]) => {
-                const isEliminated = eliminatedPlayers.has(model);
+            Object.entries(participants).forEach(([playerName, roleData]) => {
+                // Check if player is eliminated by model_name or player_name
+                const modelName = roleData.model_name || playerName;
+                const isEliminated = eliminatedPlayers.has(modelName) || eliminatedPlayers.has(playerName);
+                
                 if (!isEliminated) {
-                    const { playerName, role, roleClass } = getPlayerInfo(model, roleData);
-                    const modelName = model.split('/').pop();
+                    const { role, roleClass } = getPlayerInfo(playerName, roleData);
                     
                     html += `<div class="player-status-item ${roleClass}">
                         <span class="player-status-name">${playerName}</span>
                         <span class="player-status-role">${role}</span>
-                        <span class="player-status-model">[Model: ${modelName}]</span>
+                        <span class="player-status-model">[Model: ${modelName.split('/').pop()}]</span>
                     </div>`;
                 }
             });

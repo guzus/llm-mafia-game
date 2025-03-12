@@ -872,8 +872,9 @@ class MafiaGame:
         # Create participants dictionary with both model_name and player_name
         participants = {}
         for player in self.players:
-            participants[player.model_name] = {
+            participants[player.player_name] = {
                 "role": player.role.value,
+                "model_name": player.model_name,
                 "player_name": player.player_name,
             }
 
