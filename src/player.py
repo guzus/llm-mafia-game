@@ -88,6 +88,10 @@ class Player:
         # Get list of player names (using visible player names)
         player_names = [p.player_name for p in all_players if p.alive]
 
+        # Make sure we're only using player_name (not model_name) for other players
+        # This ensures players only know each other by their player names
+        player_info = [{"name": p.player_name, "alive": p.alive} for p in all_players]
+
         # Get the appropriate language, defaulting to English if not supported
         language = self.language if self.language in GAME_RULES else "English"
 
