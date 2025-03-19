@@ -52,3 +52,5 @@ win_rates.png
 scripts/remote-config.sh
 
 */node_modules
+
+.cursor
