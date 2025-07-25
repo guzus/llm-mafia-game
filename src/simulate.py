@@ -7,9 +7,10 @@ import random
 import concurrent.futures
 from collections import defaultdict
 import config
-from game import MafiaGame
+from core.game import MafiaGame
 from firebase_manager import FirebaseManager
-from logger import GameLogger, Color
+from utils.logger import GameLogger
+from models.enums import Color
 
 
 def run_single_game(game_number, language=None):
