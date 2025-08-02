@@ -7,12 +7,15 @@ import random
 import concurrent.futures
 from collections import defaultdict
 import config
-from game import MafiaGame
+from core.game import MafiaGame, Participant
 from firebase_manager import FirebaseManager
-from logger import GameLogger, Color
+from utils.logger import GameLogger
+from models.enums import Color
 
 
-def run_single_game(game_number, language=None):
+def run_single_game(
+    game_number, language=None
+) -> tuple[int, str, dict, list[Participant], str, str, dict]:
     """
     Run a single Mafia game.
 
@@ -203,19 +206,9 @@ def run_simulation(
                     stats["villager_wins"] += 1
 
                 # Update model statistics
-                for player_name, role_data in participants.items():
-                    # Handle both old and new format
-                    if isinstance(role_data, dict):
-                        role = role_data.get("role")
-                        model = role_data.get(
-                            "model_name", player_name
-                        )  # Use player_name as fallback
-                    else:
-                        # Legacy format where role_data is just the role string
-                        role = role_data
-                        model = (
-                            player_name  # In legacy format, the key was the model name
-                        )
+                for participant in participants:
+                    model = participant.model_name
+                    role = participant.role.value
 
                     stats["model_stats"][model]["games"] += 1
 
