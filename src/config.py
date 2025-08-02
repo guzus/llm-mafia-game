@@ -16,7 +16,7 @@ OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 OLLAMA_API_URL = os.getenv("OLLAMA_API_URL", "http://localhost:11434/api/generate")
 OLLAMA_MODELS = [
     "llama3.2:latest",
-    "llama3.1:latest", 
+    "llama3.1:latest",
     "llama3:latest",
     "mistral:latest",
     "codellama:latest",
@@ -32,28 +32,42 @@ FIREBASE_CREDENTIALS_PATH = (
 
 # Game settings
 
-CLAUDE_3_7_SONNET = "anthropic/claude-3.7-sonnet"
+CLAUDE_SONNET_4 = "anthropic/claude-sonnet-4"
 MODELS = [
-    "google/gemini-2.0-flash-001",
+    # Google
     "google/gemini-flash-1.5",
     "google/gemini-flash-1.5-8b",
-    "openai/gpt-4o-mini",
-    "meta-llama/llama-3.3-70b-instruct",
     "google/gemini-2.0-flash-lite-001",
+    "google/gemini-2.0-flash-001",
+    "google/gemini-2.5-flash",
+    "google/gemini-2.5-pro",
+    # Meta
+    "meta-llama/llama-4-maverick",
+    "meta-llama/llama-3.3-70b-instruct",
     "meta-llama/llama-3.1-70b-instruct",
-    # "deepseek/deepseek-r1", # takes too long to respond
-    "gryphe/mythomax-l2-13b",
+    # DeepSeek
+    "deepseek/deepseek-chat",
+    "deepseek/deepseek-chat-v3-0324",
+    "deepseek/deepseek-r1-distill-llama-70b",
+    # OpenAI
+    "openai/gpt-4o-mini",
+    "openai/gpt-4o",
+    "openai/gpt-4.1-mini",
+    "openai/gpt-4.1",
+    # Anthropic
+    "anthropic/claude-3.5-sonnet",
+    "anthropic/claude-3.7-sonnet",
+    "anthropic/claude-3.7-sonnet:thinking",
+    "anthropic/claude-sonnet-4",
+    # Qwen
+    "qwen/qwen3-coder",
+    # Other
     "microsoft/wizardlm-2-8x22b",
     "mistralai/mistral-small-24b-instruct-2501",
     "nousresearch/hermes-3-llama-3.1-405b",
     "minimax/minimax-01",
-    # "sao10k/l3-euryale-70b", # max context 8192
-    "deepseek/deepseek-chat",
-    "openai/gpt-4o",
-    "anthropic/claude-3.5-sonnet",
-    "deepseek/deepseek-r1-distill-llama-70b",
-    CLAUDE_3_7_SONNET,
-    CLAUDE_3_7_SONNET + ":thinking",
+    "gryphe/mythomax-l2-13b",
+    "moonshotai/kimi-k2",
 ]
 
 FREE_MODELS = [
