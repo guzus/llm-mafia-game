@@ -6,24 +6,26 @@ import time
 import random
 import concurrent.futures
 from collections import defaultdict
+import argparse
 import config
 from game import MafiaGame
 from firebase_manager import FirebaseManager
 from logger import GameLogger, Color
 
 
-def run_single_game(game_number, language=None):
+def run_single_game(game_number, language=None, models=None):
     """
     Run a single Mafia game.
 
     Args:
         game_number (int): The game number.
         language (str, optional): Language for game prompts and interactions. Defaults to config.LANGUAGE.
+        models (list, optional): List of model names to use as players. Defaults to config.MODELS.
 
     Returns:
         tuple: (game_number, winner, rounds_data, participants, game_id, language, critic_review)
     """
-    game = MafiaGame(language=language)
+    game = MafiaGame(models=models, language=language)
     winner, rounds_data, participants, language, critic_review = game.run_game()
     return (
         game_number,
@@ -37,7 +39,7 @@ def run_single_game(game_number, language=None):
 
 
 def run_simulation(
-    num_games=config.NUM_GAMES, parallel=False, max_workers=4, language=None
+    num_games=config.NUM_GAMES, parallel=False, max_workers=4, language=None, models=None
 ):
     """
     Run multiple Mafia games and store results.
@@ -47,6 +49,7 @@ def run_simulation(
         parallel (bool, optional): Whether to run games in parallel.
         max_workers (int, optional): Maximum number of worker threads.
         language (str, optional): Language for game prompts and interactions. Defaults to config.LANGUAGE.
+        models (list, optional): List of model names to use as players. Defaults to config.MODELS.
 
     Returns:
         dict: Statistics about the games.
@@ -88,7 +91,7 @@ def run_simulation(
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             # Submit all games
             future_to_game = {
-                executor.submit(run_single_game, i, game_language): i
+                executor.submit(run_single_game, i, game_language, models): i
                 for i in range(1, num_games + 1)
             }
 
@@ -180,7 +183,7 @@ def run_simulation(
                     game_id,
                     language,
                     critic_review,
-                ) = run_single_game(i, game_language)
+                ) = run_single_game(i, game_language, models)
 
                 # Store results in Firebase
                 if firebase.initialized:
@@ -257,9 +260,68 @@ def run_simulation(
 
 
 if __name__ == "__main__":
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="LLM Mafia Game Simulation")
+    parser.add_argument(
+        "--free-models",
+        action="store_true",
+        help="Use only free OpenRouter models for the simulation"
+    )
+    parser.add_argument(
+        "--ollama",
+        action="store_true",
+        help="Use Ollama models for the simulation"
+    )
+    parser.add_argument(
+        "--num-games",
+        type=int,
+        default=config.NUM_GAMES,
+        help=f"Number of games to simulate (default: {config.NUM_GAMES})"
+    )
+    parser.add_argument(
+        "--parallel",
+        action="store_true",
+        help="Run games in parallel for faster execution"
+    )
+    parser.add_argument(
+        "--max-workers",
+        type=int,
+        default=4,
+        help="Maximum number of worker threads for parallel execution (default: 4)"
+    )
+    
+    args = parser.parse_args()
+    
     # Set random seed if specified
     if config.RANDOM_SEED is not None:
         random.seed(config.RANDOM_SEED)
 
+    # Validate arguments
+    if args.free_models and args.ollama:
+        print("Error: Cannot use both --free-models and --ollama flags together")
+        exit(1)
+    
+    # Select models based on arguments
+    if args.free_models:
+        models = config.FREE_MODELS
+    elif args.ollama:
+        models = config.OLLAMA_MODELS
+    else:
+        models = None
+    
+    # Log which models are being used
+    logger = GameLogger()
+    if args.free_models:
+        logger.print(f"Using free OpenRouter models only: {len(config.FREE_MODELS)} models available", Color.CYAN, bold=True)
+    elif args.ollama:
+        logger.print(f"Using Ollama models only: {len(config.OLLAMA_MODELS)} models available", Color.CYAN, bold=True)
+    else:
+        logger.print(f"Using all OpenRouter models: {len(config.MODELS)} models available", Color.CYAN, bold=True)
+
     # Run simulation
-    run_simulation(num_games=config.NUM_GAMES)
+    run_simulation(
+        num_games=args.num_games,
+        parallel=args.parallel,
+        max_workers=args.max_workers,
+        models=models
+    )
