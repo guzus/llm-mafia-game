@@ -1,4 +1,4 @@
-import * as THREE from "../node_modules/@types/three";
+import * as THREE from "three";
 
 export enum Role {
   VILLAGER = "VILLAGER",

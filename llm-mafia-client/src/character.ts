@@ -1,4 +1,4 @@
-import * as THREE from "../node_modules/@types/three";
+import * as THREE from "three";
 import { Role, Character } from "./types";
 
 // Character colors based on roles (only visible to the player for debugging)
