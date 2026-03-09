@@ -905,7 +905,7 @@ Format your response as a JSON object with 'title', 'content', and 'one_liner' f
 """
 
         try:
-            model_name = config.CLAUDE_SONNET_4
+            model_name = config.CRITIC_MODEL
             response_content = get_llm_response(model_name, prompt)
 
             if response_content == "ERROR: Could not get response":

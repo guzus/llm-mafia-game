@@ -60,28 +60,10 @@ cache_config = {
 cache = Cache(app, config=cache_config)
 
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
-DEFAULT_ADMIN_MODELS = [
-    "openai/gpt-5.4",
-    "x-ai/grok-4.1-fast",
-    "google/gemini-3.1-pro-preview",
-    "anthropic/claude-sonnet-4.6",
-    "anthropic/claude-sonnet-4.5",
-    "deepseek/deepseek-v3.2",
-    "qwen/qwen3-max",
-    "openai/gpt-4.1-mini",
-]
+DEFAULT_ADMIN_MODELS = config.LATEST_FRONTIER_MODELS
 ADMIN_MODEL_PRESETS = {
     "latest_frontier": DEFAULT_ADMIN_MODELS,
-    "budget_mix": [
-        "x-ai/grok-4.1-fast",
-        "deepseek/deepseek-v3.2",
-        "qwen/qwen3-max",
-        "openai/gpt-4.1-mini",
-        "google/gemini-2.5-flash",
-        "moonshotai/kimi-k2",
-        "meta-llama/llama-4-maverick",
-        "mistralai/mistral-small-24b-instruct-2501",
-    ],
+    "budget_mix": config.BUDGET_MODELS,
     "free_models": config.FREE_MODELS,
 }
 SIMULATION_LOG_LIMIT = 200

@@ -30,55 +30,81 @@ DATABASE_URL = os.getenv("DATABASE_URL", "")
 
 # Game settings
 
-CLAUDE_SONNET_4 = "anthropic/claude-sonnet-4"
+CRITIC_MODEL = "anthropic/claude-sonnet-4.6"
+# Backward-compatible alias used by older code paths.
+CLAUDE_SONNET_4 = CRITIC_MODEL
+
+LATEST_FRONTIER_MODELS = [
+    "openai/gpt-5.4",
+    "google/gemini-3.1-pro-preview",
+    "anthropic/claude-sonnet-4.6",
+    "x-ai/grok-4.1-fast",
+    "deepseek/deepseek-v3.2",
+    "qwen/qwen3-max",
+    "moonshotai/kimi-k2.5",
+    "meta-llama/llama-4-maverick",
+]
+
+BUDGET_MODELS = [
+    "openai/gpt-4.1-mini",
+    "google/gemini-3.1-flash-lite-preview",
+    "anthropic/claude-3.7-sonnet",
+    "x-ai/grok-4-fast",
+    "deepseek/deepseek-chat",
+    "qwen/qwen3-coder",
+    "mistralai/mistral-small-3.2-24b-instruct",
+    "meta-llama/llama-3.3-70b-instruct",
+]
+
 MODELS = [
+    # OpenAI
+    "openai/gpt-5.4",
+    "openai/gpt-5",
+    "openai/gpt-4.1",
+    "openai/gpt-4.1-mini",
     # Google
-    "google/gemini-flash-1.5",
-    "google/gemini-flash-1.5-8b",
-    "google/gemini-2.0-flash-lite-001",
-    "google/gemini-2.0-flash-001",
-    "google/gemini-2.5-flash",
+    "google/gemini-3.1-pro-preview",
+    "google/gemini-3.1-flash-lite-preview",
     "google/gemini-2.5-pro",
+    "google/gemini-2.5-flash",
+    # Anthropic
+    "anthropic/claude-sonnet-4.6",
+    "anthropic/claude-sonnet-4.5",
+    "anthropic/claude-sonnet-4",
+    "anthropic/claude-3.7-sonnet",
+    # xAI
+    "x-ai/grok-4.1-fast",
+    "x-ai/grok-4-fast",
+    "x-ai/grok-4",
+    # DeepSeek
+    "deepseek/deepseek-v3.2",
+    "deepseek/deepseek-r1",
+    "deepseek/deepseek-chat",
+    # Qwen
+    "qwen/qwen3-max",
+    "qwen/qwen3-coder",
     # Meta
     "meta-llama/llama-4-maverick",
     "meta-llama/llama-3.3-70b-instruct",
-    "meta-llama/llama-3.1-70b-instruct",
-    # DeepSeek
-    "deepseek/deepseek-chat",
-    "deepseek/deepseek-chat-v3-0324",
-    "deepseek/deepseek-r1-distill-llama-70b",
-    # OpenAI
-    "openai/gpt-4o-mini",
-    "openai/gpt-4o",
-    "openai/gpt-4.1-mini",
-    "openai/gpt-4.1",
-    # Anthropic
-    "anthropic/claude-3.5-sonnet",
-    "anthropic/claude-3.7-sonnet",
-    "anthropic/claude-3.7-sonnet:thinking",
-    "anthropic/claude-sonnet-4",
-    # Qwen
-    "qwen/qwen3-coder",
-    # Other
-    "microsoft/wizardlm-2-8x22b",
-    "mistralai/mistral-small-24b-instruct-2501",
-    "nousresearch/hermes-3-llama-3.1-405b",
-    "minimax/minimax-01",
-    "gryphe/mythomax-l2-13b",
+    # Mistral / Moonshot
+    "mistralai/mistral-small-3.2-24b-instruct",
+    "moonshotai/kimi-k2.5",
     "moonshotai/kimi-k2",
 ]
 
 FREE_MODELS = [
-    "deepseek/deepseek-r1:free",
-    "google/gemini-2.0-pro-exp-02-05:free",
-    "google/gemini-2.0-flash-exp:free",
-    "google/gemini-2.0-flash-lite-preview-02-05:free",
+    "openai/gpt-oss-120b:free",
+    "openai/gpt-oss-20b:free",
+    "qwen/qwen3-coder:free",
+    "qwen/qwen3-next-80b-a3b-instruct:free",
     "meta-llama/llama-3.3-70b-instruct:free",
-    "deepseek/deepseek-r1-distill-llama-70b:free",
-    "google/gemini-exp-1206:free",
-    "qwen/qwen2.5-vl-72b-instruct:free",
-    "cognitivecomputations/dolphin3.0-r1-mistral-24b:free",
-    "nvidia/llama-3.1-nemotron-70b-instruct:free",
+    "meta-llama/llama-3.2-3b-instruct:free",
+    "mistralai/mistral-small-3.1-24b-instruct:free",
+    "google/gemma-3-27b-it:free",
+    "google/gemma-3-12b-it:free",
+    "google/gemma-3-4b-it:free",
+    "nousresearch/hermes-3-llama-3.1-405b:free",
+    "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
 ]
 
 # Game configuration
@@ -109,16 +135,13 @@ MAX_OUTPUT_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", 400))
 
 # Model-specific configurations
 MODEL_CONFIGS = {
+    "deepseek/deepseek-v3.2": {
+        "timeout": 90,
+    },
     "deepseek/deepseek-r1": {
         "timeout": 90,  # Longer timeout for DeepSeek-R1
     },
-    "deepseek/deepseek-r1:free": {
-        "timeout": 90,
-    },
     "deepseek/deepseek-r1-distill-llama-70b": {
-        "timeout": 90,
-    },
-    "deepseek/deepseek-r1-distill-llama-70b:free": {
         "timeout": 90,
     },
     "deepseek/deepseek-chat": {
