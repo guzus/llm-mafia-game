@@ -22,6 +22,7 @@
 {% block scripts %}
     <script>
         const modelId = {{ model_name|tojson }};
+        const escapeHtml = window.LlmBranding.escapeHtml;
 
         function formatPercent(value) {
             return `${(Number(value || 0) * 100).toFixed(1)}%`;
@@ -38,9 +39,9 @@
         function renderMetricCard(label, value, detail = '') {
             return `
                 <div class="metric-card">
-                    <div class="metric-label">${label}</div>
-                    <div class="metric-value">${value}</div>
-                    ${detail ? `<div class="metric-detail">${detail}</div>` : ''}
+                    <div class="metric-label">${escapeHtml(label)}</div>
+                    <div class="metric-value">${escapeHtml(value)}</div>
+                    ${detail ? `<div class="metric-detail">${escapeHtml(detail)}</div>` : ''}
                 </div>
             `;
         }
@@ -52,11 +53,11 @@
 
             const body = rows.map((row) => `
                 <tr>
-                    <td>${row[firstColumnLabel]}</td>
-                    <td>${row.games}</td>
-                    <td>${row.wins}</td>
-                    <td>${row.losses}</td>
-                    <td>${formatPercent(row.win_rate)}</td>
+                    <td>${escapeHtml(row[firstColumnLabel])}</td>
+                    <td>${escapeHtml(row.games)}</td>
+                    <td>${escapeHtml(row.wins)}</td>
+                    <td>${escapeHtml(row.losses)}</td>
+                    <td>${escapeHtml(formatPercent(row.win_rate))}</td>
                 </tr>
             `).join('');
 
@@ -64,7 +65,7 @@
                 <table class="detail-table">
                     <thead>
                         <tr>
-                            <th>${valueKey}</th>
+                            <th>${escapeHtml(valueKey)}</th>
                             <th>Games</th>
                             <th>Wins</th>
                             <th>Losses</th>
@@ -101,10 +102,10 @@
             const body = items.map((item) => `
                 <tr>
                     <td><a class="model-link" href="${encodeModelLink(item.model_name)}">${window.LlmBranding.renderModelIdentity(item.model_name, { compact: true })}</a></td>
-                    <td>${item.games}</td>
-                    <td>${item.wins}</td>
-                    <td>${item.losses}</td>
-                    <td>${formatPercent(item.win_rate)}</td>
+                    <td>${escapeHtml(item.games)}</td>
+                    <td>${escapeHtml(item.wins)}</td>
+                    <td>${escapeHtml(item.losses)}</td>
+                    <td>${escapeHtml(formatPercent(item.win_rate))}</td>
                 </tr>
             `).join('');
 
@@ -146,7 +147,8 @@
                 const x = padding + (usableWidth * index / denominator);
                 const y = height - padding - (usableHeight * point.cumulative_win_rate);
                 const resultClass = point.result === 'win' ? 'win' : 'loss';
-                return `<circle class="chart-dot ${resultClass}" cx="${x}" cy="${y}" r="4"><title>${formatDate(point.timestamp)}: ${point.result.toUpperCase()} as ${point.role}</title></circle>`;
+                const title = escapeHtml(`${formatDate(point.timestamp)}: ${String(point.result || '').toUpperCase()} as ${point.role || 'Unknown'}`);
+                return `<circle class="chart-dot ${resultClass}" cx="${x}" cy="${y}" r="4"><title>${title}</title></circle>`;
             }).join('');
 
             return `
@@ -190,13 +192,13 @@
 
                 return `
                     <tr>
-                        <td><a class="game-link" href="/game/${game.game_id}">${game.game_id}</a></td>
-                        <td>${formatDate(game.timestamp)}</td>
-                        <td><span class="result-pill ${game.result}">${game.result}</span></td>
-                        <td>${game.role || 'Unknown'}</td>
-                        <td>${game.player_name || 'Unknown'}</td>
-                        <td>${game.language || 'Unknown'}</td>
-                        <td>${game.participant_count || 0}</td>
+                        <td><a class="game-link" href="/game/${encodeURIComponent(game.game_id)}">${escapeHtml(game.game_id)}</a></td>
+                        <td>${escapeHtml(formatDate(game.timestamp))}</td>
+                        <td><span class="result-pill ${escapeHtml(game.result)}">${escapeHtml(game.result)}</span></td>
+                        <td>${escapeHtml(game.role || 'Unknown')}</td>
+                        <td>${escapeHtml(game.player_name || 'Unknown')}</td>
+                        <td>${escapeHtml(game.language || 'Unknown')}</td>
+                        <td>${escapeHtml(game.participant_count || 0)}</td>
                         <td>${opponentList || 'None'}</td>
                     </tr>
                 `;
@@ -224,9 +226,9 @@
         function renderRoleCards(roleBreakdown) {
             return Object.entries(roleBreakdown).map(([role, stats]) => `
                 <div class="role-card">
-                    <div class="role-name">${role}</div>
-                    <div class="role-rate">${formatPercent(stats.win_rate)}</div>
-                    <div class="role-meta">${stats.wins} wins in ${stats.games} games</div>
+                    <div class="role-name">${escapeHtml(role)}</div>
+                    <div class="role-rate">${escapeHtml(formatPercent(stats.win_rate))}</div>
+                    <div class="role-meta">${escapeHtml(`${stats.wins} wins in ${stats.games} games`)}</div>
                 </div>
             `).join('');
         }
@@ -244,7 +246,7 @@
                 <section class="model-hero">
                     <div class="hero-badge">${window.LlmBranding.renderModelIdentity(data.model_name)}</div>
                     <div class="hero-copy">
-                        <h1>${window.LlmBranding.getModelLabel(data.model_name)}</h1>
+                        <h1>${escapeHtml(window.LlmBranding.getModelLabel(data.model_name))}</h1>
                         <p>Per-model analytics built from every stored Mafia game appearance in Neon.</p>
                     </div>
                 </section>
@@ -356,7 +358,7 @@
                 document.getElementById('modelPage').innerHTML = `
                     <div class="error-state">
                         <h1>Model analytics unavailable</h1>
-                        <p>${error.message}</p>
+                        <p>${escapeHtml(error.message)}</p>
                     </div>
                 `;
             });

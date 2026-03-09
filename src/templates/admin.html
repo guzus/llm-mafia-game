@@ -37,12 +37,6 @@
                 </form>
             </div>
 
-            {% if using_fallback_secret %}
-                <div class="warning-banner">
-                    `ADMIN_SESSION_SECRET` is not set. The admin session is using the local fallback secret. Set a real secret before relying on this in production.
-                </div>
-            {% endif %}
-
             <div class="admin-grid">
                 <section class="panel balance-panel">
                     <div class="panel-heading">

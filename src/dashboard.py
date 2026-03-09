@@ -6,6 +6,7 @@ import io
 import base64
 import json
 import os
+import secrets
 import time
 import datetime
 import copy
@@ -38,13 +39,14 @@ from flask_caching import Cache
 from openrouter import get_openrouter_account_state
 from simulate import run_simulation
 
-app = Flask(__name__, static_folder="static", template_folder="templates")
-app.secret_key = (
+CONFIGURED_SESSION_SECRET = (
     os.getenv("ADMIN_SESSION_SECRET")
     or os.getenv("FLASK_SECRET_KEY")
     or os.getenv("SECRET_KEY")
-    or "llm-mafia-local-admin-secret"
 )
+
+app = Flask(__name__, static_folder="static", template_folder="templates")
+app.secret_key = CONFIGURED_SESSION_SECRET or secrets.token_hex(32)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_SECURE"] = bool(os.getenv("RAILWAY_ENVIRONMENT"))
@@ -147,7 +149,16 @@ class ErrorResponse:
 
 def is_admin_configured():
     """Return True when admin password auth is enabled."""
-    return bool(ADMIN_PASSWORD)
+    return bool(ADMIN_PASSWORD and CONFIGURED_SESSION_SECRET)
+
+
+def get_admin_config_error():
+    """Return a concrete admin configuration error message, if any."""
+    if not ADMIN_PASSWORD:
+        return "Admin dashboard requires ADMIN_PASSWORD."
+    if not CONFIGURED_SESSION_SECRET:
+        return "Admin dashboard requires ADMIN_SESSION_SECRET."
+    return None
 
 
 def is_admin_authenticated():
@@ -162,7 +173,7 @@ def admin_required(view):
     def wrapped(*args, **kwargs):
         if not is_admin_configured():
             return render_template(
-                "404.html", message="Admin dashboard is not configured"
+                "404.html", message=get_admin_config_error() or "Admin dashboard is not configured"
             ), 503
         if not is_admin_authenticated():
             return redirect(url_for("admin_dashboard"))
@@ -177,7 +188,15 @@ def admin_api_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
         if not is_admin_configured():
-            return jsonify({"error": "Admin dashboard is not configured"}), 503
+            return (
+                jsonify(
+                    {
+                        "error": get_admin_config_error()
+                        or "Admin dashboard is not configured"
+                    }
+                ),
+                503,
+            )
         if not is_admin_authenticated():
             return jsonify({"error": "Authentication required"}), 401
         return view(*args, **kwargs)
@@ -228,6 +247,12 @@ def _validate_admin_models(models):
     if config.UNIQUE_MODELS and len(models) < config.PLAYERS_PER_GAME:
         return (
             f"Need at least {config.PLAYERS_PER_GAME} unique models because "
+            "UNIQUE_MODELS is enabled."
+        )
+
+    if config.UNIQUE_MODELS and len(set(models)) < config.PLAYERS_PER_GAME:
+        return (
+            f"Need at least {config.PLAYERS_PER_GAME} distinct models because "
             "UNIQUE_MODELS is enabled."
         )
 
@@ -371,7 +396,7 @@ def admin_dashboard():
     """Render the password-gated admin dashboard."""
     if not is_admin_configured():
         return render_template(
-            "404.html", message="Admin dashboard is not configured"
+            "404.html", message=get_admin_config_error() or "Admin dashboard is not configured"
         ), 503
 
     if not is_admin_authenticated():
@@ -389,7 +414,6 @@ def admin_dashboard():
         players_per_game=config.PLAYERS_PER_GAME,
         unique_models=config.UNIQUE_MODELS,
         default_models="\n".join(DEFAULT_ADMIN_MODELS),
-        using_fallback_secret=app.secret_key == "llm-mafia-local-admin-secret",
     )
 
 
@@ -398,7 +422,7 @@ def admin_login():
     """Authenticate an admin session."""
     if not is_admin_configured():
         return render_template(
-            "404.html", message="Admin dashboard is not configured"
+            "404.html", message=get_admin_config_error() or "Admin dashboard is not configured"
         ), 503
 
     submitted_password = request.form.get("password", "")
