@@ -60,7 +60,7 @@ def run_simulation(
 
     start_time = time.time()
 
-    # Initialize Firebase
+    # Initialize database
     firebase = FirebaseManager()
 
     # Initialize statistics
@@ -109,7 +109,7 @@ def run_simulation(
                         critic_review,
                     ) = future.result()
 
-                    # Store results in Firebase
+                    # Store results in database
                     if firebase.initialized:
                         firebase.store_game_result(
                             game_id, winner, participants, language=language
@@ -185,7 +185,7 @@ def run_simulation(
                     critic_review,
                 ) = run_single_game(i, game_language, models)
 
-                # Store results in Firebase
+                # Store results in database
                 if firebase.initialized:
                     firebase.store_game_result(
                         game_id, winner, participants, language=language

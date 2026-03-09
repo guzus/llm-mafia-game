@@ -25,10 +25,8 @@ OLLAMA_MODELS = [
     "phi3:latest",
 ]
 
-# Firebase settings
-FIREBASE_CREDENTIALS_PATH = (
-    "firebase_credentials.json"  # Path to your Firebase credentials file
-)
+# Database settings (Neon PostgreSQL-compatible)
+DATABASE_URL = os.getenv("DATABASE_URL", "")
 
 # Game settings
 

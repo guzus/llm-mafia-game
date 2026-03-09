@@ -98,7 +98,7 @@ def game_detail(game_id):
 
 @app.route("/api/stats")
 def get_stats():
-    """Get statistics from Firebase."""
+    """Get statistics from the database."""
     stats = get_cached_model_stats()
 
     # Set cache control headers for better performance
@@ -111,13 +111,13 @@ def get_stats():
 
 @cache.cached(timeout=30, key_prefix="model_stats")
 def get_cached_model_stats():
-    """Get cached model statistics from Firebase."""
+    """Get cached model statistics from the database."""
     return firebase.get_model_stats()
 
 
 @app.route("/api/games")
 def get_games():
-    """Get game results from Firebase."""
+    """Get game results from the database."""
     try:
         limit = request.args.get("limit", default=100, type=int)
         if limit < 1 or limit > 1000:
@@ -145,7 +145,7 @@ def get_games():
 
 @cache.memoize(timeout=30)
 def get_cached_game_results(limit):
-    """Get cached game results from Firebase.
+    """Get cached game results from the database.
 
     Args:
         limit (int): Maximum number of results to retrieve.
@@ -158,7 +158,7 @@ def get_cached_game_results(limit):
 
 @app.route("/api/game/<game_id>")
 def get_game(game_id):
-    """Get game data from Firebase."""
+    """Get game data from the database."""
     game_data = get_cached_game_log(game_id)
 
     if not game_data:
@@ -174,7 +174,7 @@ def get_game(game_id):
 
 @cache.memoize(timeout=120)
 def get_cached_game_log(game_id):
-    """Get cached game log data from Firebase.
+    """Get cached game log data from the database.
 
     Args:
         game_id (str): The ID of the game to retrieve.

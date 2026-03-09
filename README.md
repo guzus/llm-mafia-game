@@ -25,10 +25,10 @@ cd llm-mafia-game
 uv sync
 ```
 
-### 3. Set Up Firebase
+### 3. Set Up Neon PostgreSQL
 
-- Create a Firebase project and enable the Cloud Firestore.
-- Download your `firebase_credentials.json` and place it in the project directory.
+- Create a Neon project and PostgreSQL database.
+- Copy the connection string and set it as `DATABASE_URL` in your environment (`sslmode=require`).
 
 ### 4. Set Up OpenRouter API
 
@@ -44,7 +44,7 @@ uv run src/simulate.py
 This will:
 
 - Run Mafia games `n` times.
-- Store the results in Firebase.
+- Store the results in Neon PostgreSQL.
 - Print the final statistics.
 
 ### 6. Start the Dashboard
