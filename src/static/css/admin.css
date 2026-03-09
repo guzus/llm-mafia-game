@@ -23,7 +23,7 @@ body {
         radial-gradient(circle at top left, rgba(15, 118, 110, 0.14), transparent 26%),
         radial-gradient(circle at top right, rgba(251, 191, 36, 0.16), transparent 22%),
         linear-gradient(180deg, #fffdf8 0%, var(--admin-bg) 100%);
-    font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+    font-family: var(--font-body);
 }
 
 a {
@@ -68,6 +68,7 @@ a {
 .auth-copy h1,
 .admin-header h1 {
     margin: 0.8rem 0 0.5rem;
+    font-family: var(--font-display);
     font-size: clamp(2rem, 4vw, 3.2rem);
     line-height: 0.95;
     letter-spacing: -0.04em;
@@ -128,7 +129,7 @@ textarea {
     resize: vertical;
     min-height: 240px;
     line-height: 1.5;
-    font-family: "IBM Plex Mono", "SFMono-Regular", monospace;
+    font-family: var(--font-mono);
 }
 
 button {
@@ -241,6 +242,7 @@ button:disabled {
 
 .balance-value,
 .summary-item strong {
+    font-family: var(--font-display);
     font-size: 1.45rem;
     letter-spacing: -0.03em;
 }

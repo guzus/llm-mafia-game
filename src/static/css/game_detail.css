@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
-
 :root {
     --bg: #fafafa;
     --bg-card: #ffffff;
@@ -19,7 +17,7 @@
 * { box-sizing: border-box; }
 
 body {
-    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: var(--font-body);
     margin: 0;
     padding: 0;
     background-color: var(--bg);
@@ -35,6 +33,7 @@ body {
 }
 
 h1, h2, h3 {
+    font-family: var(--font-display);
     color: var(--text);
     font-weight: 700;
 }
@@ -322,7 +321,7 @@ h1, h2, h3 {
 .tab-content.active { display: block; }
 
 .phase-tag {
-    font-family: 'DM Mono', monospace;
+    font-family: var(--font-mono);
     font-weight: 500;
     display: inline-block;
     padding: 1px 6px;

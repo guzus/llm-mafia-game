@@ -15,7 +15,16 @@
     </script>
     <link rel="icon" href="/static/images/favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="/static/images/favicon.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --font-body: "Manrope", "Segoe UI", sans-serif;
+            --font-display: "Space Grotesk", "Avenir Next", sans-serif;
+            --font-mono: "JetBrains Mono", "SFMono-Regular", monospace;
+        }
+
         .provider-identity {
             display: inline-flex;
             align-items: center;
@@ -52,11 +61,13 @@
         .provider-company {
             font-weight: 700;
             color: #1a1a1a;
+            font-family: var(--font-display);
         }
 
         .provider-model {
             color: #555;
             word-break: break-word;
+            font-family: var(--font-body);
         }
     </style>
     {% block head %}{% endblock %}

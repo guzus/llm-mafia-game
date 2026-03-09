@@ -1,7 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
-
 body {
-    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: var(--font-body);
     margin: 0;
     padding: 0;
     background-color: #fafafa;
@@ -25,6 +23,7 @@ body {
 h1 {
     color: #dc2626;
     font-size: 3em;
+    font-family: var(--font-display);
     font-weight: 700;
     margin-bottom: 8px;
 }
