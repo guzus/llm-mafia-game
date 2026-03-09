@@ -4,24 +4,21 @@
 
 {% block head %}
     <link rel="stylesheet" href="/static/css/index.css">
-    <style>
-        .header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .logo {
-            height: 80px;
-            margin-right: 20px;
-        }
-    </style>
 {% endblock %}
 
 {% block content %}
     <div class="container">
-        <div class="header">
-            <img src="/static/images/logo.webp" alt="LLM Mafia Game Logo" class="logo">
-            <h1>LLM Mafia Game Competition</h1>
+        <div class="header banner-hero">
+            <img src="/static/images/github-banner.png" alt="LLM Mafia Game GitHub Banner" class="hero-banner">
+            <div class="hero-overlay">
+                <div class="header-copy">
+                    <div class="hero-kicker">github.com/guzus/llm-mafia-game</div>
+                    <div class="season-badge">Season 2</div>
+                    <h1>LLM Mafia Game Competition</h1>
+                    <p class="header-subtitle">Frontier model tournaments, role-by-role stats, and complete game transcripts.</p>
+                </div>
+            </div>
+            <div class="hero-bottom-fade" aria-hidden="true"></div>
         </div>
         
         <!--
@@ -76,6 +73,8 @@
 
 {% block scripts %}
     <script>
+        const minGamesForTopDisplay = {{ min_games_for_top_display | tojson }};
+
         // Load charts directly as images (more efficient)
         document.addEventListener('DOMContentLoaded', function() {
             // Win rates chart
@@ -135,18 +134,32 @@
                     return;
                 }
                 
-                // Sort models by win rate
-                const sortedModels = Object.keys(data).sort((a, b) => data[b].win_rate - data[a].win_rate);
+                // Sort models so only sufficiently sampled models can lead by win rate.
+                const sortedModels = Object.keys(data).sort((a, b) => {
+                    const aStats = data[a];
+                    const bStats = data[b];
+                    const aEligible = aStats.games_played >= minGamesForTopDisplay;
+                    const bEligible = bStats.games_played >= minGamesForTopDisplay;
+
+                    if (aEligible !== bEligible) {
+                        return aEligible ? -1 : 1;
+                    }
+                    if (bStats.win_rate !== aStats.win_rate) {
+                        return bStats.win_rate - aStats.win_rate;
+                    }
+                    if (bStats.games_played !== aStats.games_played) {
+                        return bStats.games_played - aStats.games_played;
+                    }
+                    return a.localeCompare(b);
+                });
                 
                 for (const model of sortedModels) {
                     const stats = data[model];
                     const row = document.createElement('tr');
-                    
-                    // Format model name to show only the last part
-                    const modelName = model.split('/').pop();
-                    
+                    const modelLink = `/model/${encodeURIComponent(model)}`;
+
                     row.innerHTML = `
-                        <td>${modelName}</td>
+                        <td><a class="model-link" href="${modelLink}">${window.LlmBranding.renderModelIdentity(model)}</a></td>
                         <td>${stats.games_played}</td>
                         <td>${(stats.win_rate * 100).toFixed(2)}%</td>
                         <td>${(stats.mafia_win_rate * 100).toFixed(2)}% (${stats.mafia_wins}/${stats.mafia_games})</td>
@@ -193,23 +206,22 @@
                     const participants = Object.entries(game.participants)
                         .map(([player, roleData]) => {
                             // Handle both old and new format
-                            let role, modelName;
+                            let role, modelId;
                             if (typeof roleData === 'object') {
                                 role = roleData.role;
-                                modelName = roleData.model_name;
+                                modelId = roleData.model_name;
                             } else {
                                 // Legacy format where roleData is just the role string
                                 role = roleData;
-                                modelName = player;
+                                modelId = player;
                             }
-                            modelName = modelName.split('/').pop();
-                            
-                            return `${modelName} (${role})`;
+
+                            return `<span class="game-participant">${window.LlmBranding.renderModelIdentity(modelId, { compact: true })} <span class="participant-role">(${role})</span></span>`;
                         })
                         .join(', ');
                     
                     row.innerHTML = `
-                        <td><a href="/game/${game.game_id}" class="game-id">${game.game_id}</a></td>
+                        <td><a href="/game/${encodeURIComponent(game.game_id)}" class="game-id">${game.game_id}</a></td>
                         <td>${game.winner}</td>
                         <td>${participants}</td>
                         <td>${game.language || "English"}</td>

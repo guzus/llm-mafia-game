@@ -1,5 +1,5 @@
 """
-Initialize Firebase database with sample game data.
+Initialize PostgreSQL database with sample game data.
 """
 
 import time
@@ -8,11 +8,11 @@ from firebase_manager import FirebaseManager
 
 
 def initialize_database():
-    """Initialize the Firebase database with sample game data."""
+    """Initialize the database with sample game data."""
     firebase = FirebaseManager()
 
     if not firebase.initialized:
-        print("Firebase not initialized. Cannot initialize database.")
+        print("Database not initialized. Cannot initialize database.")
         return False
 
     # Create sample game data
@@ -117,7 +117,7 @@ def initialize_database():
         },
     ]
 
-    # Store sample games in Firebase
+    # Store sample games in PostgreSQL
     success_count = 0
     for game in sample_games:
         if firebase.store_game_result(

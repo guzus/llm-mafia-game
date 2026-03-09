@@ -15,17 +15,144 @@
     </script>
     <link rel="icon" href="/static/images/favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="/static/images/favicon.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-body: "Manrope", "Segoe UI", sans-serif;
+            --font-display: "Space Grotesk", "Avenir Next", sans-serif;
+            --font-mono: "JetBrains Mono", "SFMono-Regular", monospace;
+        }
+
+        .provider-identity {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 0;
+            vertical-align: middle;
+        }
+
+        .provider-identity.is-compact {
+            gap: 0.4rem;
+        }
+
+        .provider-logo {
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 4px;
+            flex: none;
+            object-fit: contain;
+        }
+
+        .provider-identity.is-compact .provider-logo {
+            width: 1.15rem;
+            height: 1.15rem;
+        }
+
+        .provider-copy {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0.35rem;
+            min-width: 0;
+            flex-wrap: wrap;
+        }
+
+        .provider-company {
+            font-weight: 700;
+            color: #1a1a1a;
+            font-family: var(--font-display);
+        }
+
+        .provider-model {
+            color: #555;
+            word-break: break-word;
+            font-family: var(--font-body);
+        }
+    </style>
     {% block head %}{% endblock %}
 </head>
 <body>
     {% block content %}{% endblock %}
     
-    <footer style="margin-top: 2rem; padding: 1rem; text-align: center; border-top: 1px solid #eee;">
+    <footer style="margin-top: 2rem; padding: 1rem; text-align: center;">
         <p>
             <a href="https://github.com/guzus/llm-mafia-game" target="_blank" rel="noopener noreferrer">GitHub</a>
         </p>
     </footer>
-    
+    <script>
+        (() => {
+            const providerMetadata = {
+                "openai": { name: "OpenAI", icon: "/static/images/providers/openai.svg" },
+                "anthropic": { name: "Anthropic", icon: "/static/images/providers/anthropic.svg" },
+                "google": { name: "Google", icon: "/static/images/providers/google.svg" },
+                "x-ai": { name: "xAI", icon: "/static/images/providers/xai.png" },
+                "deepseek": { name: "DeepSeek", icon: "/static/images/providers/deepseek.png" },
+                "qwen": { name: "Qwen", icon: "/static/images/providers/qwen.png" },
+                "moonshotai": { name: "Moonshot", icon: "/static/images/providers/moonshot.png" },
+                "meta-llama": { name: "Meta", icon: "/static/images/providers/meta.png" },
+                "mistralai": { name: "Mistral", icon: "/static/images/providers/mistral.png" },
+                "microsoft": { name: "Microsoft", icon: "/static/images/providers/microsoft.svg" },
+                "nousresearch": { name: "Nous", icon: "/static/images/providers/nous.png" },
+                "minimax": { name: "MiniMax", icon: "/static/images/providers/minimax.png" },
+                "gryphe": { name: "Gryphe", icon: "/static/images/providers/gryphe.png" },
+                "nvidia": { name: "NVIDIA", icon: "/static/images/providers/nvidia.png" },
+                "cognitivecomputations": { name: "Cognitive", icon: "/static/images/providers/cognitive.png" },
+            };
+
+            function escapeHtml(value) {
+                return String(value ?? "")
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#39;");
+            }
+
+            function getProviderInfo(modelId = "") {
+                const providerId = String(modelId || "").split("/")[0] || "other";
+                return providerMetadata[providerId] || {
+                    name: providerId ? providerId.replace(/[-_]/g, " ") : "Unknown",
+                    icon: null,
+                };
+            }
+
+            function getModelLabel(modelId = "") {
+                const raw = String(modelId || "");
+                if (!raw) return "Unknown model";
+                if (!raw.includes("/")) return raw;
+                return raw.split("/").slice(1).join("/") || raw;
+            }
+
+            function renderModelIdentity(modelId, options = {}) {
+                const { compact = false, includeCompany = true, showModel = true } = options;
+                const provider = getProviderInfo(modelId);
+                const modelLabel = getModelLabel(modelId);
+                const classes = compact ? "provider-identity is-compact" : "provider-identity";
+
+                const logoHtml = provider.icon
+                    ? `<img class="provider-logo" src="${escapeHtml(provider.icon)}" alt="${escapeHtml(provider.name)}" loading="lazy">`
+                    : "";
+
+                return `
+                    <span class="${classes}" title="${escapeHtml(provider.name)} ${escapeHtml(modelLabel)}">
+                        ${logoHtml}
+                        <span class="provider-copy">
+                            ${includeCompany ? `<span class="provider-company">${escapeHtml(provider.name)}</span>` : ""}
+                            ${showModel ? `<span class="provider-model">${escapeHtml(modelLabel)}</span>` : ""}
+                        </span>
+                    </span>
+                `;
+            }
+
+            window.LlmBranding = {
+                escapeHtml,
+                getProviderInfo,
+                getModelLabel,
+                renderModelIdentity,
+            };
+        })();
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html> 

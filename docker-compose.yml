@@ -10,6 +10,7 @@ services:
       - ./logs/dashboard:/app/logs
     environment:
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - DATABASE_URL=${DATABASE_URL}
     command: uv run src/dashboard.py --port 5001
     logging:
       driver: "json-file"
@@ -25,6 +26,7 @@ services:
       - ./logs/simulation:/app/logs
     environment:
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - DATABASE_URL=${DATABASE_URL}
       - NUM_GAMES=${NUM_GAMES}
     command: uv run src/simulate.py
     logging:

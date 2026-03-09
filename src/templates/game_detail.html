@@ -104,6 +104,24 @@
     <script>
         // Get game ID from URL
         const gameId = window.location.pathname.split('/').pop();
+        const escapeHtml = window.LlmBranding.escapeHtml;
+
+        function normalizeMessageText(rawContent) {
+            const content = String(rawContent || '').trim();
+            if (!content.startsWith('ERROR: Could not get response')) {
+                return content;
+            }
+            return 'Model response unavailable for this turn because the upstream provider request failed.';
+        }
+
+        function renderMessageContent(rawContent) {
+            return escapeHtml(normalizeMessageText(rawContent)).replace(/\n/g, '<br>');
+        }
+
+        function summarizeMessageContent(rawContent, limit = 100) {
+            const normalized = normalizeMessageText(rawContent).replace(/\s+/g, ' ').trim();
+            return normalized.length > limit ? `${normalized.substring(0, limit)}...` : normalized;
+        }
         
         // Function to share a specific message
         function shareMessage(messageId) {
@@ -171,37 +189,39 @@
         // Function to get player name and role from participant data
         function getPlayerInfo(playerName, roleData) {
             let role = roleData;
-            let modelName = playerName;  // Default to playerName if model_name not available
+            let modelId = playerName;  // Default to playerName if model_name not available
             
             if (typeof roleData === 'object') {
                 if (roleData.role) {
                     role = roleData.role;
                 }
                 if (roleData.model_name) {
-                    modelName = roleData.model_name.split('/').pop();
+                    modelId = roleData.model_name;
                 }
             }
             
             // Ensure role is a string before using it
             const roleClass = typeof role === 'string' ? role.toLowerCase() : '';
+            const modelName = window.LlmBranding.getModelLabel(modelId);
             
-            return { playerName, role, roleClass, modelName };
+            return { playerName, role, roleClass, modelName, modelId };
         }
         
         // Function to create model info mapping
         function createModelInfoMapping(participants) {
             const modelInfo = {};
             Object.entries(participants || {}).forEach(([playerName, roleData]) => {
-                const { role, roleClass, modelName } = getPlayerInfo(playerName, roleData);
+                const { role, roleClass, modelName, modelId } = getPlayerInfo(playerName, roleData);
                 
                 // Store by model name for backward compatibility
-                const model = roleData.model_name || playerName;
+                const model = (typeof roleData === 'object' && roleData.model_name) ? roleData.model_name : playerName;
                 
                 modelInfo[model] = {
                     playerName,
                     role,
                     roleClass,
-                    modelName
+                    modelName,
+                    modelId
                 };
                 
                 // Also store by player name for new structure
@@ -210,6 +230,7 @@
                     role,
                     roleClass,
                     modelName,
+                    modelId,
                     model
                 };
             });
@@ -321,7 +342,7 @@
             // Create participant elements with appropriate colors
             const participantsHtml = Object.entries(participants)
                 .map(([playerName, roleData]) => {
-                    const { role, roleClass, modelName } = getPlayerInfo(playerName, roleData);
+                    const { role, roleClass, modelId } = getPlayerInfo(playerName, roleData);
                     
                     // Add crown icon for winners based on the winner team
                     const isWinner = 
@@ -330,7 +351,7 @@
                     
                     const crownIcon = isWinner ? '<span class="winner-crown" title="Winner">👑</span> ' : '';
                     
-                    return `<div class="participant ${roleClass}">${crownIcon}${playerName} (${role}) <span class="model-name">[Model: ${modelName}]</span></div>`;
+                    return `<div class="participant ${roleClass}">${crownIcon}${playerName} (${role}) <span class="model-name">${window.LlmBranding.renderModelIdentity(modelId, { compact: true })}</span></div>`;
                 })
                 .join('');
             
@@ -359,14 +380,14 @@
             
             // Create player items for the sticky banner
             Object.entries(participants).forEach(([playerName, roleData]) => {
-                const { role, roleClass, modelName } = getPlayerInfo(playerName, roleData);
+                const { role, roleClass, modelId } = getPlayerInfo(playerName, roleData);
                 
                 const playerItem = document.createElement('div');
                 playerItem.className = `sticky-player-item ${roleClass}`;
                 playerItem.innerHTML = `
                     <span class="sticky-player-name">${playerName}</span>
                     <span class="sticky-player-role">(${role})</span>
-                    <span class="sticky-player-model">[${modelName}]</span>
+                    <span class="sticky-player-model">${window.LlmBranding.renderModelIdentity(modelId, { compact: true })}</span>
                 `;
                 
                 playersList.appendChild(playerItem);
@@ -542,13 +563,12 @@
             Object.entries(participants).forEach(([model, roleData]) => {
                 const isEliminated = eliminatedPlayers.has(model);
                 if (!isEliminated) {
-                    const { playerName, role, roleClass } = getPlayerInfo(model, roleData);
-                    const modelName = model.split('/').pop();
+                    const { playerName, role, roleClass, modelId } = getPlayerInfo(model, roleData);
                     
                     html += `<div class="player-status-item ${roleClass}">
                         <span class="player-status-name">${playerName}</span>
                         <span class="player-status-role">${role}</span>
-                        <span class="player-status-model">[Model: ${modelName}]</span>
+                        <span class="player-status-model">${window.LlmBranding.renderModelIdentity(modelId, { compact: true })}</span>
                     </div>`;
                 }
             });
@@ -699,7 +719,7 @@
                         
                         dialogueHtml += `<div id="msg-r${index+1}-m${msgIndex+1}" class="dialogue-message ${roleClass}" style="margin-left: 20px; ${borderStyle}">
                             <div class="dialogue-speaker ${roleClass}">
-                                ${info.playerName} (${role}) <span class="model-name">[Model: ${model.split('/').pop()}]</span>
+                                ${info.playerName} (${role}) <span class="model-name">${window.LlmBranding.renderModelIdentity(info.modelId || model, { compact: true })}</span>
                                 ${message.phase === 'night' ? '<span class="phase-tag night">Night</span>' : '<span class="phase-tag day">Day</span>'}
                                 ${message.phase === 'day_discussion' ? '<span class="phase-tag discussion">Discussion</span>' : ''}
                                 ${message.phase === 'day_voting' ? '<span class="phase-tag voting">Voting</span>' : ''}
@@ -714,7 +734,7 @@
                                     </a>
                                 </span>
                             </div>
-                            <div class="dialogue-content">${message.content}</div>
+                            <div class="dialogue-content">${renderMessageContent(message.content)}</div>
                         </div>`;
 
                         // Insert night phase summary after the last night message
@@ -911,12 +931,12 @@
                 const isEliminated = eliminatedPlayers.has(modelName) || eliminatedPlayers.has(playerName);
                 
                 if (!isEliminated) {
-                    const { role, roleClass } = getPlayerInfo(playerName, roleData);
+                    const { role, roleClass, modelId } = getPlayerInfo(playerName, roleData);
                     
                     html += `<div class="player-status-item ${roleClass}">
                         <span class="player-status-name">${playerName}</span>
                         <span class="player-status-role">${role}</span>
-                        <span class="player-status-model">[Model: ${modelName.split('/').pop()}]</span>
+                        <span class="player-status-model">${window.LlmBranding.renderModelIdentity(modelId, { compact: true })}</span>
                     </div>`;
                 }
             });
@@ -1173,18 +1193,14 @@
                     const speechBubble = speakerElement.querySelector('.speech-bubble');
                     if (speechBubble) {
                         // Truncate long messages
-                        const truncatedContent = message.content.length > 100 ? 
-                            message.content.substring(0, 100) + '...' : message.content;
-                        
-                        // Replace newlines with spaces
-                        const formattedContent = truncatedContent.replace(/\n/g, ' ');
+                        const formattedContent = summarizeMessageContent(message.content, 100);
                         
                         speechBubble.textContent = formattedContent;
                         speechBubble.classList.add('visible');
                     }
                     
                     // Add to event log
-                    addEventLogItem(`${message.speaker.split('/').pop()}: ${message.content.substring(0, 50)}${message.content.length > 50 ? '...' : ''}`);
+                    addEventLogItem(`${message.speaker.split('/').pop()}: ${summarizeMessageContent(message.content, 50)}`);
                 }
             }
             
@@ -1247,18 +1263,14 @@
                     const speechBubble = speakerElement.querySelector('.speech-bubble');
                     if (speechBubble) {
                         // Truncate long messages
-                        const truncatedContent = message.content.length > 100 ? 
-                            message.content.substring(0, 100) + '...' : message.content;
-                        
-                        // Replace newlines with spaces
-                        const formattedContent = truncatedContent.replace(/\n/g, ' ');
+                        const formattedContent = summarizeMessageContent(message.content, 100);
                         
                         speechBubble.textContent = formattedContent;
                         speechBubble.classList.add('visible');
                     }
                     
                     // Add to event log
-                    addEventLogItem(`${message.speaker.split('/').pop()}: ${message.content.substring(0, 50)}${message.content.length > 50 ? '...' : ''}`);
+                    addEventLogItem(`${message.speaker.split('/').pop()}: ${summarizeMessageContent(message.content, 50)}`);
                 }
             }
             

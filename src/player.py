@@ -42,6 +42,122 @@ class Player:
         """Return a string representation of the player."""
         return f"{self.player_name} ({self.role.value}) [Model: {self.model_name}]"
 
+    def _extract_players_from_prompt(self, prompt):
+        """Extract visible player names from the prompt text."""
+        patterns = [
+            r"All players:\s*(.+)",
+            r"Todos los jugadores:\s*(.+)",
+            r"Tous les joueurs:\s*(.+)",
+            r"모든 플레이어:\s*(.+)",
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, prompt)
+            if match:
+                return [name.strip() for name in match.group(1).split(",") if name.strip()]
+        return []
+
+    def _extract_other_mafia_from_prompt(self, prompt):
+        """Extract visible mafia teammate names from the prompt text."""
+        patterns = [
+            r"Other Mafia members:\s*(.+)",
+            r"Otros miembros de la Mafia:\s*(.+)",
+            r"Autres membres de la Mafia:\s*(.+)",
+            r"다른 마피아 멤버:\s*(.+)",
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, prompt)
+            if match:
+                raw = match.group(1).strip()
+                if raw.lower().startswith("none") or raw in {"없음"}:
+                    return []
+                return [name.strip() for name in raw.split(",") if name.strip()]
+        return []
+
+    def _is_confirmation_prompt(self, prompt):
+        """Return True when this prompt is asking for a confirmation vote."""
+        markers = [
+            "confirmation vote is needed",
+            "before the elimination is carried out",
+            "se necesita un voto de confirmación",
+            "vote de confirmation est nécessaire",
+            "확인 투표가 필요합니다",
+        ]
+        prompt_lower = prompt.lower()
+        return any(marker in prompt_lower for marker in markers)
+
+    def _build_fallback_response(self, prompt):
+        """Generate a minimal valid response when the upstream model call fails."""
+        players = self._extract_players_from_prompt(prompt)
+        other_players = [name for name in players if name != self.player_name]
+        other_mafia = set(self._extract_other_mafia_from_prompt(prompt))
+        non_mafia_targets = [
+            name
+            for name in other_players
+            if name not in other_mafia and name != self.player_name
+        ]
+        day_target = other_players[0] if other_players else self.player_name
+        night_target = non_mafia_targets[0] if non_mafia_targets else day_target
+
+        language = self.language if self.language in PROMPT_TEMPLATES else "English"
+        prompt_lower = prompt.lower()
+
+        if self._is_confirmation_prompt(prompt):
+            responses = {
+                "English": "AGREE. We should proceed with the town's decision.",
+                "Spanish": "ACUERDO. Debemos seguir con la decisión del pueblo.",
+                "French": "D'ACCORD. Nous devons suivre la décision de la ville.",
+                "Korean": "동의. 마을의 결정을 진행해야 합니다.",
+            }
+            return responses.get(language, responses["English"])
+
+        is_night_phase = any(
+            marker in prompt_lower
+            for marker in [
+                "it's night time",
+                "night time",
+                "es hora de noche",
+                "c'est la nuit",
+                "밤 시간입니다",
+            ]
+        )
+        is_voting_phase = "voting phase" in prompt_lower or "phase de vote" in prompt_lower
+
+        if is_night_phase and self.role == Role.MAFIA:
+            responses = {
+                "English": f"We need to move quickly. ACTION: Kill {night_target}",
+                "Spanish": f"Debemos actuar rápido. ACCIÓN: Matar {night_target}",
+                "French": f"Il faut agir vite. ACTION: Tuer {night_target}",
+                "Korean": f"빨리 행동해야 합니다. 행동: 죽이기 {night_target}",
+            }
+            return responses.get(language, responses["English"])
+
+        if is_night_phase and self.role == Role.DOCTOR:
+            protect_target = day_target if day_target else self.player_name
+            responses = {
+                "English": f"I am playing it safe tonight. ACTION: Protect {protect_target}",
+                "Spanish": f"Voy a jugar sobre seguro esta noche. ACCIÓN: Proteger {protect_target}",
+                "French": f"Je joue la sécurité cette nuit. ACTION: Protéger {protect_target}",
+                "Korean": f"이번 밤은 안전하게 갑니다. 행동: 보호하기 {protect_target}",
+            }
+            return responses.get(language, responses["English"])
+
+        if is_voting_phase:
+            responses = {
+                "English": f"I need to force a decision. VOTE: {day_target}",
+                "Spanish": f"Necesitamos tomar una decisión. VOTO: {day_target}",
+                "French": f"Il faut trancher maintenant. VOTE: {day_target}",
+                "Korean": f"지금 결정을 내려야 합니다. 투표: {day_target}",
+            }
+            return responses.get(language, responses["English"])
+
+        responses = {
+            "English": "I need a moment to regroup. We should compare stories and pressure contradictions.",
+            "Spanish": "Necesito reagruparme. Debemos comparar historias y presionar las contradicciones.",
+            "French": "J'ai besoin de me recentrer. Nous devons comparer les récits et pousser les contradictions.",
+            "Korean": "잠시 정리하겠습니다. 서로의 이야기를 비교하고 모순을 압박해야 합니다.",
+        }
+        return responses.get(language, responses["English"])
+
     def _find_target_player(self, target_name, all_players, exclude_mafia=False):
         """
         Find a target player by name.
@@ -154,6 +270,8 @@ class Player:
             str: The response from the model with private thoughts removed.
         """
         response = get_llm_response(self.model_name, prompt)
+        if response.startswith("ERROR:"):
+            response = self._build_fallback_response(prompt)
 
         # Remove any <think></think> tags and their contents before sharing with other players
         cleaned_response = re.sub(r"<think>.*?</think>", "", response, flags=re.DOTALL)

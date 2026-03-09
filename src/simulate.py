@@ -39,7 +39,12 @@ def run_single_game(game_number, language=None, models=None):
 
 
 def run_simulation(
-    num_games=config.NUM_GAMES, parallel=False, max_workers=4, language=None, models=None
+    num_games=config.NUM_GAMES,
+    parallel=False,
+    max_workers=4,
+    language=None,
+    models=None,
+    status_callback=None,
 ):
     """
     Run multiple Mafia games and store results.
@@ -51,16 +56,25 @@ def run_simulation(
         language (str, optional): Language for game prompts and interactions. Defaults to config.LANGUAGE.
         models (list, optional): List of model names to use as players. Defaults to config.MODELS.
 
+    Args:
+        status_callback (callable, optional): Receives progress updates as
+            ``status_callback(message, level="info")``.
+
     Returns:
         dict: Statistics about the games.
     """
+    def emit_status(message, level="info"):
+        if status_callback is not None:
+            status_callback(message, level=level)
+
     # Initialize logger
     logger = GameLogger()
     logger.header(f"STARTING SIMULATION WITH {num_games} GAMES", Color.BRIGHT_MAGENTA)
+    emit_status(f"Starting simulation with {num_games} game(s).")
 
     start_time = time.time()
 
-    # Initialize Firebase
+    # Initialize database
     firebase = FirebaseManager()
 
     # Initialize statistics
@@ -109,7 +123,7 @@ def run_simulation(
                         critic_review,
                     ) = future.result()
 
-                    # Store results in Firebase
+                    # Store results in database
                     if firebase.initialized:
                         firebase.store_game_result(
                             game_id, winner, participants, language=language
@@ -167,9 +181,17 @@ def run_simulation(
                         win_color,
                         bold=True,
                     )
+                    emit_status(
+                        f"Game {game_number} completed. Winner: {winner}.",
+                        level="success",
+                    )
 
                 except Exception as e:
                     logger.error(f"Game {game_number} generated an exception: {e}")
+                    emit_status(
+                        f"Game {game_number} generated an exception: {e}",
+                        level="error",
+                    )
     else:
         # Run games sequentially
         for i in range(1, num_games + 1):
@@ -185,7 +207,7 @@ def run_simulation(
                     critic_review,
                 ) = run_single_game(i, game_language, models)
 
-                # Store results in Firebase
+                # Store results in database
                 if firebase.initialized:
                     firebase.store_game_result(
                         game_id, winner, participants, language=language
@@ -245,9 +267,17 @@ def run_simulation(
                     win_color,
                     bold=True,
                 )
+                emit_status(
+                    f"Game {game_number} completed. Winner: {winner}.",
+                    level="success",
+                )
 
             except Exception as e:
                 logger.error(f"Game {game_number} generated an exception: {e}")
+                emit_status(
+                    f"Game {game_number} generated an exception: {e}",
+                    level="error",
+                )
 
     # Calculate elapsed time
     elapsed_time = time.time() - start_time
@@ -255,6 +285,12 @@ def run_simulation(
 
     # Log statistics using our logger
     logger.stats(stats)
+    emit_status(
+        "Simulation finished. "
+        f"Completed {stats['completed_games']}/{stats['total_games']} game(s) in "
+        f"{elapsed_time:.1f}s.",
+        level="success",
+    )
 
     return stats
 
