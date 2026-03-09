@@ -199,17 +199,18 @@ h1, h2, h3 {
 }
 
 .dialogue-message {
-    margin-bottom: 12px;
-    padding: 12px;
-    border-radius: 6px;
+    margin-bottom: 16px;
+    padding: 14px 16px 15px;
+    border-radius: 8px;
     background-color: var(--bg-card);
     border: 1px solid #f0f0f0;
 }
 
 .dialogue-speaker {
     font-weight: 600;
-    margin-bottom: 4px;
+    margin-bottom: 9px;
     font-size: 0.875rem;
+    line-height: 1.45;
 }
 
 .dialogue-content {
@@ -217,6 +218,10 @@ h1, h2, h3 {
     word-break: break-word;
     color: var(--text-secondary);
     line-height: 1.6;
+}
+
+.dialogue-speaker .model-name {
+    margin-left: 0.45rem;
 }
 
 /* Phases */
@@ -324,10 +329,10 @@ h1, h2, h3 {
     font-family: var(--font-mono);
     font-weight: 500;
     display: inline-block;
-    padding: 1px 6px;
+    padding: 2px 7px;
     border-radius: 3px;
     font-size: 0.75em;
-    margin-left: 6px;
+    margin-left: 8px;
 }
 
 .phase-tag.night { background-color: #dbeafe; color: var(--blue); }
