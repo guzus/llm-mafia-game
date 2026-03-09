@@ -5,6 +5,7 @@ Dashboard for the LLM Mafia Game Competition.
 import io
 import base64
 import json
+import os
 import time
 import datetime
 from typing import Dict, List, Any, Optional, Union
@@ -553,13 +554,15 @@ if __name__ == "__main__":
         import argparse
 
         parser = argparse.ArgumentParser(description="LLM Mafia Dashboard")
+        default_port = int(os.getenv("PORT", "5000"))
         parser.add_argument(
-            "--port", type=int, default=5000, help="Port to run the server on"
+            "--port", type=int, default=default_port, help="Port to run the server on"
         )
         args = parser.parse_args()
 
         # Run the app
         print(f"Starting the dashboard application on port {args.port}...")
-        app.run(debug=True, host="0.0.0.0", port=args.port)
+        debug = os.getenv("FLASK_DEBUG", "").lower() == "true"
+        app.run(debug=debug, host="0.0.0.0", port=args.port)
     except Exception as e:
         print(f"Error starting application: {e}")
