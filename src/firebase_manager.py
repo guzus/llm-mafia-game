@@ -34,7 +34,7 @@ class FirebaseManager:
         try:
             self._ensure_schema()
             print("PostgreSQL initialized successfully.")
-        except Exception as exc:
+        except psycopg.Error as exc:
             print(f"Error initializing PostgreSQL: {exc}")
             self.initialized = False
 
@@ -74,6 +74,18 @@ class FirebaseManager:
                         rounds JSONB NOT NULL,
                         critic_review JSONB
                     );
+                    """
+                )
+                cur.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS idx_mafia_games_timestamp
+                    ON mafia_games(timestamp DESC);
+                    """
+                )
+                cur.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS idx_mafia_games_game_type
+                    ON mafia_games(game_type);
                     """
                 )
 
@@ -136,7 +148,7 @@ class FirebaseManager:
                         ),
                     )
             return True
-        except Exception as exc:
+        except psycopg.Error as exc:
             print(f"Error storing game result: {exc}")
             return False
 
@@ -171,7 +183,7 @@ class FirebaseManager:
                         ),
                     )
             return True
-        except Exception as exc:
+        except psycopg.Error as exc:
             print(f"Error storing game log: {exc}")
             return False
 
@@ -206,7 +218,7 @@ class FirebaseManager:
                 if isinstance(row.get("participants"), str):
                     row["participants"] = json.loads(row["participants"])
             return rows
-        except Exception as exc:
+        except (psycopg.Error, json.JSONDecodeError, TypeError) as exc:
             print(f"Error getting game results: {exc}")
             return []
 
@@ -273,7 +285,7 @@ class FirebaseManager:
                 stats[model]["doctor_win_rate"] = stats[model]["doctor_wins"] / doctor_games if doctor_games else 0
 
             return stats
-        except Exception as exc:
+        except (psycopg.Error, TypeError, ValueError) as exc:
             print(f"Error getting model stats: {exc}")
             return {}
 
@@ -550,7 +562,7 @@ class FirebaseManager:
                 "best_matchups": best_matchups,
                 "toughest_matchups": toughest_matchups,
             }
-        except Exception as exc:
+        except (psycopg.Error, TypeError, ValueError) as exc:
             print(f"Error getting model analytics: {exc}")
             return None
 
@@ -579,6 +591,6 @@ class FirebaseManager:
                 return None
 
             return row
-        except Exception as exc:
+        except psycopg.Error as exc:
             print(f"Error getting game log: {exc}")
             return None
