@@ -117,12 +117,23 @@ class FirebaseManager:
             return winner == "Villagers"
         return False
 
+    def _validate_participants(self, participants: Any) -> dict[str, Any]:
+        if not isinstance(participants, dict):
+            raise TypeError("participants must be a dictionary keyed by player name")
+        return participants
+
+    def _validate_rounds(self, rounds: Any) -> list[Any]:
+        if not isinstance(rounds, list):
+            raise TypeError("rounds must be a list")
+        return rounds
+
     def store_game_result(self, game_id, winner, participants, game_type=config.GAME_TYPE, language=config.LANGUAGE):
         if not self.initialized:
             print("Database not initialized. Cannot store game result.")
             return False
 
         try:
+            validated_participants = self._validate_participants(participants)
             with self._connection() as conn:
                 with conn.cursor() as cur:
                     cur.execute(
@@ -142,13 +153,13 @@ class FirebaseManager:
                             int(time.time()),
                             game_type,
                             language,
-                            len(participants),
+                            len(validated_participants),
                             winner,
-                            json.dumps(participants),
+                            json.dumps(validated_participants),
                         ),
                     )
             return True
-        except psycopg.Error as exc:
+        except (psycopg.Error, TypeError, ValueError) as exc:
             print(f"Error storing game result: {exc}")
             return False
 
@@ -158,6 +169,8 @@ class FirebaseManager:
             return False
 
         try:
+            validated_participants = self._validate_participants(participants)
+            validated_rounds = self._validate_rounds(rounds)
             with self._connection() as conn:
                 with conn.cursor() as cur:
                     cur.execute(
@@ -177,13 +190,13 @@ class FirebaseManager:
                             int(time.time()),
                             game_type,
                             language,
-                            len(participants),
-                            json.dumps(rounds),
+                            len(validated_participants),
+                            json.dumps(validated_rounds),
                             json.dumps(critic_review) if critic_review else None,
                         ),
                     )
             return True
-        except psycopg.Error as exc:
+        except (psycopg.Error, TypeError, ValueError) as exc:
             print(f"Error storing game log: {exc}")
             return False
 
