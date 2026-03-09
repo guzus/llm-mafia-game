@@ -10,6 +10,7 @@ services:
       - ./logs/dashboard:/app/logs
     environment:
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - DATABASE_URL=${DATABASE_URL}
     command: uv run src/dashboard.py --port 5001
     logging:
       driver: "json-file"
