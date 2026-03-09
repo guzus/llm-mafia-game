@@ -1,0 +1,364 @@
+{% extends "base.html" %}
+
+{% block title %}Model Detail - LLM Mafia Game Competition{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="/static/css/model_detail.css">
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <a href="/" class="back-link">← Back to Dashboard</a>
+
+        <div id="modelPage" class="loading-shell">
+            <div class="loading-card">
+                <div class="spinner"></div>
+                <div>Loading model analytics...</div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        const modelId = {{ model_name|tojson }};
+
+        function formatPercent(value) {
+            return `${(Number(value || 0) * 100).toFixed(1)}%`;
+        }
+
+        function formatDate(timestamp) {
+            return new Date((timestamp || 0) * 1000).toLocaleString();
+        }
+
+        function encodeModelLink(modelName) {
+            return `/model/${encodeURIComponent(modelName)}`;
+        }
+
+        function renderMetricCard(label, value, detail = '') {
+            return `
+                <div class="metric-card">
+                    <div class="metric-label">${label}</div>
+                    <div class="metric-value">${value}</div>
+                    ${detail ? `<div class="metric-detail">${detail}</div>` : ''}
+                </div>
+            `;
+        }
+
+        function renderBreakdownTable(rows, firstColumnLabel, valueKey) {
+            if (!rows.length) {
+                return '<div class="empty-state">No data available.</div>';
+            }
+
+            const body = rows.map((row) => `
+                <tr>
+                    <td>${row[firstColumnLabel]}</td>
+                    <td>${row.games}</td>
+                    <td>${row.wins}</td>
+                    <td>${row.losses}</td>
+                    <td>${formatPercent(row.win_rate)}</td>
+                </tr>
+            `).join('');
+
+            return `
+                <table class="detail-table">
+                    <thead>
+                        <tr>
+                            <th>${valueKey}</th>
+                            <th>Games</th>
+                            <th>Wins</th>
+                            <th>Losses</th>
+                            <th>Win Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>${body}</tbody>
+                </table>
+            `;
+        }
+
+        function renderMatchupList(items, emptyLabel) {
+            if (!items.length) {
+                return `<div class="empty-state">${emptyLabel}</div>`;
+            }
+
+            return items.map((item) => `
+                <a class="matchup-item" href="${encodeModelLink(item.model_name)}">
+                    <div class="matchup-model">${window.LlmBranding.renderModelIdentity(item.model_name, { compact: true })}</div>
+                    <div class="matchup-stats">
+                        <span>${item.wins}W</span>
+                        <span>${item.losses}L</span>
+                        <span>${formatPercent(item.win_rate)}</span>
+                    </div>
+                </a>
+            `).join('');
+        }
+
+        function renderMatchupTable(items) {
+            if (!items.length) {
+                return '<div class="empty-state">No matchup history yet.</div>';
+            }
+
+            const body = items.map((item) => `
+                <tr>
+                    <td><a class="model-link" href="${encodeModelLink(item.model_name)}">${window.LlmBranding.renderModelIdentity(item.model_name, { compact: true })}</a></td>
+                    <td>${item.games}</td>
+                    <td>${item.wins}</td>
+                    <td>${item.losses}</td>
+                    <td>${formatPercent(item.win_rate)}</td>
+                </tr>
+            `).join('');
+
+            return `
+                <table class="detail-table">
+                    <thead>
+                        <tr>
+                            <th>Opponent</th>
+                            <th>Games</th>
+                            <th>Wins</th>
+                            <th>Losses</th>
+                            <th>Win Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>${body}</tbody>
+                </table>
+            `;
+        }
+
+        function renderTimelineChart(points) {
+            if (!points.length) {
+                return '<div class="empty-state">No timeline data available.</div>';
+            }
+
+            const width = 860;
+            const height = 260;
+            const padding = 28;
+            const usableWidth = width - padding * 2;
+            const usableHeight = height - padding * 2;
+            const denominator = Math.max(points.length - 1, 1);
+
+            const polyline = points.map((point, index) => {
+                const x = padding + (usableWidth * index / denominator);
+                const y = height - padding - (usableHeight * point.cumulative_win_rate);
+                return `${x},${y}`;
+            }).join(' ');
+
+            const dots = points.map((point, index) => {
+                const x = padding + (usableWidth * index / denominator);
+                const y = height - padding - (usableHeight * point.cumulative_win_rate);
+                const resultClass = point.result === 'win' ? 'win' : 'loss';
+                return `<circle class="chart-dot ${resultClass}" cx="${x}" cy="${y}" r="4"><title>${formatDate(point.timestamp)}: ${point.result.toUpperCase()} as ${point.role}</title></circle>`;
+            }).join('');
+
+            return `
+                <svg class="timeline-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Cumulative win rate over time">
+                    <line class="chart-axis" x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}"></line>
+                    <line class="chart-axis" x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}"></line>
+                    <line class="chart-grid" x1="${padding}" y1="${padding}" x2="${width - padding}" y2="${padding}"></line>
+                    <line class="chart-grid" x1="${padding}" y1="${height / 2}" x2="${width - padding}" y2="${height / 2}"></line>
+                    <polyline class="chart-line" points="${polyline}"></polyline>
+                    ${dots}
+                    <text class="chart-label" x="${padding}" y="${padding - 8}">100%</text>
+                    <text class="chart-label" x="${padding}" y="${height / 2 - 8}">50%</text>
+                    <text class="chart-label" x="${padding}" y="${height - padding - 8}">0%</text>
+                </svg>
+            `;
+        }
+
+        function renderRecentForm(timeline) {
+            const recent = timeline.slice(-12);
+            if (!recent.length) {
+                return '<div class="empty-state">No recent form available.</div>';
+            }
+
+            return recent.map((point) => `
+                <div class="form-pill ${point.result}">
+                    <span>${point.result === 'win' ? 'W' : 'L'}</span>
+                    <small>${point.role || 'Unknown'}</small>
+                </div>
+            `).join('');
+        }
+
+        function renderRecentGames(games) {
+            if (!games.length) {
+                return '<div class="empty-state">No recent games for this model.</div>';
+            }
+
+            const body = games.map((game) => {
+                const opponentList = game.opponents
+                    .map((opponent) => window.LlmBranding.renderModelIdentity(opponent.model_name, { compact: true }))
+                    .join(', ');
+
+                return `
+                    <tr>
+                        <td><a class="game-link" href="/game/${game.game_id}">${game.game_id}</a></td>
+                        <td>${formatDate(game.timestamp)}</td>
+                        <td><span class="result-pill ${game.result}">${game.result}</span></td>
+                        <td>${game.role || 'Unknown'}</td>
+                        <td>${game.player_name || 'Unknown'}</td>
+                        <td>${game.language || 'Unknown'}</td>
+                        <td>${game.participant_count || 0}</td>
+                        <td>${opponentList || 'None'}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            return `
+                <table class="detail-table recent-games-table">
+                    <thead>
+                        <tr>
+                            <th>Game</th>
+                            <th>Time</th>
+                            <th>Result</th>
+                            <th>Role</th>
+                            <th>Seat</th>
+                            <th>Language</th>
+                            <th>Lobby</th>
+                            <th>Opponents</th>
+                        </tr>
+                    </thead>
+                    <tbody>${body}</tbody>
+                </table>
+            `;
+        }
+
+        function renderRoleCards(roleBreakdown) {
+            return Object.entries(roleBreakdown).map(([role, stats]) => `
+                <div class="role-card">
+                    <div class="role-name">${role}</div>
+                    <div class="role-rate">${formatPercent(stats.win_rate)}</div>
+                    <div class="role-meta">${stats.wins} wins in ${stats.games} games</div>
+                </div>
+            `).join('');
+        }
+
+        function renderPage(data) {
+            document.title = `${window.LlmBranding.getModelLabel(data.model_name)} - LLM Mafia Game Competition`;
+
+            const streakLabel = data.current_win_streak > 0
+                ? `${data.current_win_streak} straight wins`
+                : data.current_loss_streak > 0
+                    ? `${data.current_loss_streak} straight losses`
+                    : 'No active streak';
+
+            const page = `
+                <section class="model-hero">
+                    <div class="hero-badge">${window.LlmBranding.renderModelIdentity(data.model_name)}</div>
+                    <div class="hero-copy">
+                        <h1>${window.LlmBranding.getModelLabel(data.model_name)}</h1>
+                        <p>Per-model analytics built from every stored Mafia game appearance in Neon.</p>
+                    </div>
+                </section>
+
+                <section class="metrics-grid">
+                    ${renderMetricCard('Games Played', data.games_played)}
+                    ${renderMetricCard('Wins', data.games_won, `Losses: ${data.games_lost}`)}
+                    ${renderMetricCard('Overall Win Rate', formatPercent(data.win_rate))}
+                    ${renderMetricCard('Current Streak', streakLabel, `Best win streak: ${data.best_win_streak}`)}
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Win/Loss Over Time</h2>
+                        <p>Cumulative win rate after each recorded appearance.</p>
+                    </div>
+                    ${renderTimelineChart(data.timeline)}
+                    <div class="recent-form">${renderRecentForm(data.timeline)}</div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Role Breakdown</h2>
+                        <p>Performance split by team role.</p>
+                    </div>
+                    <div class="roles-grid">${renderRoleCards(data.role_breakdown)}</div>
+                </section>
+
+                <section class="two-column-grid">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Won Most Against</h2>
+                            <p>Opponents this model beat most often.</p>
+                        </div>
+                        <div class="matchup-list">${renderMatchupList(data.won_most_against, 'No wins logged against any opponent yet.')}</div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Lost Most Against</h2>
+                            <p>Opponents that most often handed this model losses.</p>
+                        </div>
+                        <div class="matchup-list">${renderMatchupList(data.lost_most_against, 'No losses logged against any opponent yet.')}</div>
+                    </div>
+                </section>
+
+                <section class="two-column-grid">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Best Matchups</h2>
+                            <p>Highest win rates with at least two appearances.</p>
+                        </div>
+                        ${renderMatchupTable(data.best_matchups)}
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Toughest Matchups</h2>
+                            <p>Lowest win rates with at least two appearances.</p>
+                        </div>
+                        ${renderMatchupTable(data.toughest_matchups)}
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Full Matchup Table</h2>
+                        <p>Head-to-head performance against every opposing model.</p>
+                    </div>
+                    ${renderMatchupTable(data.matchups)}
+                </section>
+
+                <section class="two-column-grid">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>By Language</h2>
+                            <p>Win rate split by prompt language.</p>
+                        </div>
+                        ${renderBreakdownTable(data.language_breakdown, 'language', 'Language')}
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>By Lobby Size</h2>
+                            <p>Performance by participant count.</p>
+                        </div>
+                        ${renderBreakdownTable(data.lobby_breakdown, 'participant_count', 'Players')}
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Recent Games</h2>
+                        <p>The latest appearances for this model.</p>
+                    </div>
+                    ${renderRecentGames(data.recent_games)}
+                </section>
+            `;
+
+            document.getElementById('modelPage').innerHTML = page;
+        }
+
+        fetch(`/api/model/${encodeURIComponent(modelId)}`)
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Failed to load model analytics');
+                }
+                return response.json();
+            })
+            .then(renderPage)
+            .catch((error) => {
+                document.getElementById('modelPage').innerHTML = `
+                    <div class="error-state">
+                        <h1>Model analytics unavailable</h1>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            });
+    </script>
+{% endblock %}

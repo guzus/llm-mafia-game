@@ -9,9 +9,12 @@
 {% block content %}
     <div class="container">
         <div class="header">
-            <img src="/static/images/logo.webp" alt="LLM Mafia Game Logo" class="logo">
-            <h1>LLM Mafia Game Competition</h1>
-            <div class="season-badge">Season 2</div>
+            <div class="header-copy">
+                <div class="season-badge">Season 2</div>
+                <h1>LLM Mafia Game Competition</h1>
+                <p class="header-subtitle">Frontier model tournaments, role-by-role stats, and complete game transcripts.</p>
+            </div>
+            <img src="/static/images/github-banner.png" alt="LLM Mafia Game GitHub Banner" class="hero-banner">
         </div>
         
         <!--
@@ -131,12 +134,10 @@
                 for (const model of sortedModels) {
                     const stats = data[model];
                     const row = document.createElement('tr');
-                    
-                    // Format model name to show only the last part
-                    const modelName = model.split('/').pop();
-                    
+                    const modelLink = `/model/${encodeURIComponent(model)}`;
+
                     row.innerHTML = `
-                        <td>${modelName}</td>
+                        <td><a class="model-link" href="${modelLink}">${window.LlmBranding.renderModelIdentity(model)}</a></td>
                         <td>${stats.games_played}</td>
                         <td>${(stats.win_rate * 100).toFixed(2)}%</td>
                         <td>${(stats.mafia_win_rate * 100).toFixed(2)}% (${stats.mafia_wins}/${stats.mafia_games})</td>
@@ -183,18 +184,17 @@
                     const participants = Object.entries(game.participants)
                         .map(([player, roleData]) => {
                             // Handle both old and new format
-                            let role, modelName;
+                            let role, modelId;
                             if (typeof roleData === 'object') {
                                 role = roleData.role;
-                                modelName = roleData.model_name;
+                                modelId = roleData.model_name;
                             } else {
                                 // Legacy format where roleData is just the role string
                                 role = roleData;
-                                modelName = player;
+                                modelId = player;
                             }
-                            modelName = modelName.split('/').pop();
-                            
-                            return `${modelName} (${role})`;
+
+                            return `<span class="game-participant">${window.LlmBranding.renderModelIdentity(modelId, { compact: true })} <span class="participant-role">(${role})</span></span>`;
                         })
                         .join(', ');
                     

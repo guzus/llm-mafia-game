@@ -15,6 +15,76 @@
     </script>
     <link rel="icon" href="/static/images/favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="/static/images/favicon.ico" type="image/x-icon">
+    <style>
+        .provider-identity {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 0;
+            vertical-align: middle;
+        }
+
+        .provider-identity.is-compact {
+            gap: 0.4rem;
+        }
+
+        .provider-logo {
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: none;
+            color: #fff;
+            font-size: 0.62rem;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -0.02em;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+        }
+
+        .provider-identity.is-compact .provider-logo {
+            width: 1.15rem;
+            height: 1.15rem;
+            font-size: 0.52rem;
+        }
+
+        .provider-copy {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0.35rem;
+            min-width: 0;
+            flex-wrap: wrap;
+        }
+
+        .provider-company {
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .provider-model {
+            color: #555;
+            word-break: break-word;
+        }
+
+        .provider-openai { background: #111827; }
+        .provider-anthropic { background: #b45309; }
+        .provider-google { background: linear-gradient(135deg, #4285f4 0%, #34a853 33%, #fbbc05 66%, #ea4335 100%); }
+        .provider-xai { background: #0f172a; }
+        .provider-deepseek { background: #1d4ed8; }
+        .provider-qwen { background: #7c3aed; }
+        .provider-moonshot { background: #0f766e; }
+        .provider-meta { background: #2563eb; }
+        .provider-mistral { background: #f97316; }
+        .provider-microsoft { background: #0284c7; }
+        .provider-nous { background: #4f46e5; }
+        .provider-minimax { background: #db2777; }
+        .provider-gryphe { background: #7c2d12; }
+        .provider-nvidia { background: #16a34a; }
+        .provider-cognitive { background: #9333ea; }
+        .provider-other { background: #6b7280; }
+    </style>
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -25,7 +95,76 @@
             <a href="https://github.com/guzus/llm-mafia-game" target="_blank" rel="noopener noreferrer">GitHub</a>
         </p>
     </footer>
-    
+    <script>
+        (() => {
+            const providerMetadata = {
+                "openai": { name: "OpenAI", mark: "OA", className: "provider-openai" },
+                "anthropic": { name: "Anthropic", mark: "AN", className: "provider-anthropic" },
+                "google": { name: "Google", mark: "G", className: "provider-google" },
+                "x-ai": { name: "xAI", mark: "x", className: "provider-xai" },
+                "deepseek": { name: "DeepSeek", mark: "DS", className: "provider-deepseek" },
+                "qwen": { name: "Qwen", mark: "QW", className: "provider-qwen" },
+                "moonshotai": { name: "Moonshot", mark: "MS", className: "provider-moonshot" },
+                "meta-llama": { name: "Meta", mark: "M", className: "provider-meta" },
+                "mistralai": { name: "Mistral", mark: "Mi", className: "provider-mistral" },
+                "microsoft": { name: "Microsoft", mark: "MS", className: "provider-microsoft" },
+                "nousresearch": { name: "Nous", mark: "NR", className: "provider-nous" },
+                "minimax": { name: "MiniMax", mark: "MM", className: "provider-minimax" },
+                "gryphe": { name: "Gryphe", mark: "GR", className: "provider-gryphe" },
+                "nvidia": { name: "NVIDIA", mark: "NV", className: "provider-nvidia" },
+                "cognitivecomputations": { name: "Cognitive", mark: "CC", className: "provider-cognitive" },
+            };
+
+            function escapeHtml(value) {
+                return String(value ?? "")
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#39;");
+            }
+
+            function getProviderInfo(modelId = "") {
+                const providerId = String(modelId || "").split("/")[0] || "other";
+                return providerMetadata[providerId] || {
+                    name: providerId ? providerId.replace(/[-_]/g, " ") : "Unknown",
+                    mark: providerId.slice(0, 2).toUpperCase() || "?",
+                    className: "provider-other",
+                };
+            }
+
+            function getModelLabel(modelId = "") {
+                const raw = String(modelId || "");
+                if (!raw) return "Unknown model";
+                if (!raw.includes("/")) return raw;
+                return raw.split("/").slice(1).join("/") || raw;
+            }
+
+            function renderModelIdentity(modelId, options = {}) {
+                const { compact = false, includeCompany = true, showModel = true } = options;
+                const provider = getProviderInfo(modelId);
+                const modelLabel = getModelLabel(modelId);
+                const classes = compact ? "provider-identity is-compact" : "provider-identity";
+
+                return `
+                    <span class="${classes}" title="${escapeHtml(provider.name)} ${escapeHtml(modelLabel)}">
+                        <span class="provider-logo ${provider.className}" aria-hidden="true">${escapeHtml(provider.mark)}</span>
+                        <span class="provider-copy">
+                            ${includeCompany ? `<span class="provider-company">${escapeHtml(provider.name)}</span>` : ""}
+                            ${showModel ? `<span class="provider-model">${escapeHtml(modelLabel)}</span>` : ""}
+                        </span>
+                    </span>
+                `;
+            }
+
+            window.LlmBranding = {
+                escapeHtml,
+                getProviderInfo,
+                getModelLabel,
+                renderModelIdentity,
+            };
+        })();
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html> 

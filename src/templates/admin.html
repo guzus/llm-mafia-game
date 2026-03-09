@@ -1,0 +1,377 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - LLM Mafia Game Competition{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="/static/css/admin.css">
+{% endblock %}
+
+{% block content %}
+    <div class="admin-shell">
+        {% if not authenticated %}
+            <section class="auth-panel">
+                <div class="auth-copy">
+                    <div class="eyebrow">Admin Route</div>
+                    <h1>Simulation Control</h1>
+                    <p>Password-gated access for starting new Mafia batches and checking the live OpenRouter balance.</p>
+                </div>
+
+                <form method="post" action="/admin/login" class="login-form">
+                    <label for="password">Password</label>
+                    <input id="password" name="password" type="password" autocomplete="current-password" required>
+                    {% if error %}
+                        <div class="form-error">{{ error }}</div>
+                    {% endif %}
+                    <button type="submit">Unlock Admin</button>
+                </form>
+            </section>
+        {% else %}
+            <div class="admin-header">
+                <div>
+                    <div class="eyebrow">Admin Dashboard</div>
+                    <h1>Run Simulation Batches</h1>
+                    <p>Start a new batch, inspect live OpenRouter spend, and watch the latest job status without leaving the dashboard.</p>
+                </div>
+                <form method="post" action="/admin/logout">
+                    <button type="submit" class="secondary-button">Log Out</button>
+                </form>
+            </div>
+
+            {% if using_fallback_secret %}
+                <div class="warning-banner">
+                    `ADMIN_SESSION_SECRET` is not set. The admin session is using the local fallback secret. Set a real secret before relying on this in production.
+                </div>
+            {% endif %}
+
+            <div class="admin-grid">
+                <section class="panel balance-panel">
+                    <div class="panel-heading">
+                        <div>
+                            <h2>OpenRouter Balance</h2>
+                            <p>Live account usage pulled from the API.</p>
+                        </div>
+                        <button type="button" id="refreshBalanceButton" class="secondary-button">Refresh</button>
+                    </div>
+                    <div id="openrouterSummary" class="balance-summary"></div>
+                    <div id="openrouterMeta" class="balance-meta"></div>
+                </section>
+
+                <section class="panel form-panel">
+                    <div class="panel-heading">
+                        <div>
+                            <h2>New Simulation</h2>
+                            <p>Runs in the background and writes directly into Neon.</p>
+                        </div>
+                    </div>
+
+                    <form id="simulationForm" class="simulation-form">
+                        <div class="field-row">
+                            <label>
+                                <span>Preset</span>
+                                <select id="presetSelect" name="preset">
+                                    {% for preset_name, preset in admin_presets.items() %}
+                                        <option value="{{ preset_name }}" {% if preset_name == "latest_frontier" %}selected{% endif %}>{{ preset.label }}</option>
+                                    {% endfor %}
+                                    <option value="custom">Custom</option>
+                                </select>
+                            </label>
+
+                            <label>
+                                <span>Games</span>
+                                <input type="number" id="numGamesInput" name="num_games" min="1" max="25" value="{{ default_num_games }}" required>
+                            </label>
+
+                            <label>
+                                <span>Language</span>
+                                <input type="text" id="languageInput" name="language" value="{{ default_language }}" required>
+                            </label>
+                        </div>
+
+                        <div class="field-row">
+                            <label>
+                                <span>Max Workers</span>
+                                <input type="number" id="maxWorkersInput" name="max_workers" min="1" max="8" value="{{ default_max_workers }}" required>
+                            </label>
+
+                            <label class="checkbox-field">
+                                <input type="checkbox" id="parallelInput" name="parallel">
+                                <span>Run in parallel</span>
+                            </label>
+                        </div>
+
+                        <label class="textarea-field">
+                            <span>Model Roster</span>
+                            <textarea id="modelsTextarea" name="models" rows="10" spellcheck="false">{{ default_models }}</textarea>
+                        </label>
+
+                        <div class="form-note">
+                            {% if unique_models %}
+                                Unique model mode is enabled. You need at least {{ players_per_game }} distinct models per game.
+                            {% else %}
+                                Duplicate model seats are allowed in this build.
+                            {% endif %}
+                        </div>
+
+                        <div id="formMessage" class="form-message" hidden></div>
+
+                        <div class="form-actions">
+                            <button type="submit" id="runSimulationButton">Start Simulation</button>
+                        </div>
+                    </form>
+                </section>
+            </div>
+
+            <section class="panel status-panel">
+                <div class="panel-heading">
+                    <div>
+                        <h2>Latest Job</h2>
+                        <p>Polled automatically while the page is open.</p>
+                    </div>
+                    <div id="jobStatusPill" class="status-pill">Idle</div>
+                </div>
+
+                <div id="jobSummary" class="job-summary"></div>
+                <div id="jobEvents" class="job-events"></div>
+            </section>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {% if authenticated %}
+        <script>
+            const adminPresets = {{ admin_presets|tojson }};
+            const defaultModels = {{ default_models|tojson }};
+            let adminOverview = {
+                openrouter: {{ initial_openrouter_state|tojson }},
+                simulation: {{ initial_simulation_state|tojson }},
+            };
+            let pollHandle = null;
+
+            const numberFormatter = new Intl.NumberFormat(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 4,
+            });
+
+            function formatCurrencyLike(value) {
+                if (value === null || value === undefined || Number.isNaN(Number(value))) {
+                    return 'Unavailable';
+                }
+                return numberFormatter.format(Number(value));
+            }
+
+            function formatTimestamp(timestamp) {
+                if (!timestamp) return 'Not started';
+                return new Date(timestamp * 1000).toLocaleString();
+            }
+
+            function setFormMessage(message, kind = 'info') {
+                const node = document.getElementById('formMessage');
+                if (!message) {
+                    node.hidden = true;
+                    node.textContent = '';
+                    node.className = 'form-message';
+                    return;
+                }
+                node.hidden = false;
+                node.textContent = message;
+                node.className = `form-message is-${kind}`;
+            }
+
+            function renderOpenRouter(openrouter) {
+                const summaryNode = document.getElementById('openrouterSummary');
+                const metaNode = document.getElementById('openrouterMeta');
+
+                if (!openrouter || !openrouter.configured) {
+                    summaryNode.innerHTML = '<div class="empty-state">OpenRouter API key is not configured.</div>';
+                    metaNode.innerHTML = '';
+                    return;
+                }
+
+                if (openrouter.status !== 'ok') {
+                    summaryNode.innerHTML = `<div class="empty-state">Could not load OpenRouter balance: ${window.LlmBranding.escapeHtml(openrouter.error || 'Unknown error')}</div>`;
+                    metaNode.innerHTML = '';
+                    return;
+                }
+
+                const remaining = openrouter.remaining_credits;
+                const remainingClass = remaining > 0 ? 'is-positive' : 'is-negative';
+
+                summaryNode.innerHTML = `
+                    <div class="balance-card ${remainingClass}">
+                        <div class="balance-label">Remaining Credits</div>
+                        <div class="balance-value">${formatCurrencyLike(remaining)}</div>
+                    </div>
+                    <div class="balance-card">
+                        <div class="balance-label">Total Credits</div>
+                        <div class="balance-value">${formatCurrencyLike(openrouter.total_credits)}</div>
+                    </div>
+                    <div class="balance-card">
+                        <div class="balance-label">Total Usage</div>
+                        <div class="balance-value">${formatCurrencyLike(openrouter.total_usage)}</div>
+                    </div>
+                `;
+
+                metaNode.innerHTML = `
+                    <div class="meta-line"><span>Key Label</span><strong>${window.LlmBranding.escapeHtml(openrouter.label || 'Unknown')}</strong></div>
+                    <div class="meta-line"><span>Month Usage</span><strong>${formatCurrencyLike(openrouter.usage_monthly)}</strong></div>
+                    <div class="meta-line"><span>Daily Usage</span><strong>${formatCurrencyLike(openrouter.usage_daily)}</strong></div>
+                    <div class="meta-line"><span>Free Tier</span><strong>${openrouter.is_free_tier ? 'Yes' : 'No'}</strong></div>
+                `;
+            }
+
+            function renderSimulation(simulation) {
+                const statusPill = document.getElementById('jobStatusPill');
+                const summaryNode = document.getElementById('jobSummary');
+                const eventsNode = document.getElementById('jobEvents');
+                const submitButton = document.getElementById('runSimulationButton');
+
+                const statusLabel = simulation?.status || 'idle';
+                statusPill.textContent = statusLabel;
+                statusPill.className = `status-pill is-${statusLabel}`;
+                submitButton.disabled = Boolean(simulation?.running);
+
+                const result = simulation?.result;
+                const error = simulation?.error;
+                const config = simulation?.config;
+
+                summaryNode.innerHTML = `
+                    <div class="summary-grid">
+                        <div class="summary-item"><span>Status</span><strong>${window.LlmBranding.escapeHtml(statusLabel)}</strong></div>
+                        <div class="summary-item"><span>Started</span><strong>${window.LlmBranding.escapeHtml(formatTimestamp(simulation?.started_at))}</strong></div>
+                        <div class="summary-item"><span>Finished</span><strong>${window.LlmBranding.escapeHtml(formatTimestamp(simulation?.finished_at))}</strong></div>
+                        <div class="summary-item"><span>Games Requested</span><strong>${config?.num_games ?? '-'}</strong></div>
+                        <div class="summary-item"><span>Games Completed</span><strong>${result?.completed_games ?? '-'}</strong></div>
+                        <div class="summary-item"><span>Last Game</span><strong>${result?.last_game_id ? `<a href="/game/${result.last_game_id}">${window.LlmBranding.escapeHtml(result.last_game_id)}</a>` : '-'}</strong></div>
+                    </div>
+                    ${error ? `<div class="summary-error"><strong>Error:</strong> ${window.LlmBranding.escapeHtml(error.message || 'Unknown error')}</div>` : ''}
+                `;
+
+                const events = simulation?.events || [];
+                if (!events.length) {
+                    eventsNode.innerHTML = '<div class="empty-state">No simulation events yet.</div>';
+                    return;
+                }
+
+                eventsNode.innerHTML = events.slice().reverse().map((event) => `
+                    <div class="event-row is-${event.level || 'info'}">
+                        <div class="event-time">${window.LlmBranding.escapeHtml(formatTimestamp(event.timestamp))}</div>
+                        <div class="event-message">${window.LlmBranding.escapeHtml(event.message || '')}</div>
+                    </div>
+                `).join('');
+            }
+
+            function renderOverview() {
+                renderOpenRouter(adminOverview.openrouter);
+                renderSimulation(adminOverview.simulation);
+            }
+
+            function applyPreset(presetName) {
+                const textarea = document.getElementById('modelsTextarea');
+                if (presetName === 'custom') {
+                    if (!textarea.value.trim()) {
+                        textarea.value = defaultModels;
+                    }
+                    return;
+                }
+                const preset = adminPresets[presetName];
+                if (preset) {
+                    textarea.value = preset.models.join('\n');
+                }
+            }
+
+            async function fetchOverview() {
+                const response = await fetch('/api/admin/overview', { credentials: 'same-origin' });
+                if (!response.ok) {
+                    throw new Error(`Overview request failed with ${response.status}`);
+                }
+                adminOverview = await response.json();
+                renderOverview();
+            }
+
+            async function refreshBalance() {
+                const response = await fetch('/api/admin/openrouter/refresh', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                });
+                const payload = await response.json();
+                if (!response.ok) {
+                    throw new Error(payload.error || 'Balance refresh failed');
+                }
+                adminOverview.openrouter = payload;
+                renderOverview();
+            }
+
+            async function startSimulation(event) {
+                event.preventDefault();
+                setFormMessage('');
+
+                const payload = {
+                    num_games: Number(document.getElementById('numGamesInput').value),
+                    parallel: document.getElementById('parallelInput').checked,
+                    max_workers: Number(document.getElementById('maxWorkersInput').value),
+                    language: document.getElementById('languageInput').value,
+                    models: document.getElementById('modelsTextarea').value,
+                };
+
+                const response = await fetch('/api/admin/simulations', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+                const result = await response.json();
+
+                if (!response.ok) {
+                    setFormMessage(result.error || 'Could not start simulation.', 'error');
+                    if (result.simulation) {
+                        adminOverview.simulation = result.simulation;
+                        renderOverview();
+                    }
+                    return;
+                }
+
+                adminOverview.simulation = result.simulation;
+                renderOverview();
+                setFormMessage('Simulation started in the background.', 'success');
+            }
+
+            function startPolling() {
+                if (pollHandle) {
+                    window.clearInterval(pollHandle);
+                }
+                pollHandle = window.setInterval(async () => {
+                    try {
+                        await fetchOverview();
+                    } catch (error) {
+                        console.error('Failed to refresh admin overview:', error);
+                    }
+                }, 10000);
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                document.getElementById('presetSelect').addEventListener('change', (event) => {
+                    applyPreset(event.target.value);
+                });
+                document.getElementById('simulationForm').addEventListener('submit', (event) => {
+                    startSimulation(event).catch((error) => {
+                        console.error('Failed to start simulation:', error);
+                        setFormMessage(error.message || 'Could not start simulation.', 'error');
+                    });
+                });
+                document.getElementById('refreshBalanceButton').addEventListener('click', () => {
+                    refreshBalance().catch((error) => {
+                        console.error('Failed to refresh balance:', error);
+                        setFormMessage(error.message || 'Could not refresh balance.', 'error');
+                    });
+                });
+
+                applyPreset(document.getElementById('presetSelect').value);
+                renderOverview();
+                startPolling();
+            });
+        </script>
+    {% endif %}
+{% endblock %}

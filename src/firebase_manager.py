@@ -6,6 +6,7 @@ import json
 import os
 import sys
 import time
+from collections import defaultdict
 from contextlib import contextmanager
 from typing import Any
 
@@ -75,6 +76,34 @@ class FirebaseManager:
                     );
                     """
                 )
+
+    def _normalize_participants(self, participants: dict[str, Any]) -> list[dict[str, Any]]:
+        normalized = []
+        for participant_key, data in (participants or {}).items():
+            if isinstance(data, dict):
+                normalized.append(
+                    {
+                        "player_name": data.get("player_name") or participant_key,
+                        "model_name": data.get("model_name") or participant_key,
+                        "role": data.get("role"),
+                    }
+                )
+            else:
+                normalized.append(
+                    {
+                        "player_name": participant_key,
+                        "model_name": participant_key,
+                        "role": data,
+                    }
+                )
+        return normalized
+
+    def _did_model_win(self, role: str | None, winner: str | None) -> bool:
+        if role == "Mafia":
+            return winner == "Mafia"
+        if role in {"Villager", "Doctor"}:
+            return winner == "Villagers"
+        return False
 
     def store_game_result(self, game_id, winner, participants, game_type=config.GAME_TYPE, language=config.LANGUAGE):
         if not self.initialized:
@@ -154,15 +183,24 @@ class FirebaseManager:
         try:
             with self._connection() as conn:
                 with conn.cursor() as cur:
-                    cur.execute(
-                        """
-                        SELECT game_id, timestamp, game_type, language, participant_count, winner, participants
-                        FROM mafia_games
-                        ORDER BY timestamp DESC
-                        LIMIT %s;
-                        """,
-                        (limit,),
-                    )
+                    if limit is None:
+                        cur.execute(
+                            """
+                            SELECT game_id, timestamp, game_type, language, participant_count, winner, participants
+                            FROM mafia_games
+                            ORDER BY timestamp DESC;
+                            """
+                        )
+                    else:
+                        cur.execute(
+                            """
+                            SELECT game_id, timestamp, game_type, language, participant_count, winner, participants
+                            FROM mafia_games
+                            ORDER BY timestamp DESC
+                            LIMIT %s;
+                            """,
+                            (limit,),
+                        )
                     rows = cur.fetchall()
             for row in rows:
                 if isinstance(row.get("participants"), str):
@@ -238,6 +276,283 @@ class FirebaseManager:
         except Exception as exc:
             print(f"Error getting model stats: {exc}")
             return {}
+
+    def get_model_analytics(self, model_name: str):
+        if not self.initialized:
+            print("Database not initialized. Cannot get model analytics.")
+            return None
+
+        try:
+            results = sorted(
+                self.get_game_results(limit=None),
+                key=lambda game: (game.get("timestamp", 0), game.get("game_id", "")),
+            )
+
+            appearances = []
+            opponent_stats: dict[str, dict[str, Any]] = defaultdict(
+                lambda: {"games": 0, "wins": 0, "losses": 0}
+            )
+            role_stats = {
+                "Mafia": {"games": 0, "wins": 0},
+                "Villager": {"games": 0, "wins": 0},
+                "Doctor": {"games": 0, "wins": 0},
+            }
+            language_stats: dict[str, dict[str, int]] = defaultdict(
+                lambda: {"games": 0, "wins": 0}
+            )
+            lobby_size_stats: dict[str, dict[str, int]] = defaultdict(
+                lambda: {"games": 0, "wins": 0}
+            )
+
+            total_games = 0
+            total_wins = 0
+            current_win_streak = 0
+            current_loss_streak = 0
+            best_win_streak = 0
+            worst_loss_streak = 0
+
+            for game in results:
+                participants = self._normalize_participants(game.get("participants", {}))
+                matching = [
+                    participant
+                    for participant in participants
+                    if participant["model_name"] == model_name
+                ]
+
+                if not matching:
+                    continue
+
+                for participant in matching:
+                    role = participant.get("role")
+                    won = self._did_model_win(role, game.get("winner"))
+                    total_games += 1
+                    total_wins += int(won)
+
+                    if won:
+                        current_win_streak += 1
+                        current_loss_streak = 0
+                    else:
+                        current_loss_streak += 1
+                        current_win_streak = 0
+
+                    best_win_streak = max(best_win_streak, current_win_streak)
+                    worst_loss_streak = max(worst_loss_streak, current_loss_streak)
+
+                    if role in role_stats:
+                        role_stats[role]["games"] += 1
+                        role_stats[role]["wins"] += int(won)
+
+                    language = game.get("language") or "Unknown"
+                    language_stats[language]["games"] += 1
+                    language_stats[language]["wins"] += int(won)
+
+                    lobby_key = str(game.get("participant_count") or 0)
+                    lobby_size_stats[lobby_key]["games"] += 1
+                    lobby_size_stats[lobby_key]["wins"] += int(won)
+
+                    if role == "Mafia":
+                        opponents = [
+                            other for other in participants if other.get("role") != "Mafia"
+                        ]
+                        allies = [
+                            other
+                            for other in participants
+                            if other.get("role") == "Mafia"
+                            and other.get("model_name") != model_name
+                        ]
+                    else:
+                        opponents = [
+                            other for other in participants if other.get("role") == "Mafia"
+                        ]
+                        allies = [
+                            other
+                            for other in participants
+                            if other.get("role") != "Mafia"
+                            and other.get("model_name") != model_name
+                        ]
+
+                    for opponent in opponents:
+                        matchup = opponent_stats[opponent["model_name"]]
+                        matchup["games"] += 1
+                        if won:
+                            matchup["wins"] += 1
+                        else:
+                            matchup["losses"] += 1
+
+                    appearances.append(
+                        {
+                            "game_id": game.get("game_id"),
+                            "timestamp": game.get("timestamp"),
+                            "game_type": game.get("game_type"),
+                            "language": language,
+                            "participant_count": game.get("participant_count"),
+                            "winner": game.get("winner"),
+                            "player_name": participant.get("player_name"),
+                            "role": role,
+                            "result": "win" if won else "loss",
+                            "opponents": [
+                                {
+                                    "model_name": opponent.get("model_name"),
+                                    "player_name": opponent.get("player_name"),
+                                    "role": opponent.get("role"),
+                                }
+                                for opponent in opponents
+                            ],
+                            "allies": [
+                                {
+                                    "model_name": ally.get("model_name"),
+                                    "player_name": ally.get("player_name"),
+                                    "role": ally.get("role"),
+                                }
+                                for ally in allies
+                            ],
+                        }
+                    )
+
+            if not appearances:
+                return None
+
+            timeline = []
+            cumulative_games = 0
+            cumulative_wins = 0
+            for appearance in appearances:
+                cumulative_games += 1
+                if appearance["result"] == "win":
+                    cumulative_wins += 1
+
+                timeline.append(
+                    {
+                        "game_id": appearance["game_id"],
+                        "timestamp": appearance["timestamp"],
+                        "result": appearance["result"],
+                        "role": appearance["role"],
+                        "cumulative_win_rate": (
+                            cumulative_wins / cumulative_games if cumulative_games else 0
+                        ),
+                    }
+                )
+
+            matchup_breakdown = []
+            for opponent_model, stats in opponent_stats.items():
+                games = stats["games"]
+                wins = stats["wins"]
+                losses = stats["losses"]
+                matchup_breakdown.append(
+                    {
+                        "model_name": opponent_model,
+                        "games": games,
+                        "wins": wins,
+                        "losses": losses,
+                        "win_rate": wins / games if games else 0,
+                    }
+                )
+
+            matchup_breakdown.sort(
+                key=lambda item: (item["games"], item["wins"], item["win_rate"]),
+                reverse=True,
+            )
+
+            role_breakdown = {}
+            for role_name, stats in role_stats.items():
+                games = stats["games"]
+                wins = stats["wins"]
+                role_breakdown[role_name] = {
+                    "games": games,
+                    "wins": wins,
+                    "losses": games - wins,
+                    "win_rate": wins / games if games else 0,
+                }
+
+            language_breakdown = [
+                {
+                    "language": language,
+                    "games": stats["games"],
+                    "wins": stats["wins"],
+                    "losses": stats["games"] - stats["wins"],
+                    "win_rate": stats["wins"] / stats["games"] if stats["games"] else 0,
+                }
+                for language, stats in sorted(
+                    language_stats.items(),
+                    key=lambda item: item[1]["games"],
+                    reverse=True,
+                )
+            ]
+
+            lobby_breakdown = [
+                {
+                    "participant_count": int(participant_count),
+                    "games": stats["games"],
+                    "wins": stats["wins"],
+                    "losses": stats["games"] - stats["wins"],
+                    "win_rate": stats["wins"] / stats["games"] if stats["games"] else 0,
+                }
+                for participant_count, stats in sorted(
+                    lobby_size_stats.items(),
+                    key=lambda item: int(item[0]),
+                )
+            ]
+
+            won_most_against = sorted(
+                matchup_breakdown,
+                key=lambda item: (item["wins"], item["games"], item["win_rate"]),
+                reverse=True,
+            )[:5]
+            lost_most_against = sorted(
+                matchup_breakdown,
+                key=lambda item: (item["losses"], item["games"], 1 - item["win_rate"]),
+                reverse=True,
+            )[:5]
+            best_matchups = [
+                item
+                for item in sorted(
+                    matchup_breakdown,
+                    key=lambda item: (item["win_rate"], item["games"]),
+                    reverse=True,
+                )
+                if item["games"] >= 2
+            ][:5]
+            toughest_matchups = [
+                item
+                for item in sorted(
+                    matchup_breakdown,
+                    key=lambda item: (item["win_rate"], -item["games"]),
+                )
+                if item["games"] >= 2
+            ][:5]
+
+            recent_games = sorted(
+                appearances,
+                key=lambda appearance: (
+                    appearance.get("timestamp", 0),
+                    appearance.get("game_id", ""),
+                ),
+                reverse=True,
+            )[:20]
+
+            return {
+                "model_name": model_name,
+                "games_played": total_games,
+                "games_won": total_wins,
+                "games_lost": total_games - total_wins,
+                "win_rate": total_wins / total_games if total_games else 0,
+                "current_win_streak": current_win_streak,
+                "current_loss_streak": current_loss_streak,
+                "best_win_streak": best_win_streak,
+                "worst_loss_streak": worst_loss_streak,
+                "role_breakdown": role_breakdown,
+                "language_breakdown": language_breakdown,
+                "lobby_breakdown": lobby_breakdown,
+                "timeline": timeline,
+                "recent_games": recent_games,
+                "matchups": matchup_breakdown,
+                "won_most_against": won_most_against,
+                "lost_most_against": lost_most_against,
+                "best_matchups": best_matchups,
+                "toughest_matchups": toughest_matchups,
+            }
+        except Exception as exc:
+            print(f"Error getting model analytics: {exc}")
+            return None
 
     def get_game_log(self, game_id):
         if not self.initialized:

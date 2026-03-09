@@ -71,6 +71,17 @@ h1, h2, h3 {
     font-size: 0.85rem;
 }
 
+.model-name,
+.player-status-model,
+.sticky-player-model {
+    display: inline-flex;
+    align-items: center;
+}
+
+.participant .model-name {
+    margin-left: 0.4rem;
+}
+
 .mafia {
     color: var(--red);
     background-color: #fef2f2;
@@ -442,6 +453,7 @@ h1, h2, h3 {
 
 .player-status-name { font-weight: 600; margin-bottom: 2px; font-size: 0.85rem; }
 .player-status-role { font-size: 0.8em; color: var(--text-muted); }
+.player-status-model { margin-top: 0.35rem; }
 
 /* Critic Review */
 .critic-review { margin: 16px 0; }
