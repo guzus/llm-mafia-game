@@ -31,23 +31,14 @@
         .provider-logo {
             width: 1.4rem;
             height: 1.4rem;
-            border-radius: 999px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            border-radius: 4px;
             flex: none;
-            color: #fff;
-            font-size: 0.62rem;
-            font-weight: 700;
-            line-height: 1;
-            letter-spacing: -0.02em;
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+            object-fit: contain;
         }
 
         .provider-identity.is-compact .provider-logo {
             width: 1.15rem;
             height: 1.15rem;
-            font-size: 0.52rem;
         }
 
         .provider-copy {
@@ -67,23 +58,6 @@
             color: #555;
             word-break: break-word;
         }
-
-        .provider-openai { background: #111827; }
-        .provider-anthropic { background: #b45309; }
-        .provider-google { background: linear-gradient(135deg, #4285f4 0%, #34a853 33%, #fbbc05 66%, #ea4335 100%); }
-        .provider-xai { background: #0f172a; }
-        .provider-deepseek { background: #1d4ed8; }
-        .provider-qwen { background: #7c3aed; }
-        .provider-moonshot { background: #0f766e; }
-        .provider-meta { background: #2563eb; }
-        .provider-mistral { background: #f97316; }
-        .provider-microsoft { background: #0284c7; }
-        .provider-nous { background: #4f46e5; }
-        .provider-minimax { background: #db2777; }
-        .provider-gryphe { background: #7c2d12; }
-        .provider-nvidia { background: #16a34a; }
-        .provider-cognitive { background: #9333ea; }
-        .provider-other { background: #6b7280; }
     </style>
     {% block head %}{% endblock %}
 </head>
@@ -98,21 +72,21 @@
     <script>
         (() => {
             const providerMetadata = {
-                "openai": { name: "OpenAI", mark: "OA", className: "provider-openai" },
-                "anthropic": { name: "Anthropic", mark: "AN", className: "provider-anthropic" },
-                "google": { name: "Google", mark: "G", className: "provider-google" },
-                "x-ai": { name: "xAI", mark: "x", className: "provider-xai" },
-                "deepseek": { name: "DeepSeek", mark: "DS", className: "provider-deepseek" },
-                "qwen": { name: "Qwen", mark: "QW", className: "provider-qwen" },
-                "moonshotai": { name: "Moonshot", mark: "MS", className: "provider-moonshot" },
-                "meta-llama": { name: "Meta", mark: "M", className: "provider-meta" },
-                "mistralai": { name: "Mistral", mark: "Mi", className: "provider-mistral" },
-                "microsoft": { name: "Microsoft", mark: "MS", className: "provider-microsoft" },
-                "nousresearch": { name: "Nous", mark: "NR", className: "provider-nous" },
-                "minimax": { name: "MiniMax", mark: "MM", className: "provider-minimax" },
-                "gryphe": { name: "Gryphe", mark: "GR", className: "provider-gryphe" },
-                "nvidia": { name: "NVIDIA", mark: "NV", className: "provider-nvidia" },
-                "cognitivecomputations": { name: "Cognitive", mark: "CC", className: "provider-cognitive" },
+                "openai": { name: "OpenAI", icon: "/static/images/providers/openai.svg" },
+                "anthropic": { name: "Anthropic", icon: "/static/images/providers/anthropic.svg" },
+                "google": { name: "Google", icon: "/static/images/providers/google.svg" },
+                "x-ai": { name: "xAI", icon: "/static/images/providers/xai.png" },
+                "deepseek": { name: "DeepSeek", icon: "/static/images/providers/deepseek.png" },
+                "qwen": { name: "Qwen", icon: "/static/images/providers/qwen.png" },
+                "moonshotai": { name: "Moonshot", icon: "/static/images/providers/moonshot.png" },
+                "meta-llama": { name: "Meta", icon: "/static/images/providers/meta.png" },
+                "mistralai": { name: "Mistral", icon: "/static/images/providers/mistral.png" },
+                "microsoft": { name: "Microsoft", icon: "/static/images/providers/microsoft.svg" },
+                "nousresearch": { name: "Nous", icon: "/static/images/providers/nous.png" },
+                "minimax": { name: "MiniMax", icon: "/static/images/providers/minimax.png" },
+                "gryphe": { name: "Gryphe", icon: "/static/images/providers/gryphe.png" },
+                "nvidia": { name: "NVIDIA", icon: "/static/images/providers/nvidia.png" },
+                "cognitivecomputations": { name: "Cognitive", icon: "/static/images/providers/cognitive.png" },
             };
 
             function escapeHtml(value) {
@@ -128,8 +102,7 @@
                 const providerId = String(modelId || "").split("/")[0] || "other";
                 return providerMetadata[providerId] || {
                     name: providerId ? providerId.replace(/[-_]/g, " ") : "Unknown",
-                    mark: providerId.slice(0, 2).toUpperCase() || "?",
-                    className: "provider-other",
+                    icon: null,
                 };
             }
 
@@ -146,9 +119,13 @@
                 const modelLabel = getModelLabel(modelId);
                 const classes = compact ? "provider-identity is-compact" : "provider-identity";
 
+                const logoHtml = provider.icon
+                    ? `<img class="provider-logo" src="${escapeHtml(provider.icon)}" alt="${escapeHtml(provider.name)}" loading="lazy">`
+                    : "";
+
                 return `
                     <span class="${classes}" title="${escapeHtml(provider.name)} ${escapeHtml(modelLabel)}">
-                        <span class="provider-logo ${provider.className}" aria-hidden="true">${escapeHtml(provider.mark)}</span>
+                        ${logoHtml}
                         <span class="provider-copy">
                             ${includeCompany ? `<span class="provider-company">${escapeHtml(provider.name)}</span>` : ""}
                             ${showModel ? `<span class="provider-model">${escapeHtml(modelLabel)}</span>` : ""}
