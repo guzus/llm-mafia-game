@@ -4,6 +4,7 @@ This module handles interactions with both OpenRouter and Ollama APIs.
 """
 
 import json
+import time
 from typing import Any
 
 import requests
@@ -13,6 +14,7 @@ from logger import GameLogger
 # Create a logger instance for model-specific issues
 model_logger = GameLogger(log_to_file=True)
 OPENROUTER_API_ROOT = "https://openrouter.ai/api/v1"
+OPENROUTER_RETRY_STATUSES = {408, 429, 500, 502, 503, 504}
 
 
 def _configured_openrouter_key(api_key: str | None = None) -> str | None:
@@ -134,33 +136,57 @@ def get_openrouter_response(model_name, prompt):
         "max_tokens": config.MAX_OUTPUT_TOKENS,
     }
 
-    try:
-        response = requests.post(
-            config.OPENROUTER_API_URL,
-            headers=headers,
-            data=json.dumps(data),
-            timeout=timeout,  # Use model-specific timeout
-        )
-        response.raise_for_status()
+    max_attempts = model_config.get("max_retries", 3)
+    last_error = None
+    last_response_text = "No response received"
 
-        result = response.json()
-        return result["choices"][0]["message"]["content"]
-
-    except Exception as e:
-        # Initialize response_text to handle cases where response is not defined
-        response_text = "No response received"
-
-        # Only try to access response.text if response is defined
+    for attempt in range(1, max_attempts + 1):
+        response = None
         try:
-            if "response" in locals():
-                response_text = response.text
-        except:
-            pass
+            response = requests.post(
+                config.OPENROUTER_API_URL,
+                headers=headers,
+                data=json.dumps(data),
+                timeout=timeout,
+            )
 
-        print(
-            f"Error getting response from OpenRouter model {model_name}: error: {e}, response: {response_text}"
-        )
-        return "ERROR: Could not get response from OpenRouter"
+            if response.status_code in OPENROUTER_RETRY_STATUSES and attempt < max_attempts:
+                last_response_text = response.text
+                model_logger.warning(
+                    f"Retrying OpenRouter model {model_name} after HTTP {response.status_code} "
+                    f"(attempt {attempt}/{max_attempts})"
+                )
+                time.sleep(min(2 ** (attempt - 1), 4))
+                continue
+
+            response.raise_for_status()
+            result = response.json()
+            return result["choices"][0]["message"]["content"]
+        except Exception as exc:
+            last_error = exc
+            if response is not None:
+                last_response_text = response.text
+
+            should_retry = False
+            if response is not None and response.status_code in OPENROUTER_RETRY_STATUSES:
+                should_retry = attempt < max_attempts
+            elif isinstance(exc, requests.RequestException):
+                should_retry = attempt < max_attempts
+
+            if should_retry:
+                time.sleep(min(2 ** (attempt - 1), 4))
+                continue
+
+    model_logger.log_model_issue(
+        model_name,
+        "openrouter_request_failed",
+        f"error={last_error}, response={last_response_text[:1000]}",
+    )
+    print(
+        f"Error getting response from OpenRouter model {model_name}: error: {last_error}, "
+        f"response: {last_response_text}"
+    )
+    return "ERROR: Could not get response from OpenRouter"
 
 
 def get_openrouter_key_info(api_key: str | None = None) -> dict[str, Any]:

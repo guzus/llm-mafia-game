@@ -908,7 +908,7 @@ Format your response as a JSON object with 'title', 'content', and 'one_liner' f
             model_name = config.CRITIC_MODEL
             response_content = get_llm_response(model_name, prompt)
 
-            if response_content == "ERROR: Could not get response":
+            if response_content.startswith("ERROR:"):
                 return {
                     "title": "Game Review Unavailable",
                     "content": "The critic was unable to review this game due to API issues.",

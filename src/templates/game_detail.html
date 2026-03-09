@@ -104,6 +104,24 @@
     <script>
         // Get game ID from URL
         const gameId = window.location.pathname.split('/').pop();
+        const escapeHtml = window.LlmBranding.escapeHtml;
+
+        function normalizeMessageText(rawContent) {
+            const content = String(rawContent || '').trim();
+            if (!content.startsWith('ERROR: Could not get response')) {
+                return content;
+            }
+            return 'Model response unavailable for this turn because the upstream provider request failed.';
+        }
+
+        function renderMessageContent(rawContent) {
+            return escapeHtml(normalizeMessageText(rawContent)).replace(/\n/g, '<br>');
+        }
+
+        function summarizeMessageContent(rawContent, limit = 100) {
+            const normalized = normalizeMessageText(rawContent).replace(/\s+/g, ' ').trim();
+            return normalized.length > limit ? `${normalized.substring(0, limit)}...` : normalized;
+        }
         
         // Function to share a specific message
         function shareMessage(messageId) {
@@ -716,7 +734,7 @@
                                     </a>
                                 </span>
                             </div>
-                            <div class="dialogue-content">${message.content}</div>
+                            <div class="dialogue-content">${renderMessageContent(message.content)}</div>
                         </div>`;
 
                         // Insert night phase summary after the last night message
@@ -1175,18 +1193,14 @@
                     const speechBubble = speakerElement.querySelector('.speech-bubble');
                     if (speechBubble) {
                         // Truncate long messages
-                        const truncatedContent = message.content.length > 100 ? 
-                            message.content.substring(0, 100) + '...' : message.content;
-                        
-                        // Replace newlines with spaces
-                        const formattedContent = truncatedContent.replace(/\n/g, ' ');
+                        const formattedContent = summarizeMessageContent(message.content, 100);
                         
                         speechBubble.textContent = formattedContent;
                         speechBubble.classList.add('visible');
                     }
                     
                     // Add to event log
-                    addEventLogItem(`${message.speaker.split('/').pop()}: ${message.content.substring(0, 50)}${message.content.length > 50 ? '...' : ''}`);
+                    addEventLogItem(`${message.speaker.split('/').pop()}: ${summarizeMessageContent(message.content, 50)}`);
                 }
             }
             
@@ -1249,18 +1263,14 @@
                     const speechBubble = speakerElement.querySelector('.speech-bubble');
                     if (speechBubble) {
                         // Truncate long messages
-                        const truncatedContent = message.content.length > 100 ? 
-                            message.content.substring(0, 100) + '...' : message.content;
-                        
-                        // Replace newlines with spaces
-                        const formattedContent = truncatedContent.replace(/\n/g, ' ');
+                        const formattedContent = summarizeMessageContent(message.content, 100);
                         
                         speechBubble.textContent = formattedContent;
                         speechBubble.classList.add('visible');
                     }
                     
                     // Add to event log
-                    addEventLogItem(`${message.speaker.split('/').pop()}: ${message.content.substring(0, 50)}${message.content.length > 50 ? '...' : ''}`);
+                    addEventLogItem(`${message.speaker.split('/').pop()}: ${summarizeMessageContent(message.content, 50)}`);
                 }
             }
             
