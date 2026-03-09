@@ -81,6 +81,29 @@ simulation_state = {
 }
 
 
+def _rank_models_for_leaderboard(stats, min_games=None):
+    """Sort models so only sufficiently sampled models can lead by win rate."""
+    threshold = config.MIN_GAMES_FOR_TOP_DISPLAY if min_games is None else min_games
+    return sorted(
+        stats.items(),
+        key=lambda item: (
+            item[1]["games_played"] < threshold,
+            -item[1]["win_rate"],
+            -item[1]["games_played"],
+            item[0],
+        ),
+    )
+
+
+def _get_eligible_win_rate_models(stats):
+    """Return models eligible for top win-rate displays."""
+    return [
+        (model, model_stats)
+        for model, model_stats in _rank_models_for_leaderboard(stats)
+        if model_stats["games_played"] >= config.MIN_GAMES_FOR_TOP_DISPLAY
+    ]
+
+
 # Add template filter for formatting timestamps
 @app.template_filter("strftime")
 def _jinja2_filter_strftime(timestamp):
@@ -346,7 +369,9 @@ def _run_admin_simulation(job_id, simulation_config):
 @app.route("/")
 def index():
     """Render the main dashboard page."""
-    return render_template("index.html")
+    return render_template(
+        "index.html", min_games_for_top_display=config.MIN_GAMES_FOR_TOP_DISPLAY
+    )
 
 
 @app.route("/game/<game_id>")
@@ -631,10 +656,16 @@ def get_win_rate_chart():
         if not stats:
             return make_response(jsonify({"error": "No data available"}), 404)
 
-        # Sort models by overall win rate
-        sorted_models = sorted(
-            stats.items(), key=lambda x: x[1]["win_rate"], reverse=True
-        )
+        sorted_models = _get_eligible_win_rate_models(stats)
+        if not sorted_models:
+            return make_response(
+                jsonify(
+                    {
+                        "error": f"No models with at least {config.MIN_GAMES_FOR_TOP_DISPLAY} games"
+                    }
+                ),
+                404,
+            )
 
         # Extract data for chart
         models = [model for model, _ in sorted_models]
@@ -815,10 +846,12 @@ def get_win_rate_image():
         if not stats:
             return make_response("No data available", 404)
 
-        # Sort models by overall win rate
-        sorted_models = sorted(
-            stats.items(), key=lambda x: x[1]["win_rate"], reverse=True
-        )
+        sorted_models = _get_eligible_win_rate_models(stats)
+        if not sorted_models:
+            return make_response(
+                f"No models with at least {config.MIN_GAMES_FOR_TOP_DISPLAY} games",
+                404,
+            )
 
         # Extract data for chart
         models = [model for model, _ in sorted_models]

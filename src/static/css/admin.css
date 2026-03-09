@@ -30,6 +30,33 @@ a {
     color: inherit;
 }
 
+.game-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.38rem 0.64rem;
+    border-radius: 999px;
+    border: 1px solid rgba(15, 118, 110, 0.18);
+    background: rgba(15, 118, 110, 0.08);
+    color: var(--admin-accent-dark);
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.game-link::after {
+    content: "Open";
+    padding: 0.16rem 0.38rem;
+    border-radius: 999px;
+    background: rgba(15, 118, 110, 0.12);
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
 .admin-shell {
     width: min(1180px, calc(100vw - 2rem));
     margin: 2.5rem auto 3rem;

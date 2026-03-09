@@ -73,6 +73,8 @@
 
 {% block scripts %}
     <script>
+        const minGamesForTopDisplay = {{ min_games_for_top_display | tojson }};
+
         // Load charts directly as images (more efficient)
         document.addEventListener('DOMContentLoaded', function() {
             // Win rates chart
@@ -132,8 +134,24 @@
                     return;
                 }
                 
-                // Sort models by win rate
-                const sortedModels = Object.keys(data).sort((a, b) => data[b].win_rate - data[a].win_rate);
+                // Sort models so only sufficiently sampled models can lead by win rate.
+                const sortedModels = Object.keys(data).sort((a, b) => {
+                    const aStats = data[a];
+                    const bStats = data[b];
+                    const aEligible = aStats.games_played >= minGamesForTopDisplay;
+                    const bEligible = bStats.games_played >= minGamesForTopDisplay;
+
+                    if (aEligible !== bEligible) {
+                        return aEligible ? -1 : 1;
+                    }
+                    if (bStats.win_rate !== aStats.win_rate) {
+                        return bStats.win_rate - aStats.win_rate;
+                    }
+                    if (bStats.games_played !== aStats.games_played) {
+                        return bStats.games_played - aStats.games_played;
+                    }
+                    return a.localeCompare(b);
+                });
                 
                 for (const model of sortedModels) {
                     const stats = data[model];
@@ -203,7 +221,7 @@
                         .join(', ');
                     
                     row.innerHTML = `
-                        <td><a href="/game/${game.game_id}" class="game-id">${game.game_id}</a></td>
+                        <td><a href="/game/${encodeURIComponent(game.game_id)}" class="game-id">${game.game_id}</a></td>
                         <td>${game.winner}</td>
                         <td>${participants}</td>
                         <td>${game.language || "English"}</td>

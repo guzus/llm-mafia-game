@@ -236,7 +236,7 @@
                         <div class="summary-item"><span>Finished</span><strong>${window.LlmBranding.escapeHtml(formatTimestamp(simulation?.finished_at))}</strong></div>
                         <div class="summary-item"><span>Games Requested</span><strong>${config?.num_games ?? '-'}</strong></div>
                         <div class="summary-item"><span>Games Completed</span><strong>${result?.completed_games ?? '-'}</strong></div>
-                        <div class="summary-item"><span>Last Game</span><strong>${result?.last_game_id ? `<a href="/game/${result.last_game_id}">${window.LlmBranding.escapeHtml(result.last_game_id)}</a>` : '-'}</strong></div>
+                        <div class="summary-item"><span>Last Game</span><strong>${result?.last_game_id ? `<a class="game-link" href="/game/${encodeURIComponent(result.last_game_id)}">${window.LlmBranding.escapeHtml(result.last_game_id)}</a>` : '-'}</strong></div>
                     </div>
                     ${error ? `<div class="summary-error"><strong>Error:</strong> ${window.LlmBranding.escapeHtml(error.message || 'Unknown error')}</div>` : ''}
                 `;

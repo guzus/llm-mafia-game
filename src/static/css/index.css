@@ -252,22 +252,46 @@ tbody tr:hover {
 
 /* Game ID Link */
 .game-id {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
     cursor: pointer;
     color: var(--accent);
     text-decoration: none;
     font-family: var(--font-mono);
     font-size: 0.8rem;
-    font-weight: 500;
-    padding: 2px 8px;
-    border-radius: 4px;
-    background-color: #f0f6ff;
-    transition: background-color 0.15s;
+    font-weight: 600;
+    line-height: 1;
+    padding: 0.5rem 0.72rem;
+    border-radius: 999px;
+    border: 1px solid #bfdbfe;
+    background:
+        linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    transition: background-color 0.15s, border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+
+.game-id::after {
+    content: "Open";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.18rem 0.42rem;
+    border-radius: 999px;
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--accent-hover);
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 
 .game-id:hover {
-    background-color: #dbeafe;
+    background: #dbeafe;
+    border-color: #93c5fd;
     color: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.12);
 }
 
 /* Loading */

@@ -27,6 +27,7 @@ OLLAMA_MODELS = [
 
 # Database settings (Neon PostgreSQL-compatible)
 DATABASE_URL = os.getenv("DATABASE_URL", "")
+MIN_GAMES_FOR_TOP_DISPLAY = int(os.getenv("MIN_GAMES_FOR_TOP_DISPLAY", 5))
 
 # Game settings
 
